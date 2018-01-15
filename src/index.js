@@ -6,8 +6,8 @@ const compression = require('compression')
 const expressStatusMonitor = require('express-status-monitor')
 const {loggers: {logger, expressLogger}, expressHelpers: {errorHandler}} = require('@welldone-software/node-toolbelt')
 const apiRouter = require('app/apiRouter')
-const {PORT, DATABASE_URL} = require('app/config')
-const eventsLog = require('app/services/eventsLog')
+const {port, databaseUrl} = require('app/config')
+const eventLog = require('app/services/eventLog')
 const {dbInit} = require('app/db')
 
 const app = express()
@@ -20,11 +20,11 @@ app.use('/api/v1', apiRouter)
 app.use(expressStatusMonitor())
 app.use(errorHandler)
 
-dbInit(DATABASE_URL)
+dbInit(databaseUrl)
   .then(() => {
-    const server = app.listen(PORT, () => {
+    const server = app.listen(port, () => {
       logger.info({binding: server.address()}, 'Server started')
-      eventsLog.start()
+      eventLog.start()
     })
   })
   .catch((err) => logger.error(err))
