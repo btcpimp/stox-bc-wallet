@@ -12,8 +12,6 @@ const {
 const {
   validateAddress,
   weiToEther,
-  getStorageItemSync,
-  setStorageItemSync,
 } = require('app/utils')
 
 const getLastConfirmedBlock = async () => {
@@ -24,10 +22,6 @@ const getLastConfirmedBlock = async () => {
 const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
   validateAddress(tokenAddress)
   const tokenContract = getERC20TokenContract(tokenAddress)
-
-  if (fromBlock === undefined) {
-    fromBlock = getStorageItemSync('lastCheckedBlock', 0) + 1
-  }
 
   const toBlock = await getLastConfirmedBlock()
   if ((toBlock - fromBlock) > maxBlocksRead) {
@@ -59,8 +53,7 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
     // }
   })
 
-  setStorageItemSync('lastCheckedBlock', toBlock)
-  return ({transactions})
+  return ({toBlock, transactions})
 }
 
 const getAccountBalance = async (tokenAddress, owner) => {
@@ -70,8 +63,8 @@ const getAccountBalance = async (tokenAddress, owner) => {
   return tokenContract.methods.balanceOf(owner).call(undefined, await getLastConfirmedBlock())
 }
 
-const getAccountBalanceInEther = async accountAddress => ({
-  balance: Number(weiToEther(await getAccountBalance(accountAddress))),
+const getAccountBalanceInEther = async (tokenAddress, owner) => ({
+  balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner))),
 })
 
 module.exports = {

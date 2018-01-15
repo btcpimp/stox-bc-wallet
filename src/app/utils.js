@@ -1,4 +1,3 @@
-const storage = require('node-persist')
 const {web3} = require('./services/blockchain')
 const {
   exceptions: {InvalidArgumentError},
@@ -13,19 +12,8 @@ const validateAddress = (address) => {
   }
 }
 
-const getStorageItemSync = (key, defaultItem) => {
-  const item = storage.getItemSync(key)
-  return item === undefined ? defaultItem : item
-}
-
-const setStorageItemSync = (key, value) => {
-  storage.setItemSync(key, value)
-}
-
 module.exports = {
   weiToEther,
   etherToWei,
   validateAddress,
-  getStorageItemSync,
-  setStorageItemSync,
 }
