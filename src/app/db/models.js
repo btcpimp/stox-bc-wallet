@@ -1,8 +1,9 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL} = DataTypes
+const {STRING, DATE, DECIMAL, INTEGER} = DataTypes
 const STXAMOUNT = DECIMAL(36, 18)
 const ETHEREUM_ADDRESS = STRING(42)
+const TRANSACTION_HASH = STRING(66)
 
 const isValidAmount = (value) => {
   if (value >= 0.000000000000000001) {
@@ -28,7 +29,7 @@ module.exports = (sequelize) => {
     'eventLogsSettings',
     {
       tokenAddress: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      lastReadBlockAddress: {type: ETHEREUM_ADDRESS, allowNull: false},
+      lastReadBlock: {type: INTEGER, defaultValue: 0, allowNull: false},
     },
     {
       createdAt: false,
@@ -39,9 +40,9 @@ module.exports = (sequelize) => {
   sequelize.define(
     'eventLogs',
     {
-      txHash: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      block: {type: ETHEREUM_ADDRESS, allowNull: false},
-      token: {type: STRING, allowNull: false},
+      transactionHash: {type: TRANSACTION_HASH, primaryKey: true},
+      blockNumber: {type: INTEGER, defaultValue: 0, allowNull: false},
+      tokenAddress: {type: STRING, allowNull: false},
       from: {type: STRING, allowNull: false},
       to: {type: STRING, allowNull: false},
       amount: {type: STXAMOUNT, allowNull: false, validate: {isValidAmount}},
@@ -56,7 +57,7 @@ module.exports = (sequelize) => {
     'wallet',
     {
       address: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      token: {type: STRING, allowNull: false},
+      tokenAddress: {type: STRING, allowNull: false},
       balance: {type: STXAMOUNT, allowNull: false},
       createdAt: {type: DATE},
       assignedAt: {type: DATE},
