@@ -13,9 +13,7 @@ const seedDb = async () => {
   })
 
   const createWallet = async () => db.wallet.create({
-    address: 'wallet-address-1',
-    tokenAddress: '0x006BeA43Baa3f7A6f765F14f10A1a1b08334EF45',
-    balance: 0,
+    address: '0x15593BCF5357a1975e5069EDF54b24F28B8D2C02',
   })
 
   const createLogSettings = async () => db.eventLogsSettings.create({
@@ -29,7 +27,7 @@ const seedDb = async () => {
     await createLogSettings()
   }
   catch (e) {
-    logger.error(e)
+    logger.error(e.original.message)
   }
 }
 
@@ -67,40 +65,39 @@ const getLatestTransactions = async (address, lastReadBlock) => {
   }
 }
 
-const updateDatabase = async (address, lastReadBlock, transactions) => {
-  await db.sequelize.transaction()
-    .then(async (transaction) => {
-      const tokenSettings = await db.eventLogsSettings.findOne({
-        where: {tokenAddress: address},
-      })
-      await tokenSettings.updateAttributes(
-        {lastReadBlock},
-        {transaction}
-      )
-
-      const promises = transactions.map(async ({amount, blockNumber, from, to, transactionHash}) =>
-        db.eventLogs.create(
-          {
-            tokenAddress: address,
-            transactionHash,
-            blockNumber: Number(blockNumber),
-            from,
-            to,
-            amount: Number(amount),
-          },
-          {transaction}
-        ))
-
-      await Promise.all(promises)
-
-      try {
-        await transaction.commit()
-      } catch (e) {
-        transaction.rollback()
-        logger.error(e)
-        throw e
-      }
+const updateDatabase = async (address, toBlock, transactions) => {
+  await db.sequelize.transaction().then(async (transaction) => {
+    const tokenSettings = await db.eventLogsSettings.findOne({
+      where: {tokenAddress: address},
     })
+    await tokenSettings.updateAttributes(
+      {lastReadBlock: toBlock},
+      {transaction}
+    )
+
+    const promises = transactions.map(async ({amount, blockNumber, from, to, transactionHash}) =>
+      db.eventLogs.create(
+        {
+          tokenAddress: address,
+          transactionHash,
+          blockNumber: Number(blockNumber),
+          from,
+          to,
+          amount: Number(amount),
+        },
+        {transaction}
+      ))
+
+    await Promise.all(promises)
+
+    try {
+      await transaction.commit()
+    } catch (e) {
+      transaction.rollback()
+      logger.error(e)
+      throw e
+    }
+  })
 }
 
 const fetchLatestTransactions = async (address) => {
@@ -126,7 +123,7 @@ const start = async () => {
   // await seedDb()
 
   let working = false
-  schedule.scheduleJob('*/30 * * * * *', async () => {
+  schedule.scheduleJob('*/10 * * * * *', async () => {
     if (!working) {
       working = !working
 

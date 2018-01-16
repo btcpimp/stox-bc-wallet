@@ -2,6 +2,7 @@
 --DROP TABLE "eventLogsSettings";
 --DROP TABLE "tokens";
 --DROP TABLE "wallets";
+--DROP TABLE "walletBalance";
 
 CREATE TABLE "eventLogs"
 (
@@ -31,9 +32,18 @@ CREATE TABLE "tokens"
 CREATE TABLE "wallets"
 (
     "address" character(42) NOT NULL,
-    "tokenAddress" character(42),
-    "balance" numeric(38,18),
-    "createdAt" date,
-    "assignedAt" date,
-    CONSTRAINT wallets_pkey PRIMARY KEY ("address")
+    "userId" uuid,
+    "createdAt" timestamp with time zone NOT NULL,
+    "assignedAt" timestamp with time zone,
+    CONSTRAINT wallets_pkey PRIMARY KEY ("address"),
+    CONSTRAINT userId_unique_key UNIQUE ("userId")
+)
+
+CREATE TABLE "walletBalance"
+(
+    "address" character(42) NOT NULL,
+    "tokenAddress" character(42) NOT NULL,
+    "balance" numeric(38,18) NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "walletBalance_pkey" PRIMARY KEY ("address", "tokenAddress")
 )

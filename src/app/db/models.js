@@ -1,6 +1,6 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL, INTEGER} = DataTypes
+const {STRING, DATE, DECIMAL, INTEGER, UUID} = DataTypes
 const STXAMOUNT = DECIMAL(36, 18)
 const ETHEREUM_ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)
@@ -42,7 +42,7 @@ module.exports = (sequelize) => {
     {
       transactionHash: {type: TRANSACTION_HASH, primaryKey: true},
       blockNumber: {type: INTEGER, defaultValue: 0, allowNull: false},
-      tokenAddress: {type: STRING, allowNull: false},
+      tokenAddress: {type: ETHEREUM_ADDRESS, allowNull: false},
       from: {type: STRING, allowNull: false},
       to: {type: STRING, allowNull: false},
       amount: {type: STXAMOUNT, allowNull: false, validate: {isValidAmount}},
@@ -57,15 +57,25 @@ module.exports = (sequelize) => {
     'wallet',
     {
       address: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      tokenAddress: {type: STRING, allowNull: false},
-      balance: {type: STXAMOUNT, allowNull: false},
-      createdAt: {type: DATE},
+      userId: {type: UUID, primaryKey: true},
+      createdAt: {type: DATE, allowNull: false},
       assignedAt: {type: DATE},
     },
     {
-      assignedAt: false,
-      createdAt: false,
       updatedAt: false,
+    }
+  )
+
+  sequelize.define(
+    'walletBalance',
+    {
+      address: {type: ETHEREUM_ADDRESS, primaryKey: true},
+      tokenAddress: {type: ETHEREUM_ADDRESS, allowNull: false},
+      balance: {type: STXAMOUNT, validate: {min: 0}, allowNull: false},
+      updatedAt: {type: DATE},
+    },
+    {
+      createdAt: false,
     }
   )
 
