@@ -9,8 +9,8 @@ const router = new Router()
 router.use(bodyParser.json())
 
 router.get(
-  '/wallets/:userId',
-  _(({params: {userId}}) => wallets.getWallet(userId))
+  '/wallets/unassigned',
+  _(() => wallets.getUnassignedWallet())
 )
 
 router.post(
@@ -20,7 +20,7 @@ router.post(
 
 router.post(
   '/wallets/assign',
-  _(({body: {userId}}) => wallets.assignWallet(userId))
+  _(({body: {address}}) => wallets.assignWallet(address))
 )
 
 module.exports = router

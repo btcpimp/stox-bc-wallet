@@ -57,7 +57,6 @@ module.exports = (sequelize) => {
     'wallet',
     {
       address: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      userId: {type: UUID, primaryKey: true},
       createdAt: {type: DATE, allowNull: false},
       assignedAt: {type: DATE},
     },

@@ -10,44 +10,30 @@ const db = require('app/db')
 
 // TODO: create indexes
 
-const getWallet = async userId => db.wallet.findOne({where: {userId}})
+const getUnassignedWallet = async () => db.wallet.findOne({where: {assignedAt: null}})
 
 const createWallet = async () => db.wallet.create({address: new Date().getTime(), assignedAt: null})
 
-const assignWallet = async (userId) => {
-  if (!userId) {
-    throw new InvalidArgumentError('userId cannot be empty')
+const assignWallet = async (address) => {
+  if (!address) {
+    throw new InvalidArgumentError('address cannot be empty')
   }
 
-  // TODO: validate user has no wallet
-
-  const wallet = await db.wallet.findOne({
-    where: {
-      assignedAt: null,
-    },
-  })
+  const wallet = await db.wallet.findOne({where: {address}})
 
   if (!wallet) {
     throw new NotFoundError('no wallets to assign')
   }
 
-  db.wallet.update(
-    {
-      userId,
-      assignedAt: new Date(),
-    },
-    {
-      where: {
-        address: wallet.address,
-      },
-    },
-  )
+  if (wallet.assignedAt) {
+    throw new InvalidArgumentError('wallet is already assgined')
+  }
 
-  return wallet.address
+  wallet.update({assignedAt: new Date()})
 }
 
 module.exports = {
-  getWallet,
+  getUnassignedWallet,
   createWallet,
   assignWallet,
 }

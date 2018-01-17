@@ -32,7 +32,6 @@ CREATE TABLE "tokens"
 CREATE TABLE "wallets"
 (
     "address" character(42) NOT NULL,
-    "userId" uuid,
     "createdAt" timestamp with time zone NOT NULL,
     "assignedAt" timestamp with time zone,
     CONSTRAINT wallets_pkey PRIMARY KEY ("address"),
