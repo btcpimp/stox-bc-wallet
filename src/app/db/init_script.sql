@@ -34,8 +34,7 @@ CREATE TABLE "wallets"
     "address" character(42) NOT NULL,
     "createdAt" timestamp with time zone NOT NULL,
     "assignedAt" timestamp with time zone,
-    CONSTRAINT wallets_pkey PRIMARY KEY ("address"),
-    CONSTRAINT userId_unique_key UNIQUE ("userId")
+    CONSTRAINT wallets_pkey PRIMARY KEY ("address")
 )
 
 CREATE TABLE "walletBalance"
