@@ -1,5 +1,52 @@
 version: '2'
 services:
+    server:
+        build:
+            context: ./stox-server/
+            dockerfile: Dockerfile
+        container_name: stox_server
+        ports:
+            - "3000:3000"
+        tty: true
+        env_file:
+            - ./stox-server/.env
+        links:
+            - db
+            - rabbitmq
+        depends_on:
+            - db
+            - rabbitmq
+
+    bc_wallet:
+        build:
+            context: ./stox-bc-wallet
+            dockerfile: Dockerfile
+        container_name: stox_bc_wallet
+        ports:
+            - "3001:3001"
+        tty: true
+        links:
+            - db
+            - rabbitmq
+        depends_on:
+            - db
+            - rabbitmq
+
+    bc_api:
+        build:
+            context: ./stox-bc-api
+            dockerfile: Dockerfile
+        container_name: stox_bc_api
+        ports:
+            - "3002:3002"
+        tty: true
+        links:
+            - db
+            - rabbitmq
+        depends_on:
+            - db
+            - rabbitmq
+
     db:
         image: postgres
         container_name: stox_db
