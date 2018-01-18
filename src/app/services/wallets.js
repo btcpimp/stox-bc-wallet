@@ -1,25 +1,10 @@
-const Sequelize = require('sequelize')
-const {
-  exceptions: {
-    InvalidArgumentError,
-    NotFoundError,
-  },
-  loggers: {logger},
-} = require('@welldone-software/node-toolbelt')
+const {exceptions: {InvalidArgumentError, NotFoundError}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
-
-// TODO: create indexes
-
-const getUnassignedWallet = async () => db.wallet.findOne({where: {assignedAt: null}})
 
 const createWallet = async () => db.wallet.create({address: new Date().getTime(), assignedAt: null})
 
-const assignWallet = async (address) => {
-  if (!address) {
-    throw new InvalidArgumentError('address cannot be empty')
-  }
-
-  const wallet = await db.wallet.findOne({where: {address}})
+const assignWallet = async () => {
+  const wallet = await db.wallet.findOne({where: {assignedAt: null}})
 
   if (!wallet) {
     throw new NotFoundError('no wallets to assign')
@@ -30,11 +15,11 @@ const assignWallet = async (address) => {
   }
 
   wallet.update({assignedAt: new Date()})
+
+  return wallet.address
 }
 
 module.exports = {
-  getUnassignedWallet,
   createWallet,
   assignWallet,
 }
-

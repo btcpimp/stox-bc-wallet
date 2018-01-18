@@ -13,6 +13,7 @@ const {
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
+//const eventLog = require('app/services/eventLog')
 
 const app = express()
 
