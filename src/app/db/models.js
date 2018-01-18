@@ -1,6 +1,6 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL, INTEGER, UUID} = DataTypes
+const {STRING, DATE, DECIMAL, INTEGER} = DataTypes
 const STXAMOUNT = DECIMAL(36, 18)
 const ETHEREUM_ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)

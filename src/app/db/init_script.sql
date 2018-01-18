@@ -45,3 +45,5 @@ CREATE TABLE "walletBalance"
     "updatedAt" timestamp with time zone NOT NULL,
     CONSTRAINT "walletBalance_pkey" PRIMARY KEY ("address", "tokenAddress")
 )
+
+CREATE INDEX wallets_assigned_at ON wallets USING btree ("assignedAt")
