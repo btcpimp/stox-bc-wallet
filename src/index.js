@@ -30,11 +30,10 @@ app.use('/api/v1', apiRouter)
 app.use(expressStatusMonitor())
 app.use(errorHandler)
 
-dbInit(databaseUrl)
-  .then(() => {
-    const server = app.listen(port, () => {
-      logger.info({binding: server.address()}, 'Server started')
-      transactionLog.start()
-    })
-  })
-  .catch((err) => logger.error(err))
+const server = app.listen(port, () => {
+  logger.info({binding: server.address()}, 'Server started')
+
+  dbInit(databaseUrl)
+    .then(() => transactionLog.start())
+    .catch(err => logger.error(err))
+})
