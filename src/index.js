@@ -13,7 +13,7 @@ const {
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
-//const eventLog = require('app/services/eventLog')
+const transactionLog = require('app/services/transactionLog')
 
 const app = express()
 
@@ -34,7 +34,7 @@ dbInit(databaseUrl)
   .then(() => {
     const server = app.listen(port, () => {
       logger.info({binding: server.address()}, 'Server started')
-      // eventLog.start()
+      transactionLog.start()
     })
   })
   .catch((err) => logger.error(err))

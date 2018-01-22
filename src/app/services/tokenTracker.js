@@ -45,7 +45,9 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
       // eslint-disable-next-line no-underscore-dangle
       amount: weiToEther(event.returnValues._value),
       blockNumber: event.blockNumber,
-      transactionHash: event.transactionHash}
+      transactionHash: event.transactionHash,
+      event,
+    }
 
     transactions.push(transaction)
     // if (weiToEther(event.returnValues._value) > 50000) {

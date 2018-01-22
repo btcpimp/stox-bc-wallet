@@ -1,23 +1,15 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL, INTEGER} = DataTypes
-const STXAMOUNT = DECIMAL(36, 18)
-const ETHEREUM_ADDRESS = STRING(42)
+const {STRING, DATE, DECIMAL, INTEGER, JSON} = DataTypes
+const AMOUNT = DECIMAL(36, 18)
+const ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)
 
-const isValidAmount = (value) => {
-  if (value >= 0.000000000000000001) {
-    return true
-  }
-  throw new Error('amountInvalid')
-}
-
 module.exports = (sequelize) => {
-  sequelize.define(
-    'token',
+  const Network = sequelize.define(
+    'networks',
     {
-      address: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      name: {type: STRING, allowNull: false},
+      name: {type: STRING, primaryKey: true},
     },
     {
       createdAt: false,
@@ -25,11 +17,12 @@ module.exports = (sequelize) => {
     }
   )
 
-  sequelize.define(
-    'eventLogsSettings',
+  const Token = sequelize.define(
+    'tokens',
     {
-      tokenAddress: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      lastReadBlock: {type: INTEGER, defaultValue: 0, allowNull: false},
+      name: {type: STRING, primaryKey: true},
+      displayName: {type: STRING, allowNull: false},
+      address: {type: ADDRESS, allowNull: false},
     },
     {
       createdAt: false,
@@ -37,44 +30,80 @@ module.exports = (sequelize) => {
     }
   )
 
-  sequelize.define(
-    'eventLogs',
+  const Wallet = sequelize.define(
+    'wallets',
     {
-      transactionHash: {type: TRANSACTION_HASH, primaryKey: true},
-      blockNumber: {type: INTEGER, defaultValue: 0, allowNull: false},
-      tokenAddress: {type: ETHEREUM_ADDRESS, allowNull: false},
-      from: {type: STRING, allowNull: false},
-      to: {type: STRING, allowNull: false},
-      amount: {type: STXAMOUNT, allowNull: false, validate: {isValidAmount}},
-    },
-    {
-      createdAt: false,
-      updatedAt: false,
-    }
-  )
-
-  sequelize.define(
-    'wallet',
-    {
-      address: {type: ETHEREUM_ADDRESS, primaryKey: true},
+      address: {type: ADDRESS, primaryKey: true},
+      network: {type: STRING, allowNull: false},
       createdAt: {type: DATE, allowNull: false},
       assignedAt: {type: DATE},
     },
     {
       updatedAt: false,
+      indexes: [
+        {
+          fields: ['network'],
+        },
+        {
+          fields: ['assignedAt'],
+        },
+      ],
     }
   )
 
-  sequelize.define(
-    'walletBalance',
+  const Balance = sequelize.define(
+    'walletsBalance',
     {
-      address: {type: ETHEREUM_ADDRESS, primaryKey: true},
-      tokenAddress: {type: ETHEREUM_ADDRESS, allowNull: false},
-      balance: {type: STXAMOUNT, validate: {min: 0}, allowNull: false},
+      walletAddress: {type: ADDRESS, primaryKey: true},
+      token: {type: ADDRESS, allowNull: false},
+      balance: {type: AMOUNT, validate: {min: 0}, allowNull: false},
       updatedAt: {type: DATE},
     },
     {
+      tableName: 'walletsBalance',
       createdAt: false,
+    }
+  )
+
+  const Transaction = sequelize.define(
+    'transactions',
+    {
+      address: {type: ADDRESS, primaryKey: true},
+      transactionHash: {type: TRANSACTION_HASH, allowNull: false},
+      transactionIndex: {type: INTEGER, defaultValue: 0},
+      network: {type: STRING, allowNull: false},
+      blockNumber: {type: INTEGER, defaultValue: 0, allowNull: false},
+      from: {type: STRING, allowNull: false},
+      to: {type: STRING, allowNull: false},
+      amount: {type: AMOUNT, allowNull: false},
+      rawData: {type: JSON},
+    },
+    {
+      createdAt: false,
+      updatedAt: false,
+      indexes: [
+        {
+          fields: ['transactionHash'],
+        },
+      ],
+    }
+  )
+
+  const TransactionsManagement = sequelize.define(
+    'transactionsManagement',
+    {
+      token: {type: ADDRESS, primaryKey: true},
+      lastReadBlock: {type: INTEGER, defaultValue: 0, allowNull: false},
+    },
+    {
+      tableName: 'transactionsManagement',
+      createdAt: false,
+      updatedAt: false,
+      indexes: [
+        {
+          fields: ['transactionHash'],
+        },
+      ],
     }
   )
 
