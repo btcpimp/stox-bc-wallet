@@ -5,6 +5,7 @@ const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const {promiseSerial} = require('../promise')
+const {network} = require('app/config')
 
 const {Op} = Sequelize
 
@@ -40,7 +41,7 @@ const updateDatabase = async (token, toBlock, transactions) => {
           transactionHash,
           transactionIndex,
           address,
-          network: 'MAIN',
+          network,
           blockNumber: Number(blockNumber),
           from,
           to,

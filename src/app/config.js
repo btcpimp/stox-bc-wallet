@@ -6,4 +6,5 @@ module.exports = mapEnv({
   databaseUrl: 'postgres://postgres:secret@bc_wallet_db/stox2',
   requiredConfirmations: 12,
   maxBlocksRead: 10000,
+  network: '',
 })
