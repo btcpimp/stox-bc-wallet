@@ -12,18 +12,20 @@ const {Op} = Sequelize
 const getLatestTransactions = async ({address, name}) => {
   const row = await db.transactionsManagement.findOne({attributes: ['lastReadBlock'], where: {token: {[Op.eq]: name}}})
   const lastReadBlock = row ? Number(row.lastReadBlock) : 0
-  const result = await tokenTracker.getLatestTransferTransactions(address, lastReadBlock)
-  const length = result.transactions && result.transactions.length
+  logger.info({token: name.trim(), fromBlock: lastReadBlock}, 'READ')
 
-  logger.info({address, fromBlock: lastReadBlock, found: length}, 'READ')
-
-  return result
+  try {
+    return await tokenTracker.getLatestTransferTransactions(address, lastReadBlock)
+  } catch (e) {
+    logger.error(e, 'Error connecting to WEB3.')
+    throw e
+  }
 }
 
 const updateDatabase = async (token, toBlock, transactions) => {
   const {address, name} = token
   return db.sequelize.transaction().then(async (transaction) => {
-    const tokenValues = await db.transactionsManagement.findOne({where: {token: name}})
+    const tokenValues = await db.transactionsManagement.findOne({where: {token: {[Op.eq]: name}}})
     await tokenValues.updateAttributes({lastReadBlock: toBlock}, {transaction})
     await Promise.all(transactions.map(async (t) => {
       const {
@@ -54,7 +56,7 @@ const updateDatabase = async (token, toBlock, transactions) => {
 
     try {
       await transaction.commit()
-      logger.info({address, toBlock, count: transactions.length}, 'WRITE')
+      logger.info({token: name.trim(), toBlock, found: transactions.length}, 'WRITE')
     } catch (e) {
       transaction.rollback()
       logger.error(e)
@@ -81,23 +83,19 @@ const fetchLatestTransactions = async (token) => {
   await updateDatabase(token, toBlock, relevantTransactions)
 }
 
-const doWork = async () => {
-  const tokens = await db.tokens.findAll()
-  const funcs = tokens.map(token => () => fetchLatestTransactions(token))
-
-  promiseSerial(funcs).catch(e => logger.error(e))
-}
+const doWork = async () =>
+  db.tokens.findAll().then(tokens => promiseSerial(tokens.map(token => () => fetchLatestTransactions(token))))
 
 const start = async () => {
   logger.info('TransactionLog started')
 
   let working = false
 
-  schedule.scheduleJob('2 * * * * *', async () => {
+  schedule.scheduleJob('*/10 * * * * *', async () => {
     if (!working) {
       working = !working
 
-      doWork()
+      doWork().catch(e => logger.error(e))
 
       working = !working
     }
