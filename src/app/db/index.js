@@ -45,7 +45,6 @@ const dbInit = async (pgurl = null) => {
   }
 }
 
-
 db.dbInit = dbInit
 
 module.exports = db

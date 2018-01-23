@@ -1,7 +1,4 @@
 module.exports = {
-  promiseSerial: (funcs) => {
-    return funcs.reduce((promise, func) => {
-      return promise.then(result => func().then(Array.prototype.concat.bind(result)))
-    }, Promise.resolve([]))
-  },
+  promiseSerial: funcs => funcs.reduce((promise, func) =>
+    promise.then(result => func().then(Array.prototype.concat.bind(result))), Promise.resolve([])),
 }

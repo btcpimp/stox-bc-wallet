@@ -1,28 +1,19 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL, INTEGER, JSON} = DataTypes
+const {STRING, DATE, DECIMAL, INTEGER, BIGINT, JSON} = DataTypes
 const AMOUNT = DECIMAL(36, 18)
 const ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)
 
 module.exports = (sequelize) => {
-  const Network = sequelize.define(
-    'networks',
-    {
-      name: {type: STRING, primaryKey: true},
-    },
-    {
-      createdAt: false,
-      updatedAt: false,
-    }
-  )
-
-  const Token = sequelize.define(
+  sequelize.define(
     'tokens',
     {
-      name: {type: STRING, primaryKey: true},
-      displayName: {type: STRING, allowNull: false},
+      id: {type: STRING(256), primaryKey: true},
+      name: {type: STRING(256), allowNull: false},
       address: {type: ADDRESS, allowNull: false},
+      network: {type: STRING, allowNull: false},
+      createdAt: {type: DATE, allowNull: false},
     },
     {
       createdAt: false,
@@ -30,10 +21,11 @@ module.exports = (sequelize) => {
     }
   )
 
-  const Wallet = sequelize.define(
+  sequelize.define(
     'wallets',
     {
-      address: {type: ADDRESS, primaryKey: true},
+      id: {type: STRING(256), primaryKey: true},
+      address: {type: ADDRESS, allowNull: false},
       network: {type: STRING, allowNull: false},
       createdAt: {type: DATE, allowNull: false},
       assignedAt: {type: DATE},
@@ -51,59 +43,50 @@ module.exports = (sequelize) => {
     }
   )
 
-  const Balance = sequelize.define(
-    'walletsBalance',
+  sequelize.define(
+    'tokensBalances',
     {
-      walletAddress: {type: ADDRESS, primaryKey: true},
-      token: {type: ADDRESS, allowNull: false},
+      walletId: {type: STRING(256), allowNull: false, references: {model: 'wallets', key: 'id'}},
+      tokenId: {type: STRING(256), allowNull: false, references: {model: 'tokens', key: 'id'}},
       balance: {type: AMOUNT, validate: {min: 0}, allowNull: false},
-      updatedAt: {type: DATE},
+      createdAt: {type: DATE, allowNull: false},
+      updatedAt: {type: DATE, allowNull: false},
     },
     {
-      tableName: 'walletsBalance',
       createdAt: false,
     }
   )
 
-  const Transaction = sequelize.define(
+  sequelize.define(
     'transactions',
     {
+      id: {type: INTEGER, primaryKey: true, autoIncrement: true},
+      transactionHash: {type: TRANSACTION_HASH, primaryKey: true},
+      transactionIndex: {type: INTEGER, defaultValue: 0, primaryKey: true},
+      tokenId: {type: STRING(256), allowNull: false, references: {model: 'tokens', key: 'id'}},
       address: {type: ADDRESS, primaryKey: true},
-      transactionHash: {type: TRANSACTION_HASH, allowNull: false},
-      transactionIndex: {type: INTEGER, defaultValue: 0},
       network: {type: STRING, allowNull: false},
-      blockNumber: {type: INTEGER, defaultValue: 0, allowNull: false},
-      from: {type: STRING, allowNull: false},
-      to: {type: STRING, allowNull: false},
+      blockNumber: {type: BIGINT, defaultValue: 0, allowNull: false},
+      fromAddress: {type: ADDRESS, allowNull: false},
+      toAddress: {type: ADDRESS, allowNull: false},
       amount: {type: AMOUNT, allowNull: false},
+      createdAt: {type: DATE, allowNull: false},
       rawData: {type: JSON},
     },
     {
-      createdAt: false,
       updatedAt: false,
-      indexes: [
-        {
-          fields: ['transactionHash'],
-        },
-      ],
     }
   )
 
-  const TransactionsManagement = sequelize.define(
-    'transactionsManagement',
+  sequelize.define(
+    'transactionsReads',
     {
-      token: {type: ADDRESS, primaryKey: true},
-      lastReadBlock: {type: INTEGER, defaultValue: 0, allowNull: false},
+      tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
+      lastReadBlockNumber: {type: BIGINT, defaultValue: 0, allowNull: false},
     },
     {
-      tableName: 'transactionsManagement',
       createdAt: false,
       updatedAt: false,
-      indexes: [
-        {
-          fields: ['transactionHash'],
-        },
-      ],
     }
   )
 

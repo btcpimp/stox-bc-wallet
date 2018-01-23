@@ -9,24 +9,41 @@ const {network} = require('app/config')
 
 const {Op} = Sequelize
 
-const getLatestTransactions = async ({address, name}) => {
-  const row = await db.transactionsManagement.findOne({attributes: ['lastReadBlock'], where: {token: {[Op.eq]: name}}})
-  const lastReadBlock = row ? Number(row.lastReadBlock) : 0
-  logger.info({token: name.trim(), fromBlock: lastReadBlock}, 'READ')
+const getLatestTransactions = async ({id, name, address}) => {
+  const row = await db.transactionsReads.findOne({
+    attributes: ['lastReadBlockNumber'],
+    where: {tokenId: {[Op.eq]: id}},
+  })
+  const lastReadBlockNumber = row ? Number(row.lastReadBlockNumber) : 0
+  logger.info({network, token: name, fromBlock: lastReadBlockNumber}, 'READ')
 
   try {
-    return await tokenTracker.getLatestTransferTransactions(address, lastReadBlock)
+    return await tokenTracker.getLatestTransferTransactions(address, lastReadBlockNumber)
   } catch (e) {
-    logger.error(e, 'Error connecting to WEB3.')
+    logger.error(e, 'Error connecting to blockcahin')
     throw e
   }
 }
 
+const filterTransactions = async (transactions) => {
+  if (!transactions.length) {
+    return transactions
+  }
+
+  const addresses = flatten(transactions.map(t => ([t.to, t.from])))
+  const wallets = await db.wallets.findAll({
+    attributes: ['address'],
+    where: {address: {[Op.or]: addresses}},
+  }).map(w => w.address)
+
+  return transactions.filter(t => wallets.includes(t.to))
+}
+
 const updateDatabase = async (token, toBlock, transactions) => {
-  const {address, name} = token
+  const {id, name, address} = token
   return db.sequelize.transaction().then(async (transaction) => {
-    const tokenValues = await db.transactionsManagement.findOne({where: {token: {[Op.eq]: name}}})
-    await tokenValues.updateAttributes({lastReadBlock: toBlock}, {transaction})
+    const tokenValues = await db.transactionsReads.findOne({where: {tokenId: {[Op.eq]: id}}})
+    await tokenValues.updateAttributes({lastReadBlockNumber: toBlock}, {transaction})
     await Promise.all(transactions.map(async (t) => {
       const {
         amount,
@@ -37,16 +54,16 @@ const updateDatabase = async (token, toBlock, transactions) => {
         transactionIndex,
         event,
       } = t
-
       return db.transactions.create(
         {
           transactionHash,
           transactionIndex,
+          tokenId: id,
           address,
-          network,
+          network: id.split('.').shift(),
           blockNumber: Number(blockNumber),
-          from,
-          to,
+          fromAddress: from,
+          toAddress: to,
           amount: Number(amount),
           rawData: event,
         },
@@ -56,24 +73,13 @@ const updateDatabase = async (token, toBlock, transactions) => {
 
     try {
       await transaction.commit()
-      logger.info({token: name.trim(), toBlock, found: transactions.length}, 'WRITE')
+      logger.info({network, token: name, toBlock, found: transactions.length}, 'WRITE')
     } catch (e) {
       transaction.rollback()
-      logger.error(e)
+      logger.error(e, 'Error in database')
       throw e
     }
   })
-}
-
-const filterTransactions = async (transactions) => {
-  if (!transactions.length) {
-    return transactions
-  }
-
-  const addresses = flatten(transactions.map(t => ([t.to, t.from])))
-  const wallets = await db.wallets.findAll({where: {address: {[Op.or]: addresses}}}).map(w => w.address)
-
-  return transactions.filter(t => wallets.includes(t.to))
 }
 
 const fetchLatestTransactions = async (token) => {
@@ -84,11 +90,11 @@ const fetchLatestTransactions = async (token) => {
 }
 
 const doWork = async () =>
-  db.tokens.findAll().then(tokens => promiseSerial(tokens.map(token => () => fetchLatestTransactions(token))))
+  db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+    .then(tokens => promiseSerial(tokens.map(token => () => fetchLatestTransactions(token))))
 
 const start = async () => {
   logger.info('TransactionLog started')
-
   let working = false
 
   schedule.scheduleJob('*/10 * * * * *', async () => {
@@ -96,7 +102,6 @@ const start = async () => {
       working = !working
 
       doWork().catch(e => logger.error(e))
-
       working = !working
     }
   })
