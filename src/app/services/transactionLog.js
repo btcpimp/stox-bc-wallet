@@ -10,7 +10,7 @@ const {network} = require('app/config')
 const {Op} = Sequelize
 
 const getLatestTransactions = async ({id, name, address}) => {
-  const row = await db.transactionsReads.findOne({
+  const row = await db.tokensTransfersReads.findOne({
     attributes: ['lastReadBlockNumber'],
     where: {tokenId: {[Op.eq]: id}},
   })
@@ -39,29 +39,29 @@ const filterTransactions = async (transactions) => {
   return transactions.filter(t => wallets.includes(t.to))
 }
 
-const updateDatabase = async (token, toBlock, transactions) => {
-  const {id, name, address} = token
-  return db.sequelize.transaction().then(async (transaction) => {
-    const tokenValues = await db.transactionsReads.findOne({where: {tokenId: {[Op.eq]: id}}})
+const updateDatabase = async (token, toBlock, transactions) =>
+  db.sequelize.transaction().then(async (transaction) => {
+    const tokenValues = await db.tokensTransfersReads.findOne({where: {tokenId: {[Op.eq]: token.id}}})
     await tokenValues.updateAttributes({lastReadBlockNumber: toBlock}, {transaction})
     await Promise.all(transactions.map(async (t) => {
       const {
         amount,
         blockNumber,
+        transactionIndex,
+        logIndex,
         from,
         to,
         transactionHash,
-        transactionIndex,
         event,
       } = t
-      return db.transactions.create(
+      return db.tokensTransfers.create(
         {
+          blockNumber: Number(blockNumber),
+          logIndex,
           transactionHash,
           transactionIndex,
-          tokenId: id,
-          address,
-          network: id.split('.').shift(),
-          blockNumber: Number(blockNumber),
+          tokenId: token.id,
+          network,
           fromAddress: from,
           toAddress: to,
           amount: Number(amount),
@@ -73,35 +73,30 @@ const updateDatabase = async (token, toBlock, transactions) => {
 
     try {
       await transaction.commit()
-      logger.info({network, token: name, toBlock, found: transactions.length}, 'WRITE')
+      logger.info({network, token: token.name, toBlock, found: transactions.length}, 'WRITE')
     } catch (e) {
       transaction.rollback()
       logger.error(e, 'Error in database')
       throw e
     }
   })
-}
-
-const fetchLatestTransactions = async (token) => {
-  const {transactions, toBlock} = await getLatestTransactions(token)
-  const relevantTransactions = await filterTransactions(transactions)
-
-  await updateDatabase(token, toBlock, relevantTransactions)
-}
 
 const doWork = async () =>
   db.tokens.findAll({where: {network: {[Op.eq]: network}}})
-    .then(tokens => promiseSerial(tokens.map(token => () => fetchLatestTransactions(token))))
+    .then(tokens => promiseSerial(tokens.map(token => async () => {
+      const {transactions, toBlock} = await getLatestTransactions(token)
+      const walletsTransactions = await filterByWallets(transactions)
+      await updateDatabase(token, toBlock, walletsTransactions)
+    })))
 
 const start = async () => {
-  logger.info('TransactionLog started')
+  logger.info('Transaction reader started')
   let working = false
 
   schedule.scheduleJob('*/10 * * * * *', async () => {
     if (!working) {
       working = !working
-
-      doWork().catch(e => logger.error(e))
+      doWork().catch(e => logger.error(e.original ? e.original : e))
       working = !working
     }
   })

@@ -4,7 +4,10 @@ const db = require('app/db')
 
 const {Op} = Sequelize
 
-const createWallet = async () => db.wallet.create({address: new Date().getTime(), assignedAt: null})
+const createWallet = async () => db.wallet.create({
+  address: new Date().getTime(),
+  assignedAt: null,
+})
 
 const assignWallet = async () => {
   const wallet = await db.wallets.findOne({where: {assignedAt: {[Op.eq]: null}}})

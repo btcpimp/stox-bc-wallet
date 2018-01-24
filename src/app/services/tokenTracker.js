@@ -44,6 +44,8 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
       to: event.returnValues._to,
       // eslint-disable-next-line no-underscore-dangle
       amount: weiToEther(event.returnValues._value),
+      logIndex: event.logIndex,
+      transactionIndex: event.transactionIndex,
       blockNumber: event.blockNumber,
       transactionHash: event.transactionHash,
       event,

@@ -58,15 +58,14 @@ module.exports = (sequelize) => {
   )
 
   sequelize.define(
-    'transactions',
+    'tokensTransfers',
     {
-      id: {type: INTEGER, primaryKey: true, autoIncrement: true},
-      transactionHash: {type: TRANSACTION_HASH, primaryKey: true},
-      transactionIndex: {type: INTEGER, defaultValue: 0, primaryKey: true},
+      blockNumber: {type: BIGINT, defaultValue: 0, primaryKey: true},
+      logIndex: {type: INTEGER, defaultValue: 0, primaryKey: true},
+      transactionHash: {type: TRANSACTION_HASH, allowNull: false},
+      transactionIndex: {type: INTEGER},
       tokenId: {type: STRING(256), allowNull: false, references: {model: 'tokens', key: 'id'}},
-      address: {type: ADDRESS, primaryKey: true},
       network: {type: STRING, allowNull: false},
-      blockNumber: {type: BIGINT, defaultValue: 0, allowNull: false},
       fromAddress: {type: ADDRESS, allowNull: false},
       toAddress: {type: ADDRESS, allowNull: false},
       amount: {type: AMOUNT, allowNull: false},
@@ -79,7 +78,7 @@ module.exports = (sequelize) => {
   )
 
   sequelize.define(
-    'transactionsReads',
+    'tokensTransfersReads',
     {
       tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
       lastReadBlockNumber: {type: BIGINT, defaultValue: 0, allowNull: false},
