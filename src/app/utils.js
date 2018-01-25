@@ -5,6 +5,7 @@ const {
 
 const weiToEther = wei => web3.utils.fromWei(wei.toString(), 'ether')
 const etherToWei = ether => web3.utils.toWei(ether.toString(), 'ether')
+const secondsToDate = date => new Date(date * 1000)
 
 const validateAddress = (address) => {
   if (!web3.utils.isAddress(address)) {
@@ -14,9 +15,15 @@ const validateAddress = (address) => {
 
 const isAddressEmpty = address => (address === '0x0000000000000000000000000000000000000000')
 
+const getBlockTime = async (blockNumber = 'latest') => {
+  const blockTime = (await web3.eth.getBlock(blockNumber, false)).timestamp
+  return secondsToDate(blockTime)
+}
+
 module.exports = {
   weiToEther,
   etherToWei,
   validateAddress,
-  isAddressEmpty
+  isAddressEmpty,
+  getBlockTime,
 }
