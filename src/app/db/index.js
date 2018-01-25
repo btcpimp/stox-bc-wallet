@@ -8,10 +8,10 @@ const delay = (milliseconds, result) =>
   new Promise(resolve => setTimeout(resolve, milliseconds, result))
 
 const connect = async (pgurl = null) => {
-  logger.info('Initializing database connection...')
+  logger.info('initializing database connection...')
 
   if (db.sequelize) {
-    throw new Error('Database already initialized.')
+    throw new Error('database already initialized.')
   }
 
   const sequelizeInstance = new Sequelize(pgurl, {
@@ -25,7 +25,7 @@ const connect = async (pgurl = null) => {
   })
 
   await sequelizeInstance.authenticate()
-  logger.info('Database connection established successfully.')
+  logger.info('database connection established successfully.')
 
   models(sequelizeInstance)
 
@@ -40,7 +40,7 @@ const dbInit = async (pgurl = null) => {
   } catch (error) {
     logger.error(error)
     await delay(30000)
-    logger.info('Retrying...')
+    logger.info('retrying...')
     return dbInit(pgurl)
   }
 }

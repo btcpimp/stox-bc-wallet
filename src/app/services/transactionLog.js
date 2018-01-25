@@ -6,26 +6,36 @@ const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const {promiseSerial} = require('../promise')
 const {network} = require('app/config')
+const {getBlockTime} = require('app/utils')
+const {web3} = require('./blockchain')
 
 const {Op} = Sequelize
 
-const getLatestTransactions = async ({id, name, address}) => {
+const getLatestTransactions = async ({id, address}) => {
   const row = await db.tokensTransfersReads.findOne({
     attributes: ['lastReadBlockNumber'],
     where: {tokenId: {[Op.eq]: id}},
   })
-  const lastReadBlockNumber = row ? Number(row.lastReadBlockNumber) : 0
-  logger.info({network, token: name, fromBlock: lastReadBlockNumber}, 'READ')
+
+  const fromBlock = row ? Number(row.lastReadBlockNumber) + 1 : 0
+  const currentBlock = await web3.eth.getBlockNumber()
+  const currentBlockTime = await getBlockTime(currentBlock)
 
   try {
-    return await tokenTracker.getLatestTransferTransactions(address, lastReadBlockNumber)
+    const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
+    return {
+      ...result,
+      fromBlock,
+      currentBlock,
+      currentBlockTime,
+    }
   } catch (e) {
-    logger.error(e, 'Error connecting to blockcahin')
+    logger.error(e, 'error connecting to blockcahin')
     throw e
   }
 }
 
-const filterTransactions = async (transactions) => {
+const filterByWallets = async (transactions) => {
   if (!transactions.length) {
     return transactions
   }
@@ -36,10 +46,10 @@ const filterTransactions = async (transactions) => {
     where: {address: {[Op.or]: addresses}},
   }).map(w => w.address)
 
-  return transactions.filter(t => wallets.includes(t.to))
+  return transactions.filter(t => wallets.includes(t.to) || wallets.includes(t.from))
 }
 
-const updateDatabase = async (token, toBlock, transactions) =>
+const updateDatabase = async (token, transactions, toBlock, currentBlockTime) =>
   db.sequelize.transaction().then(async (transaction) => {
     const tokenValues = await db.tokensTransfersReads.findOne({where: {tokenId: {[Op.eq]: token.id}}})
     await tokenValues.updateAttributes({lastReadBlockNumber: toBlock}, {transaction})
@@ -47,7 +57,6 @@ const updateDatabase = async (token, toBlock, transactions) =>
       const {
         amount,
         blockNumber,
-        transactionIndex,
         logIndex,
         from,
         to,
@@ -59,9 +68,9 @@ const updateDatabase = async (token, toBlock, transactions) =>
           blockNumber: Number(blockNumber),
           logIndex,
           transactionHash,
-          transactionIndex,
           tokenId: token.id,
           network,
+          currentBlockTime,
           fromAddress: from,
           toAddress: to,
           amount: Number(amount),
@@ -73,10 +82,9 @@ const updateDatabase = async (token, toBlock, transactions) =>
 
     try {
       await transaction.commit()
-      logger.info({network, token: token.name, toBlock, found: transactions.length}, 'WRITE')
     } catch (e) {
       transaction.rollback()
-      logger.error(e, 'Error in database')
+      logger.error(e, 'error in database')
       throw e
     }
   })
@@ -84,20 +92,50 @@ const updateDatabase = async (token, toBlock, transactions) =>
 const doWork = async () =>
   db.tokens.findAll({where: {network: {[Op.eq]: network}}})
     .then(tokens => promiseSerial(tokens.map(token => async () => {
-      const {transactions, toBlock} = await getLatestTransactions(token)
+      const result = await getLatestTransactions(token)
+      const {
+        transactions,
+        fromBlock,
+        toBlock,
+        currentBlock,
+        currentBlockTime,
+      } = result
+
+      logger.info({
+        network,
+        token: token.name,
+        transactions: transactions.length,
+        fromBlock,
+        toBlock,
+        currentBlock,
+        currentBlockTime: new Date(currentBlockTime).toUTCString(),
+      }, 'READ')
+
       const walletsTransactions = await filterByWallets(transactions)
-      await updateDatabase(token, toBlock, walletsTransactions)
+      await updateDatabase(token, walletsTransactions, toBlock, currentBlockTime)
+
+      logger.info({
+        network,
+        token: token.name,
+        count: walletsTransactions.length,
+      }, 'WRITE')
     })))
 
 const start = async () => {
-  logger.info('Transaction reader started')
-  let working = false
+  logger.info('reader started')
+  let promise = null
 
-  schedule.scheduleJob('*/10 * * * * *', async () => {
-    if (!working) {
-      working = !working
-      doWork().catch(e => logger.error(e.original ? e.original : e))
-      working = !working
+  schedule.scheduleJob('*/20 * * * * *', async () => {
+    if (!promise) {
+      logger.info('WORKING')
+      promise = doWork()
+        .then(() => {
+          promise = null
+        })
+        .catch((e) => {
+          logger.error(e.original ? e.original : e)
+          promise = null
+        })
     }
   })
 }

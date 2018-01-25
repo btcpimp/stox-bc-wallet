@@ -31,7 +31,7 @@ app.use(expressStatusMonitor())
 app.use(errorHandler)
 
 const server = app.listen(port, () => {
-  logger.info({binding: server.address()}, 'Server started')
+  logger.info({binding: server.address()}, 'http server started')
 
   dbInit(databaseUrl)
     .then(() => transactionLog.start())
