@@ -12,8 +12,11 @@ const validateAddress = (address) => {
   }
 }
 
+const isAddressEmpty = address => (address === '0x0000000000000000000000000000000000000000')
+
 module.exports = {
   weiToEther,
   etherToWei,
   validateAddress,
+  isAddressEmpty
 }
