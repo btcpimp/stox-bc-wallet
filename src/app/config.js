@@ -7,4 +7,6 @@ module.exports = mapEnv({
   requiredConfirmations: 12,
   maxBlocksRead: 10000,
   network: '',
+  tokenTransferCron: '1 * * * * *', // cron syntax,
+  maxWalletAssignRetires: 5,
 })

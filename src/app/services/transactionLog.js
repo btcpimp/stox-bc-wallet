@@ -5,7 +5,7 @@ const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const {promiseSerial} = require('../promise')
-const {network} = require('app/config')
+const {network, tokenTransferCron} = require('app/config')
 const {getBlockTime} = require('app/utils')
 const {web3} = require('./blockchain')
 
@@ -125,7 +125,7 @@ const start = async () => {
   logger.info('reader started')
   let promise = null
 
-  schedule.scheduleJob('*/20 * * * * *', async () => {
+  schedule.scheduleJob(tokenTransferCron, async () => {
     if (!promise) {
       logger.info('WORKING')
       promise = doWork()
