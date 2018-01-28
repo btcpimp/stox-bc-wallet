@@ -1,7 +1,7 @@
 const schedule = require('node-schedule')
-const {flatten} = require('lodash')
+const {flatten, uniq} = require('lodash')
 const Sequelize = require('sequelize')
-const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
+const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const {promiseSerial} = require('../promise')
@@ -11,13 +11,14 @@ const {web3} = require('./blockchain')
 
 const {Op} = Sequelize
 
-const getLatestTransactions = async ({id, address}) => {
+const fetchLatestTransactions = async ({id, address}) => {
   const row = await db.tokensTransfersReads.findOne({
     attributes: ['lastReadBlockNumber'],
     where: {tokenId: {[Op.eq]: id}},
   })
 
-  const fromBlock = row ? Number(row.lastReadBlockNumber) + 1 : 0
+  const lastReadBlockNumber = Number(row.lastReadBlockNumber)
+  const fromBlock = row ? lastReadBlockNumber === 0 ? lastReadBlockNumber : lastReadBlockNumber + 1 : 0
   const currentBlock = await web3.eth.getBlockNumber()
   const currentBlockTime = await getBlockTime(currentBlock)
 
@@ -30,26 +31,11 @@ const getLatestTransactions = async ({id, address}) => {
       currentBlockTime,
     }
   } catch (e) {
-    logger.error(e, 'error connecting to blockcahin')
-    throw e
+    throw new UnexpectedError('blockchainReadFailed', e)
   }
 }
 
-const filterByWallets = async (transactions) => {
-  if (!transactions.length) {
-    return transactions
-  }
-
-  const addresses = flatten(transactions.map(t => ([t.to, t.from])))
-  const wallets = await db.wallets.findAll({
-    attributes: ['address'],
-    where: {address: {[Op.or]: addresses}},
-  }).map(w => w.address)
-
-  return transactions.filter(t => wallets.includes(t.to) || wallets.includes(t.from))
-}
-
-const updateDatabase = async (token, transactions, toBlock, currentBlockTime) =>
+const insertTransactions = async (token, transactions, toBlock, currentBlockTime) =>
   db.sequelize.transaction().then(async (transaction) => {
     const tokenValues = await db.tokensTransfersReads.findOne({where: {tokenId: {[Op.eq]: token.id}}})
     await tokenValues.updateAttributes({lastReadBlockNumber: toBlock}, {transaction})
@@ -84,40 +70,112 @@ const updateDatabase = async (token, transactions, toBlock, currentBlockTime) =>
       await transaction.commit()
     } catch (e) {
       transaction.rollback()
-      logger.error(e, 'error in database')
-      throw e
+      throw new UnexpectedError('savingFailed', e)
     }
   })
 
-const doWork = async () =>
+const updatePendingBalance = async (wallets, token) => {
+  const promises = [wallets[0]].map(wallet =>
+    db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+      .then(async (transaction) => {
+        try {
+          const walletId = wallet.id
+          const tokenId = token.id
+          const tokenBalance = await db.tokensBalances.findOne({
+            where: {
+              [Op.and]: [
+                {walletId: {[Op.eq]: walletId}},
+                {tokenId: {[Op.eq]: tokenId}},
+              ],
+            },
+            transaction,
+          })
+
+          if (!tokenBalance) {
+            await db.tokensBalances.create(
+              {
+                walletId,
+                tokenId,
+                pendingUpdateBalance: 1,
+                balance: 0,
+              },
+              {transaction}
+            )
+          } else {
+            await tokenBalance.update(
+              {
+                pendingUpdateBalance: Number(tokenBalance.pendingUpdateBalance) + 1,
+              },
+              {
+                where: {
+                  walletId,
+                  tokenId,
+                },
+              },
+              {transaction}
+            )
+          }
+
+          transaction.commit()
+        } catch (e) {
+          transaction.rollback()
+          throw new UnexpectedError('savingFailed', e)
+        }
+      }))
+
+  return Promise.all(promises)
+}
+
+const readWriteTransactions = async () =>
   db.tokens.findAll({where: {network: {[Op.eq]: network}}})
     .then(tokens => promiseSerial(tokens.map(token => async () => {
-      const result = await getLatestTransactions(token)
       const {
-        transactions,
+        transactions: allTransactions,
         fromBlock,
         toBlock,
         currentBlock,
         currentBlockTime,
-      } = result
+      } = await fetchLatestTransactions(token)
 
       logger.info({
         network,
         token: token.name,
-        transactions: transactions.length,
+        allTransactions: allTransactions.length,
         fromBlock,
         toBlock,
         currentBlock,
         currentBlockTime: new Date(currentBlockTime).toUTCString(),
       }, 'READ')
 
-      const walletsTransactions = await filterByWallets(transactions)
-      await updateDatabase(token, walletsTransactions, toBlock, currentBlockTime)
+      let transactions = []
+
+      if (allTransactions.length) {
+        const addresses = uniq(flatten(transactions.map(t => ([t.to, t.from]))))
+        const wallets = await db.wallets.findAll({
+          attributes: ['id', 'address'],
+          where: {address: {[Op.or]: addresses}},
+        })
+
+        const walletAddresses = wallets.map(w => w.address)
+        transactions = allTransactions.filter(t => walletAddresses.includes(t.to) || walletAddresses.includes(t.from))
+
+        if (transactions.length) {
+          await updatePendingBalance(wallets, token)
+
+          logger.info({
+            network,
+            token: token.name,
+            wallets: wallets.length,
+          }, 'PENDING_BALANCE_UPDATE')
+        }
+      }
+
+      await insertTransactions(token, transactions, toBlock, currentBlockTime)
 
       logger.info({
         network,
         token: token.name,
-        count: walletsTransactions.length,
+        transactions: transactions.length,
       }, 'WRITE')
     })))
 
@@ -128,7 +186,7 @@ const start = async () => {
   schedule.scheduleJob(tokenTransferCron, async () => {
     if (!promise) {
       logger.info('WORKING')
-      promise = doWork()
+      promise = readWriteTransactions()
         .then(() => {
           promise = null
         })

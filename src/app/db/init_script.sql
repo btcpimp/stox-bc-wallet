@@ -1,3 +1,9 @@
+--DROP TABLE "tokensTransfersReads";
+--DROP TABLE "tokensTransfers";
+--DROP TABLE "tokensBalances";
+--DROP TABLE "wallets";
+--DROP TABLE "tokens";
+
 --tokens
 CREATE TABLE "tokens"
 (
@@ -21,7 +27,7 @@ CREATE TABLE "wallets"
     "assignedAt" TIMESTAMP WITH TIME ZONE,
     "setWithdrawAddressAt" TIMESTAMP WITH TIME ZONE,
     "corruptedAt" TIMESTAMP WITH TIME ZONE,
-    "version" SMALLINT NOT NULL,
+    "version" SMALLINT DEFAULT 0 NOT NULL,
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_DATE NOT NULL
 );
 
@@ -36,7 +42,8 @@ CREATE TABLE "tokensBalances"
 (
     "walletId" CHARACTER VARYING(255),
     "tokenId" CHARACTER(42) NOT NULL,
-    "balance" numeric(38,18) NOT NULL,
+    "balance" numeric(38,18) DEFAULT 0 NOT NULL,
+    "pendingUpdateBalance" INTEGER DEFAULT 0 NOT NULL,
     "createdAt" timestamp with time zone DEFAULT CURRENT_DATE NOT NULL,
     "updatedAt" timestamp with time zone DEFAULT CURRENT_DATE NOT NULL,
     CONSTRAINT tokensBalances_pk PRIMARY KEY ("walletId", "tokenId"),
@@ -82,3 +89,9 @@ CREATE TABLE "tokensTransfersReads"
 );
 
 CREATE INDEX tokensTransfersReads_updated_at ON "tokensTransfersReads" USING btree ("updatedAt");
+
+--INSERT INTO "tokens" ("id", "name", "address", "network") VALUES ('MAIN.STX', 'STX', '0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'MAIN');
+--INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0xF87a7EC94884F44D9dE33d36b73F42c7c0Dd38B1', '0xF87a7EC94884F44D9dE33d36b73F42c7c0Dd38B1', 'MAIN');
+--INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0xb1C5FaEEc6AD4Ff9FeeD18ad76A459aAf7344D7C', '0xb1C5FaEEc6AD4Ff9FeeD18ad76A459aAf7344D7C', 'MAIN');
+--INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0x972bc28f0618084ebbd8093b49ea1ea0c2d2af45', '0x972bc28f0618084ebbd8093b49ea1ea0c2d2af45', 'MAIN');
+--INSERT INTO "tokensTransfersReads" ("tokenId", "lastReadBlockNumber") VALUES ('MAIN.STX', 0);

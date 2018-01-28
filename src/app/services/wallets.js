@@ -2,7 +2,7 @@ const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-so
 const Sequelize = require('sequelize')
 const db = require('app/db')
 const {getSmartWalletContract} = require('./blockchain')
-const {maxWalletAssignRetires} = require('app/config')
+const {maxWalletAssignRetires, network} = require('app/config')
 const {validateAddress, isAddressEmpty} = require('app/utils')
 
 const {Op} = Sequelize
@@ -33,6 +33,7 @@ const tryAssignWallet = async () =>
               {assignedAt: {[Op.eq]: null}},
               {setWithdrawAddressAt: {[Op.eq]: null}},
               {corruptedAt: {[Op.eq]: null}},
+              {network: {[Op.eq]: network}},
             ],
           },
           transaction,
@@ -52,27 +53,35 @@ const tryAssignWallet = async () =>
       }
     })
 
-const assignWallet = async (times = 1) => {
+const assignWallet = async (withdrawAddress, times = 1) => {
   if (times >= maxWalletAssignRetires) {
     throw new Error('too many tries')
   }
 
   try {
     const wallet = await tryAssignWallet()
+
     if (await isWithdrawAddressSet(wallet.address)) {
       await wallet.updateAttributes({corruptedAt: new Date()})
       logger.info({wallet}, 'CORRUPTED')
-      return assignWallet(++times)
+
+      return assignWallet(withdrawAddress, ++times)
     }
+
+    //todo: set withdraw address
 
     logger.info({wallet}, 'ASSIGNED')
     return wallet
   } catch (e) {
     logger.error(e)
-    return assignWallet(++times)
+    return assignWallet(network, withdrawAddress, ++times)
   }
 }
 
+const getWalletBalance = async walletAddress =>
+  db.tokensBalances.findOne({where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}}})
+
 module.exports = {
   assignWallet,
+  getWalletBalance,
 }
