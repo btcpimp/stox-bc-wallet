@@ -79,7 +79,10 @@ const assignWallet = async (withdrawAddress, times = 1) => {
 }
 
 const getWalletBalance = async walletAddress =>
-  db.tokensBalances.findOne({where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}}})
+  db.tokensBalances.findAll({
+    attributes: ['tokenId', 'balance'],
+    where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}},
+  })
 
 module.exports = {
   assignWallet,
