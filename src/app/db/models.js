@@ -35,7 +35,6 @@ module.exports = (sequelize) => {
       updatedAt: {type: DATE, allowNull: false},
     },
     {
-      updatedAt: false,
       indexes: [
         {
           fields: ['network'],

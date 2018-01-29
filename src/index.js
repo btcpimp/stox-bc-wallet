@@ -13,7 +13,6 @@ const {
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
-const blockchainReader = require('app/services/blockchainReader')
 
 const app = express()
 
@@ -34,9 +33,5 @@ const server = app.listen(port, () => {
   logger.info({binding: server.address()}, 'http server started')
 
   dbInit(databaseUrl)
-    .then(() => {
-      blockchainReader.startTokensTransfers()
-      blockchainReader.startTokensBalances()
-    })
     .catch(err => logger.error(err))
 })

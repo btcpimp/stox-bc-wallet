@@ -26,7 +26,7 @@ router.get(
 
 router.get(
   '/tokens/balances/start',
-  _(() => blockchainReader.startTokensTransfers())
+  _(() => blockchainReader.startTokensBalances())
 )
 
 router.get(
@@ -37,6 +37,11 @@ router.get(
 router.get(
   '/tokens/balances/stop',
   _(() => blockchainReader.stopTokensBalances())
+)
+
+router.get(
+  '/wallets/mock',
+  _(() => blockchainReader.mockWallets())
 )
 
 module.exports = router
