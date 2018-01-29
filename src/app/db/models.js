@@ -50,15 +50,13 @@ module.exports = (sequelize) => {
   sequelize.define(
     'tokensBalances',
     {
-      walletId: {type: STRING(256), allowNull: false, references: {model: 'wallets', key: 'id'}},
-      tokenId: {type: STRING(256), allowNull: false, references: {model: 'tokens', key: 'id'}},
+      walletId: {type: STRING(256), primaryKey: true, references: {model: 'wallets', key: 'id'}},
+      tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
       balance: {type: AMOUNT, validate: {min: 0}, allowNull: false},
       createdAt: {type: DATE, allowNull: false},
       updatedAt: {type: DATE, allowNull: false},
+      pendingUpdateBalance: {type: SMALLINT, allowNull: false},
     },
-    {
-      createdAt: false,
-    }
   )
 
   sequelize.define(

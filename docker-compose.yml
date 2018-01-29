@@ -14,6 +14,9 @@ services:
             REQUIRED_CONFIRMATIONS: 12
             MAX_BLOCKS_READ: 10000
             NETWORK: 'MAIN'
+            TOKEN_TRANSFER_CRON: '*/20 * * * * *'
+            UPDATE_BALANCE_CRON: '*/20 * * * * *'
+            MAX_WALLET_ASSIGN_RETIRES: 5
         links:
             - bc_wallet_db
         depends_on:
