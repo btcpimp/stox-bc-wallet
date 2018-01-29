@@ -221,33 +221,48 @@ const updateTokensBalances = async () =>
       }
     })
 
+const jobs = {}
 const scheduleJob = async (name, spec, func) => {
   logger.info({name}, 'STARTED')
+
   let promise = null
+  const job = jobs[name]
 
-  schedule.scheduleJob(spec, async () => {
-    if (!promise) {
-      logger.info({name}, 'WORKING')
+  if (!job) {
+    jobs[name] = schedule.scheduleJob(spec, async () => {
+      if (!promise) {
+        logger.info({name}, 'IN_CYCLE')
 
-      promise = func()
-        .then(() => {
-          promise = null
-        })
-        .catch((e) => {
-          logger.error(e.original ? e.original : e)
-          promise = null
-        })
-    }
-  })
+        promise = func()
+          .then(() => {
+            promise = null
+          })
+          .catch((e) => {
+            logger.error(e.original ? e.original : e)
+            promise = null
+          })
+      }
+    })
+  }
+
+  return job
 }
 
-const syncTokensTransfers = async () =>
-  scheduleJob('TokensTransfers', tokenTransferCron, readWriteTransactions)
+const cancelJob = async (name) => {
+  const job = jobs[name]
 
-const syncTokensBalances = async () =>
-  scheduleJob('TokensBalances', updateBalanceCron, updateTokensBalances)
+  if (job) {
+    logger.info({name}, 'STOPPED')
+    job.cancel()
+  }
+}
 
 module.exports = {
-  syncTokensTransfers,
-  syncTokensBalances,
+  startTokensTransfers: async () => scheduleJob('tokensTransfers', tokenTransferCron, readWriteTransactions),
+
+  startTokensBalances: async () => scheduleJob('tokensBalances', updateBalanceCron, updateTokensBalances),
+
+  stopTokensTransfers: async () => cancelJob('tokensTransfers'),
+
+  stopTokensBalances: async () => cancelJob('tokensBalances'),
 }
