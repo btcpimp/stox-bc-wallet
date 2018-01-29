@@ -5,7 +5,7 @@ const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-so
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const {promiseSerial} = require('../promise')
-const {network, tokenTransferCron} = require('app/config')
+const {network, tokenTransferCron, updateBalanceCron} = require('app/config')
 const {getBlockTime} = require('app/utils')
 const {web3} = require('./blockchain')
 
@@ -37,37 +37,42 @@ const fetchLatestTransactions = async ({id, address}) => {
 
 const insertTransactions = async (token, transactions, toBlock, currentBlockTime) =>
   db.sequelize.transaction().then(async (transaction) => {
-    const tokenValues = await db.tokensTransfersReads.findOne({where: {tokenId: {[Op.eq]: token.id}}})
-    await tokenValues.updateAttributes({lastReadBlockNumber: toBlock}, {transaction})
-    await Promise.all(transactions.map(async (t) => {
-      const {
-        amount,
-        blockNumber,
-        logIndex,
-        from,
-        to,
-        transactionHash,
-        event,
-      } = t
-      return db.tokensTransfers.create(
-        {
-          blockNumber: Number(blockNumber),
-          logIndex,
-          transactionHash,
-          tokenId: token.id,
-          network,
-          currentBlockTime,
-          fromAddress: from,
-          toAddress: to,
-          amount: Number(amount),
-          rawData: event,
-        },
-        {transaction}
-      )
-    }))
-
     try {
+      const tokenValues = await db.tokensTransfersReads.findOne({where: {tokenId: {[Op.eq]: token.id}}})
+      await tokenValues.updateAttributes({lastReadBlockNumber: toBlock}, {transaction})
+      await Promise.all(transactions.map(async (t) => {
+        const {
+          amount,
+          blockNumber,
+          logIndex,
+          from,
+          to,
+          transactionHash,
+          event,
+        } = t
+        return db.tokensTransfers.create(
+          {
+            blockNumber: Number(blockNumber),
+            logIndex,
+            transactionHash,
+            tokenId: token.id,
+            network,
+            currentBlockTime,
+            fromAddress: from,
+            toAddress: to,
+            amount: Number(amount),
+            rawData: event,
+          },
+          {transaction}
+        )
+      }))
+
       await transaction.commit()
+      logger.info({
+        network,
+        token: token.name,
+        transactions: transactions.length,
+      }, 'WRITE_TRANSACTIONS')
     } catch (e) {
       transaction.rollback()
       throw new UnexpectedError('savingFailed', e)
@@ -75,7 +80,7 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
   })
 
 const updatePendingBalance = async (wallets, token) => {
-  const promises = [wallets[0]].map(wallet =>
+  const promises = wallets.map(wallet =>
     db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
       .then(async (transaction) => {
         try {
@@ -123,7 +128,13 @@ const updatePendingBalance = async (wallets, token) => {
         }
       }))
 
-  return Promise.all(promises)
+  return Promise.all(promises).then(() => {
+    logger.info({
+      network,
+      token: token.name,
+      wallets: wallets.length,
+    }, 'PENDING_UPDATE_BALANCE')
+  })
 }
 
 const readWriteTransactions = async () =>
@@ -145,7 +156,7 @@ const readWriteTransactions = async () =>
         toBlock,
         currentBlock,
         currentBlockTime: new Date(currentBlockTime).toUTCString(),
-      }, 'READ')
+      }, 'READ_TRANSACTIONS')
 
       let transactions = []
 
@@ -161,43 +172,83 @@ const readWriteTransactions = async () =>
 
         if (transactions.length) {
           await updatePendingBalance(wallets, token)
-
-          logger.info({
-            network,
-            token: token.name,
-            wallets: wallets.length,
-          }, 'PENDING_BALANCE_UPDATE')
         }
       }
 
       await insertTransactions(token, transactions, toBlock, currentBlockTime)
-
-      logger.info({
-        network,
-        token: token.name,
-        transactions: transactions.length,
-      }, 'WRITE')
     })))
 
-const start = async () => {
-  logger.info('reader started')
+const updateTokensBalances = async () =>
+  db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+    .then(async (transaction) => {
+      try {
+        const tokenBalance = await db.tokensBalances.findOne({
+          where: {pendingUpdateBalance: {[Op.gt]: 0}},
+          transaction,
+        })
+
+        if (tokenBalance) {
+          const {walletId, tokenId, pendingUpdateBalance} = tokenBalance
+          const walletAddress = walletId.split('.').pop()
+          const tokenAddress = tokenId.split('.').pop()
+          const {balance} = await tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress)
+
+          await tokenBalance.update(
+            {
+              balance,
+              pendingUpdateBalance: Number(pendingUpdateBalance) - 1,
+            },
+            {
+              where: {
+                walletId,
+                tokenId,
+              },
+            },
+            {transaction}
+          )
+
+          logger.info({
+            network,
+            tokenAddress,
+            walletAddress,
+          }, 'UPDATE_BALANCE')
+        }
+
+        transaction.commit()
+      } catch (e) {
+        transaction.rollback()
+        throw new UnexpectedError('updateBalanceFailed', e)
+      }
+    })
+
+const scheduleJob = async (name, spec, func) => {
+  logger.info({name}, 'STARTED')
   let promise = null
 
-  schedule.scheduleJob(tokenTransferCron, async () => {
+  schedule.scheduleJob(spec, async () => {
     if (!promise) {
-      logger.info('WORKING')
-      promise = readWriteTransactions()
+      logger.info({name}, 'WORKING')
+
+      promise = func()
         .then(() => {
           promise = null
         })
         .catch((e) => {
-          logger.error(e.original ? e.original : e)
+          logger.error({name, error: e.original ? e.original : e})
+          console.error(e)
           promise = null
         })
     }
   })
 }
 
+const syncTokensTransfers = async () =>
+  scheduleJob('TokensTransfers', tokenTransferCron, readWriteTransactions)
+
+const syncTokensBalances = async () =>
+  scheduleJob('TokensBalances', updateBalanceCron, updateTokensBalances)
+
 module.exports = {
-  start,
+  syncTokensTransfers,
+  syncTokensBalances,
 }
