@@ -35,8 +35,8 @@ const server = app.listen(port, () => {
 
   dbInit(databaseUrl)
     .then(() => {
-      blockchainReader.syncTokensTransfers()
-      blockchainReader.syncTokensBalances()
+      blockchainReader.startTokensTransfers()
+      blockchainReader.startTokensBalances()
     })
     .catch(err => logger.error(err))
 })
