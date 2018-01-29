@@ -234,8 +234,7 @@ const scheduleJob = async (name, spec, func) => {
           promise = null
         })
         .catch((e) => {
-          logger.error({name, error: e.original ? e.original : e})
-          console.error(e)
+          logger.error(e.original ? e.original : e)
           promise = null
         })
     }
