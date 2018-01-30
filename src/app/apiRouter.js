@@ -2,7 +2,8 @@ const {Router} = require('express')
 const bodyParser = require('body-parser')
 const {expressHelpers: {createApiEndpoint}} = require('@welldone-software/node-toolbelt')
 const wallets = require('app/services/wallets')
-const blockchainReader = require('app/services/blockchainReader')
+const tokensTransfers = require('app/services/tokensTransfers')
+const tokensBalances = require('app/services/tokensBalances')
 
 const _ = createApiEndpoint
 const router = new Router()
@@ -10,8 +11,8 @@ const router = new Router()
 router.use(bodyParser.json())
 
 router.post(
-  '/wallets/balance',
-  _(({body: {walletAddress}}) => wallets.getWalletBalance(walletAddress))
+  '/wallets/create',
+  _(({body: {address}}) => wallets.createWallet(address))
 )
 
 router.post(
@@ -20,28 +21,33 @@ router.post(
 )
 
 router.get(
-  '/tokens/transfers/start',
-  _(() => blockchainReader.startTokensTransfers())
-)
-
-router.get(
-  '/tokens/balances/start',
-  _(() => blockchainReader.startTokensBalances())
-)
-
-router.get(
-  '/tokens/transfers/stop',
-  _(() => blockchainReader.stopTokensTransfers())
-)
-
-router.get(
-  '/tokens/balances/stop',
-  _(() => blockchainReader.stopTokensBalances())
+  '/wallets/balance',
+  _(({body: {address}}) => wallets.getWalletBalance(address))
 )
 
 router.get(
   '/wallets/mock',
-  _(() => blockchainReader.mockWallets())
+  _(() => wallets.mockWallets())
+)
+
+router.get(
+  '/tokens/transfers/start',
+  _(() => tokensTransfers.start())
+)
+
+router.get(
+  '/tokens/transfers/stop',
+  _(() => tokensBalances.stop())
+)
+
+router.get(
+  '/tokens/balances/start',
+  _(() => tokensBalances.start())
+)
+
+router.get(
+  '/tokens/balances/stop',
+  _(() => tokensBalances.stop())
 )
 
 module.exports = router
