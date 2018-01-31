@@ -12,6 +12,8 @@ const apiRouter = require('app/apiRouter')
 const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
 const utils = require('app/utils')
+const tokensTransfers = require('app/services/tokensTransfers')
+const tokensBalances = require('app/services/tokensBalances')
 
 const app = express()
 
@@ -32,5 +34,9 @@ const server = app.listen(port, async () => {
   logger.error(`ethereum network ${online ? '' : 'not '}online`)
 
   dbInit(databaseUrl)
+    .then(() => {
+      tokensTransfers.start()
+      tokensBalances.start()
+    })
     .catch(err => logger.error(err))
 })
