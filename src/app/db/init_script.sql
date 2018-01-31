@@ -89,12 +89,4 @@ CREATE TABLE "tokensTransfersReads"
 
 CREATE INDEX tokensTransfersReads_updated_at ON "tokensTransfersReads" USING btree ("updatedAt");
 
---INSERT INTO "tokens" ("id", "name", "address", "network") VALUES ('MAIN.0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'STX', '0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0xF87a7EC94884F44D9dE33d36b73F42c7c0Dd38B1', '0xF87a7EC94884F44D9dE33d36b73F42c7c0Dd38B1', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0xb1C5FaEEc6AD4Ff9FeeD18ad76A459aAf7344D7C', '0xb1C5FaEEc6AD4Ff9FeeD18ad76A459aAf7344D7C', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0x972bc28f0618084ebbd8093b49ea1ea0c2d2af45', '0x972bc28f0618084ebbd8093b49ea1ea0c2d2af45', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0x1db40ef4a9f71a3c207f99a7a0b5efd6d44dba54', '0x1db40ef4a9f71a3c207f99a7a0b5efd6d44dba54', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0x9c0a1f6f5453841f889234915ffba500843f6c38', '0x9c0a1f6f5453841f889234915ffba500843f6c38', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0xf85bf5db8c666b387fe3652511558ebd07f86992', '0xf85bf5db8c666b387fe3652511558ebd07f86992', 'MAIN');
---INSERT INTO "wallets" ("id", "address", "network") VALUES ('MAIN.0x797d713d8d7a2815ccf3dcf9719e3e9f1712c370', '0x797d713d8d7a2815ccf3dcf9719e3e9f1712c370', 'MAIN');
---INSERT INTO "tokensTransfersReads" ("tokenId", "lastReadBlockNumber") VALUES ('MAIN.0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 0);
+INSERT INTO "tokens" ("id", "name", "address", "network") VALUES ('MAIN.0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'STX', '0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'MAIN');
