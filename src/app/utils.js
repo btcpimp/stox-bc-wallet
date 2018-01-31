@@ -23,6 +23,11 @@ const getBlockTime = async (blockNumber = 'latest') => {
   return secondsToDate(blockTime)
 }
 
+const getCurrentBlockNumber = async () => {
+  const currentBlock = await web3.eth.getBlockNumber()
+  return currentBlock
+}
+
 const isListening = async () => {
   try {
     return await web3.eth.net.isListening()
@@ -39,4 +44,5 @@ module.exports = {
   isAddressEmpty,
   getBlockTime,
   isListening,
+  getCurrentBlockNumber,
 }
