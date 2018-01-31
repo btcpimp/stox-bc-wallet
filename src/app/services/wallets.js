@@ -18,9 +18,7 @@ const getWallet = async (walletAddress) => {
 
 const isWithdrawAddressSet = async (walletAddress) => {
   validateAddress(walletAddress)
-  const isSet = !isAddressEmpty((await getWallet(walletAddress)).userWithdrawalAccount)
-
-  return {isSet}
+  return !isAddressEmpty((await getWallet(walletAddress)).userWithdrawalAccount)
 }
 
 const tryAssignWallet = async () =>
@@ -58,17 +56,26 @@ const assignWallet = async (withdrawAddress, times = 1) => {
     throw new Error('too many tries')
   }
 
+  const wallet = await tryAssignWallet()
+
+  if (!wallet) {
+    throw new UnexpectedError('wallets pool is empty')
+  }
+
   try {
-    const wallet = await tryAssignWallet()
-
-    if (await isWithdrawAddressSet(wallet.address)) {
-      await wallet.updateAttributes({corruptedAt: new Date()})
-      logger.info({wallet}, 'CORRUPTED')
-
-      return assignWallet(withdrawAddress, ++times)
-    }
+    //todo: validate withdraw address
+    // if (await isWithdrawAddressSet(wallet.address)) {
+    //   await wallet.updateAttributes({corruptedAt: new Date()})
+    //   logger.info({wallet}, 'CORRUPTED')
+    //
+    //   return assignWallet(withdrawAddress, ++times)
+    // }
 
     //todo: set withdraw address
+    // if (await setWithdrawAddress(wallet.address, withdrawAddress)) {
+    //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
+    //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
+    // }
 
     logger.info({wallet}, 'ASSIGNED')
     return wallet

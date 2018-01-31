@@ -22,7 +22,7 @@ router.post(
 
 router.get(
   '/wallets/balance',
-  _(({body: {address}}) => wallets.getWalletBalance(address))
+  _(({query: {address}}) => wallets.getWalletBalance(address))
 )
 
 router.get(
