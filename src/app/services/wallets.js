@@ -61,12 +61,12 @@ const assignWallet = async (withdrawAddress, times = 1) => {
   try {
     const wallet = await tryAssignWallet()
 
-    if (await isWithdrawAddressSet(wallet.address)) {
-      await wallet.updateAttributes({corruptedAt: new Date()})
-      logger.info({wallet}, 'CORRUPTED')
-
-      return assignWallet(withdrawAddress, ++times)
-    }
+    // if (await isWithdrawAddressSet(wallet.address)) {
+    //   await wallet.updateAttributes({corruptedAt: new Date()})
+    //   logger.info({wallet}, 'CORRUPTED')
+    //
+    //   return assignWallet(withdrawAddress, ++times)
+    // }
 
     //todo: set withdraw address
 

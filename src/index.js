@@ -13,6 +13,7 @@ const {
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
+const utils = require('app/utils')
 
 const app = express()
 
@@ -29,8 +30,9 @@ app.use('/api/v1', apiRouter)
 app.use(expressStatusMonitor())
 app.use(errorHandler)
 
-const server = app.listen(port, () => {
+const server = app.listen(port, async () => {
   logger.info({binding: server.address()}, 'http server started')
+  logger.info({isListening: await utils.isListening()}, 'ethereum network')
 
   dbInit(databaseUrl)
     .catch(err => logger.error(err))
