@@ -17,7 +17,7 @@ const updateTokensBalances = async () =>
         })
 
         if (tokenBalance) {
-          const {walletId, tokenId, pendingUpdateBalance} = tokenBalance
+          const {walletId, tokenId} = tokenBalance
           const walletAddress = walletId.split('.').pop()
           const tokenAddress = tokenId.split('.').pop()
           const {balance} = await tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress)
@@ -25,7 +25,7 @@ const updateTokensBalances = async () =>
           await tokenBalance.update(
             {
               balance,
-              pendingUpdateBalance: Number(pendingUpdateBalance) - 1,
+              pendingUpdateBalance: 0,
             },
             {
               where: {

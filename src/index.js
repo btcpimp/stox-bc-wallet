@@ -2,8 +2,6 @@ require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-u
 
 const express = require('express')
 const compression = require('compression')
-const lusca = require('lusca')
-const cors = require('cors')
 const bodyParser = require('body-parser')
 const expressStatusMonitor = require('express-status-monitor')
 const {
@@ -18,12 +16,9 @@ const utils = require('app/utils')
 const app = express()
 
 app.use(bodyParser.json())
-app.use(cors({credentials: true, origin: true}))
 app.use(compression())
 app.use(bodyParser.json())
 app.use(expressLogger())
-app.use(lusca.xframe('SAMEORIGIN'))
-app.use(lusca.xssProtection(true))
 app.set('trust proxy', 'loopback')
 app.disable('x-powered-by')
 app.use('/api/v1', apiRouter)
@@ -32,7 +27,9 @@ app.use(errorHandler)
 
 const server = app.listen(port, async () => {
   logger.info({binding: server.address()}, 'http server started')
-  logger.info({isListening: await utils.isListening()}, 'ethereum network')
+
+  const online = await utils.isListening()
+  logger.error(`ethereum network ${online ? '' : 'not '}online`)
 
   dbInit(databaseUrl)
     .catch(err => logger.error(err))

@@ -25,7 +25,7 @@ const getBlockTime = async (blockNumber = 'latest') => {
 
 const isListening = async () => {
   try {
-    return web3.eth.net.isListening()
+    return await web3.eth.net.isListening()
   } catch (e) {
     logger.error(e)
     return false
