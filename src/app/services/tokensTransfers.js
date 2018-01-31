@@ -5,8 +5,7 @@ const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const {promiseSerial} = require('../promise')
 const {network, tokenTransferCron} = require('app/config')
-const {getBlockTime} = require('app/utils')
-const {web3} = require('./blockchain')
+const {getBlockTime, getCurrentBlockNumber} = require('app/utils')
 const {scheduleJob, cancelJob} = require('../scheduleUtils')
 
 const {Op} = Sequelize
@@ -19,7 +18,7 @@ const fetchLatestTransactions = async ({id, address}) => {
 
   const lastReadBlockNumber = row ? Number(row.lastReadBlockNumber) : 0
   const fromBlock = row ? lastReadBlockNumber === 0 ? lastReadBlockNumber : lastReadBlockNumber + 1 : 0
-  const currentBlock = await web3.eth.getBlockNumber()
+  const currentBlock = await getCurrentBlockNumber()
   const currentBlockTime = await getBlockTime(currentBlock)
 
   try {
