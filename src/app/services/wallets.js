@@ -52,6 +52,7 @@ const tryAssignWallet = async () =>
     })
 
 const assignWallet = async (withdrawAddress, times = 1) => {
+  validateAddress(withdrawAddress)
   if (times >= maxWalletAssignRetires) {
     throw new Error('too many tries')
   }
@@ -85,11 +86,13 @@ const assignWallet = async (withdrawAddress, times = 1) => {
   }
 }
 
-const getWalletBalance = async walletAddress =>
+const getWalletBalance = async (walletAddress) => {
+  validateAddress(walletAddress)
   db.tokensBalances.findAll({
     attributes: ['tokenId', 'balance'],
     where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}},
   })
+}
 
 const createWallet = async address =>
   db.wallets.create({
