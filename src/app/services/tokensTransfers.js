@@ -22,7 +22,7 @@ const fetchLatestTransactions = async ({id, address}) => {
   const currentBlockTime = await getBlockTime(currentBlock)
 
   try {
-    const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
+    const result = await tokenTracker.getLatestTransferTransactions(address.toLowerCase(), fromBlock)
     return {
       ...result,
       fromBlock,
@@ -62,8 +62,8 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
             tokenId: token.id,
             network,
             currentBlockTime,
-            fromAddress: from,
-            toAddress: to,
+            fromAddress: from.toLowerCase(),
+            toAddress: to.toLowerCase(),
             amount: Number(amount),
             rawData: event,
           },
@@ -165,14 +165,15 @@ const readWriteTransactions = async () =>
       let transactions = []
 
       if (allTransactions.length) {
-        const addresses = uniq(flatten(transactions.map(t => ([t.to, t.from]))))
+        const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()]))))
         const wallets = await db.wallets.findAll({
           attributes: ['id', 'address'],
           where: {address: {[Op.or]: addresses}},
         })
 
-        const walletAddresses = wallets.map(w => w.address)
-        transactions = allTransactions.filter(t => walletAddresses.includes(t.to) || walletAddresses.includes(t.from))
+        const walletAddresses = wallets.map(w => w.address.toLowerCase())
+        transactions = allTransactions.filter(t =>
+          walletAddresses.includes(t.to.toLowerCase()) || walletAddresses.includes(t.from.toLowerCase()))
 
         if (transactions.length) {
           await updatePendingBalance(wallets, token)

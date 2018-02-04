@@ -9,7 +9,7 @@ const {Op} = Sequelize
 
 const getWallet = async (walletAddress) => {
   validateAddress(walletAddress)
-  const walletContract = getSmartWalletContract(walletAddress)
+  const walletContract = getSmartWalletContract(walletAddress.toLowerCase())
   const {operatorAccount, backupAccount, feesAccount, userWithdrawalAccount} =
     await walletContract.methods.wallet().call()
 
@@ -18,7 +18,7 @@ const getWallet = async (walletAddress) => {
 
 const isWithdrawAddressSet = async (walletAddress) => {
   validateAddress(walletAddress)
-  return !isAddressEmpty((await getWallet(walletAddress)).userWithdrawalAccount)
+  return !isAddressEmpty((await getWallet(walletAddress.toLowerCase())).userWithdrawalAccount)
 }
 
 const tryAssignWallet = async () =>
@@ -64,16 +64,16 @@ const assignWallet = async (withdrawAddress, times = 1) => {
   }
 
   try {
-    //todo: validate withdraw address
+    // todo: validate withdraw address
     // if (await isWithdrawAddressSet(wallet.address)) {
     //   await wallet.updateAttributes({corruptedAt: new Date()})
     //   logger.info({wallet}, 'CORRUPTED')
     //
-    //   return assignWallet(withdrawAddress, ++times)
+    //   return assignWallet(withdrawAddress.toLowerCase(), ++times)
     // }
 
     //todo: set withdraw address
-    // if (await setWithdrawAddress(wallet.address, withdrawAddress)) {
+    // if (await setWithdrawAddress(wallet.address, withdrawAddress.toLowerCase())) {
     //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
     //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
     // }
@@ -90,13 +90,13 @@ const getWalletBalance = async (walletAddress) => {
   validateAddress(walletAddress)
   db.tokensBalances.findAll({
     attributes: ['tokenId', 'balance'],
-    where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}},
+    where: {walletId: {[Op.eq]: `${network}.${walletAddress.toLowerCase()}`}},
   })
 }
 
 const createWallet = async address =>
   db.wallets.create({
-    id: `${network}.${address}`,
+    id: `${network}.${address.toLowerCase()}`,
     address,
     network,
     version: 1,
@@ -164,9 +164,29 @@ const mockWallets = async () => {
   })
 }
 
+const createWallets = async addresses => db.sequelize.transaction().then(async (transaction) => {
+  try {
+    const promises = addresses.map(async address => db.wallets.create(
+      {
+        id: `${network}.${address}`,
+        address,
+        network,
+        version: 1,
+      },
+      {transaction}
+    ))
+
+    await Promise.all(promises)
+    await transaction.commit()
+  } catch (e) {
+    await transaction.rollback()
+  }
+})
+
 module.exports = {
   assignWallet,
   getWalletBalance,
   mockWallets,
   createWallet,
+  createWallets,
 }

@@ -18,8 +18,8 @@ const updateTokensBalances = async () =>
 
         if (tokenBalance) {
           const {walletId, tokenId} = tokenBalance
-          const walletAddress = walletId.split('.').pop()
-          const tokenAddress = tokenId.split('.').pop()
+          const walletAddress = walletId.split('.').pop().toLowerCase()
+          const tokenAddress = tokenId.split('.').pop().toLowerCase()
           const {balance} = await tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress)
 
           await tokenBalance.update(
