@@ -16,6 +16,11 @@ router.post(
 )
 
 router.post(
+  '/wallets/createWallets',
+  _(({body: {addresses}}) => wallets.createWallets(addresses))
+)
+
+router.post(
   '/wallets/assign',
   _(({body: {withdrawAddress}}) => wallets.assignWallet(withdrawAddress))
 )

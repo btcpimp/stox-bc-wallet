@@ -64,7 +64,7 @@ const assignWallet = async (withdrawAddress, times = 1) => {
   }
 
   try {
-    //todo: validate withdraw address
+    // todo: validate withdraw address
     // if (await isWithdrawAddressSet(wallet.address)) {
     //   await wallet.updateAttributes({corruptedAt: new Date()})
     //   logger.info({wallet}, 'CORRUPTED')
@@ -72,7 +72,7 @@ const assignWallet = async (withdrawAddress, times = 1) => {
     //   return assignWallet(withdrawAddress, ++times)
     // }
 
-    //todo: set withdraw address
+    // todo: set withdraw address
     // if (await setWithdrawAddress(wallet.address, withdrawAddress)) {
     //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
     //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
@@ -164,9 +164,29 @@ const mockWallets = async () => {
   })
 }
 
+const createWallets = async addresses => db.sequelize.transaction().then(async (transaction) => {
+  try {
+    const promises = addresses.map(async address => db.wallets.create(
+      {
+        id: `${network}.${address}`,
+        address,
+        network,
+        version: 1,
+      },
+      {transaction}
+    ))
+
+    await Promise.all(promises)
+    await transaction.commit()
+  } catch (e) {
+    await transaction.rollback()
+  }
+})
+
 module.exports = {
   assignWallet,
   getWalletBalance,
   mockWallets,
   createWallet,
+  createWallets,
 }
