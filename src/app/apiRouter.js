@@ -30,27 +30,27 @@ router.get(
   _(({query: {address}}) => wallets.getWalletBalance(address))
 )
 
-router.get(
+router.post(
   '/wallets/mock',
   _(() => wallets.mockWallets())
 )
 
-router.get(
+router.post(
   '/tokens/transfers/start',
   _(() => tokensTransfers.start())
 )
 
-router.get(
+router.post(
   '/tokens/transfers/stop',
   _(() => tokensBalances.stop())
 )
 
-router.get(
+router.post(
   '/tokens/balances/start',
   _(() => tokensBalances.start())
 )
 
-router.get(
+router.post(
   '/tokens/balances/stop',
   _(() => tokensBalances.stop())
 )
