@@ -10,4 +10,5 @@ module.exports = mapEnv({
   tokenTransferCron: '1 * * * * *', // cron syntax,
   updateBalanceCron: '1 * * * * *', // cron syntax,
   maxWalletAssignRetires: 5,
+  frontendBaseUrl: 'http://localhost:3000/api/v1',
 })
