@@ -9,7 +9,7 @@ const {Op} = Sequelize
 
 const getWallet = async (walletAddress) => {
   validateAddress(walletAddress)
-  const walletContract = getSmartWalletContract(walletAddress)
+  const walletContract = getSmartWalletContract(walletAddress.toLowerCase())
   const {operatorAccount, backupAccount, feesAccount, userWithdrawalAccount} =
     await walletContract.methods.wallet().call()
 
@@ -18,7 +18,7 @@ const getWallet = async (walletAddress) => {
 
 const isWithdrawAddressSet = async (walletAddress) => {
   validateAddress(walletAddress)
-  return !isAddressEmpty((await getWallet(walletAddress)).userWithdrawalAccount)
+  return !isAddressEmpty((await getWallet(walletAddress.toLowerCase())).userWithdrawalAccount)
 }
 
 const tryAssignWallet = async () =>
@@ -69,11 +69,11 @@ const assignWallet = async (withdrawAddress, times = 1) => {
     //   await wallet.updateAttributes({corruptedAt: new Date()})
     //   logger.info({wallet}, 'CORRUPTED')
     //
-    //   return assignWallet(withdrawAddress, ++times)
+    //   return assignWallet(withdrawAddress.toLowerCase(), ++times)
     // }
 
-    // todo: set withdraw address
-    // if (await setWithdrawAddress(wallet.address, withdrawAddress)) {
+    //todo: set withdraw address
+    // if (await setWithdrawAddress(wallet.address, withdrawAddress.toLowerCase())) {
     //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
     //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
     // }
@@ -90,13 +90,13 @@ const getWalletBalance = async (walletAddress) => {
   validateAddress(walletAddress)
   db.tokensBalances.findAll({
     attributes: ['tokenId', 'balance'],
-    where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}},
+    where: {walletId: {[Op.eq]: `${network}.${walletAddress.toLowerCase()}`}},
   })
 }
 
 const createWallet = async address =>
   db.wallets.create({
-    id: `${network}.${address}`,
+    id: `${network}.${address.toLowerCase()}`,
     address,
     network,
     version: 1,
