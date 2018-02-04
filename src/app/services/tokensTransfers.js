@@ -1,8 +1,9 @@
-const {flatten, uniq} = require('lodash')
+const {flatten, uniq, intersection} = require('lodash')
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
+const frontendApi = require('../services/frontendApi')
 const {promiseSerial} = require('../promise')
 const {network, tokenTransferCron} = require('app/config')
 const {getBlockTime, getCurrentBlockNumber} = require('app/utils')
@@ -141,6 +142,31 @@ const updatePendingBalance = async (wallets, token) => {
   })
 }
 
+const sendTransactionsMessages = async (wallets, transactions) => {
+  const messagesToSend = wallets.map(({address}) => {
+    const transaction = transactions.find(t => t.to === address || t.from === address)
+    const {to, amount, currentBlockTime} = transaction
+    const event = to === address ? 'withdraw' : 'deposit'
+    return () => frontendApi.sendTransactionMessage({
+      event,
+      address,
+      network,
+      amount,
+      currentBlockTime,
+    })
+  })
+
+  return promiseSerial(messagesToSend)
+}
+
+const getTransactionsWallets = async (transactions) => {
+  const addresses = uniq(flatten(transactions.map(t => ([t.to, t.from]))))
+  return db.wallets.findAll({
+    attributes: ['id', 'address', 'network'],
+    where: {address: {[Op.or]: addresses}},
+  })
+}
+
 const readWriteTransactions = async () =>
   db.tokens.findAll({where: {network: {[Op.eq]: network}}})
     .then(tokens => promiseSerial(tokens.map(token => async () => {
@@ -165,18 +191,15 @@ const readWriteTransactions = async () =>
       let transactions = []
 
       if (allTransactions.length) {
-        const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()]))))
-        const wallets = await db.wallets.findAll({
-          attributes: ['id', 'address'],
-          where: {address: {[Op.or]: addresses}},
-        })
-
-        const walletAddresses = wallets.map(w => w.address.toLowerCase())
-        transactions = allTransactions.filter(t =>
-          walletAddresses.includes(t.to.toLowerCase()) || walletAddresses.includes(t.from.toLowerCase()))
+        const wallets = await getTransactionsWallets(allTransactions)
+        const addresses = wallets.map(w => w.address.toLowerCase())
+        transactions = allTransactions.filter(t => intersection(addresses, [t.to.toLowerCase(), t.from.toLowerCase()]))
 
         if (transactions.length) {
           await updatePendingBalance(wallets, token)
+
+          // TODO: what if server fails ?
+          await sendTransactionsMessages(wallets, transactions)
         }
       }
 
