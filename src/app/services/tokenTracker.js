@@ -64,7 +64,14 @@ const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   validateAddress(tokenAddress)
   validateAddress(owner)
   const tokenContract = getERC20TokenContract(tokenAddress)
-  blockNumber = blockNumber || await getLastConfirmedBlock()
+
+  const lastConfirmedBlock = await getLastConfirmedBlock()
+  if (blockNumber >= lastConfirmedBlock) {
+    logger.info(`Ethereum node is behind database last confirmed block. db block is ${blockNumber}.
+     node block is ${lastConfirmedBlock}.`)
+  }
+
+  blockNumber = lastConfirmedBlock
   return tokenContract.methods.balanceOf(owner).call(undefined, blockNumber)
 }
 
