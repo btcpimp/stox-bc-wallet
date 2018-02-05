@@ -142,7 +142,7 @@ const updatePendingBalance = async (wallets, token) => {
   })
 }
 
-const sendTransactionsMessages = async (wallets, transactions) => {
+const sendTransactionsMessages = async (token, wallets, transactions) => {
   const messagesToSend = wallets.map(({address}) => {
     const transaction = transactions.find(t => t.to === address || t.from === address)
     const {to, amount, currentBlockTime} = transaction
@@ -153,6 +153,8 @@ const sendTransactionsMessages = async (wallets, transactions) => {
       network,
       amount,
       currentBlockTime,
+      token: token.name,
+      status: 'confirmed',
     })
   })
 
@@ -199,7 +201,7 @@ const readWriteTransactions = async () =>
           await updatePendingBalance(wallets, token)
 
           // TODO: what if server fails ?
-          await sendTransactionsMessages(wallets, transactions)
+          await sendTransactionsMessages(token, wallets, transactions)
         }
       }
 
