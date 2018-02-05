@@ -2,6 +2,7 @@ const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
+const tokenTransfers = require('../services/tokensTransfers')
 const {network, updateBalanceCron} = require('app/config')
 const {scheduleJob, cancelJob} = require('../scheduleUtils')
 
@@ -20,7 +21,11 @@ const updateTokensBalances = async () =>
           const {walletId, tokenId} = tokenBalance
           const walletAddress = walletId.split('.').pop().toLowerCase()
           const tokenAddress = tokenId.split('.').pop().toLowerCase()
-          const {balance} = await tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress)
+          const {balance} = await tokenTracker.getAccountBalanceInEther(
+            tokenAddress,
+            walletAddress,
+            await tokenTransfers.fetchLastReadBlock(tokenId)
+          )
 
           await tokenBalance.update(
             {
