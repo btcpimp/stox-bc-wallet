@@ -30,6 +30,11 @@ router.get(
   _(({query: {address}}) => wallets.getWalletBalance(address))
 )
 
+router.get(
+  '/wallets/unassgined/count',
+  _(() => wallets.getUnassignedWalletsCount())
+)
+
 router.post(
   '/wallets/mock',
   _(() => wallets.mockWallets())

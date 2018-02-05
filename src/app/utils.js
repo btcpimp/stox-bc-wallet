@@ -12,7 +12,7 @@ const secondsToDate = date => new Date(date * 1000)
 
 const validateAddress = (address) => {
   if (!web3.utils.isAddress(address)) {
-    throw new InvalidArgumentError(`Invalid address ${address}`)
+    throw new InvalidArgumentError(`invalid address ${address}`)
   }
 }
 

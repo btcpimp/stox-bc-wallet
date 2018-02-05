@@ -31,7 +31,7 @@ const server = app.listen(port, async () => {
   logger.info({binding: server.address()}, 'http server started')
 
   const online = await utils.isListening()
-  logger.error(`ethereum network ${online ? '' : 'not '}online`)
+  logger.info(`ethereum network ${online ? '' : 'not '}online`)
 
   dbInit(databaseUrl)
     .then(() => {
