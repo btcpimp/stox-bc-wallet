@@ -60,15 +60,16 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
   return ({toBlock, transactions})
 }
 
-const getAccountBalance = async (tokenAddress, owner) => {
+const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   validateAddress(tokenAddress)
   validateAddress(owner)
   const tokenContract = getERC20TokenContract(tokenAddress)
-  return tokenContract.methods.balanceOf(owner).call(undefined, await getLastConfirmedBlock())
+  blockNumber = blockNumber || await getLastConfirmedBlock()
+  return tokenContract.methods.balanceOf(owner).call(undefined, blockNumber)
 }
 
-const getAccountBalanceInEther = async (tokenAddress, owner) => ({
-  balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner))),
+const getAccountBalanceInEther = async (tokenAddress, owner, blockNumber) => ({
+  balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner, blockNumber))),
 })
 
 module.exports = {
