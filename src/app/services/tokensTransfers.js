@@ -11,14 +11,19 @@ const {scheduleJob, cancelJob} = require('../scheduleUtils')
 
 const {Op} = Sequelize
 
-const fetchLatestTransactions = async ({id, address}) => {
+const fetchLastReadBlock = async (tokenId) => {
   const row = await db.tokensTransfersReads.findOne({
     attributes: ['lastReadBlockNumber'],
-    where: {tokenId: {[Op.eq]: id}},
+    where: {tokenId: {[Op.eq]: tokenId}},
   })
 
   const lastReadBlockNumber = row ? Number(row.lastReadBlockNumber) : 0
-  const fromBlock = row ? lastReadBlockNumber === 0 ? lastReadBlockNumber : lastReadBlockNumber + 1 : 0
+  return lastReadBlockNumber
+}
+
+const fetchLatestTransactions = async ({id, address}) => {
+  const lastReadBlockNumber = await fetchLastReadBlock(id)
+  const fromBlock = lastReadBlockNumber === 0 ? lastReadBlockNumber + 1 : 0
   const currentBlock = await getCurrentBlockNumber()
   const currentBlockTime = await getBlockTime(currentBlock)
 
@@ -212,4 +217,5 @@ const readWriteTransactions = async () =>
 module.exports = {
   start: async () => scheduleJob('tokensTransfers', tokenTransferCron, readWriteTransactions),
   stop: async () => cancelJob('tokensTransfers'),
+  fetchLastReadBlock,
 }
