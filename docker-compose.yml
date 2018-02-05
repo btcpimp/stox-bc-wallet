@@ -17,6 +17,7 @@ services:
             TOKEN_TRANSFER_CRON: '*/20 * * * * *'
             UPDATE_BALANCE_CRON: '*/20 * * * * *'
             MAX_WALLET_ASSIGN_RETIRES: 5
+            BACKEND_BASE_URL: 'http://10.240.2.224:8085'
         links:
             - bc_wallet_db
         depends_on:
