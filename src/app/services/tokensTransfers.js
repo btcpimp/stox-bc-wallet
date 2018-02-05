@@ -23,7 +23,7 @@ const fetchLastReadBlock = async (tokenId) => {
 
 const fetchLatestTransactions = async ({id, address}) => {
   const lastReadBlockNumber = await fetchLastReadBlock(id)
-  const fromBlock = lastReadBlockNumber === 0 ? lastReadBlockNumber + 1 : 0
+  const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
   const currentBlock = await getCurrentBlockNumber()
   const currentBlockTime = await getBlockTime(currentBlock)
 
