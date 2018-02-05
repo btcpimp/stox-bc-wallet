@@ -145,7 +145,7 @@ const updatePendingBalance = async (wallets, token) => {
 const sendTransactionsMessages = async (token, wallets, transactions) => {
   const messagesToSend = wallets.map(({address}) => {
     const transaction = transactions.find(t => t.to === address || t.from === address)
-    const {to, amount, currentBlockTime} = transaction
+    const {to, amount, currentBlockTime, transactionHash} = transaction
     const event = to === address ? 'withdraw' : 'deposit'
     return () => frontendApi.sendTransactionMessage({
       event,
@@ -155,6 +155,7 @@ const sendTransactionsMessages = async (token, wallets, transactions) => {
       currentBlockTime,
       token: token.name,
       status: 'confirmed',
+      transactionHash,
     })
   })
 
