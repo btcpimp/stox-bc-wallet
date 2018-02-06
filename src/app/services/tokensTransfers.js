@@ -185,7 +185,7 @@ const sendTransactionsMessages = async (token, wallets, transactions) => {
 }
 
 const getTransactionsWallets = async (transactions) => {
-  const addresses = uniq(flatten(transactions.map(t => ([t.to, t.from]))))
+  const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()]))))
   return db.wallets.findAll({
     attributes: ['id', 'address', 'network'],
     where: {address: {[Op.or]: addresses}},
