@@ -36,11 +36,6 @@ router.get(
 )
 
 router.post(
-  '/wallets/mock',
-  _(() => wallets.mockWallets())
-)
-
-router.post(
   '/tokens/transfers/start',
   _(() => tokensTransfers.start())
 )
