@@ -102,8 +102,7 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
 }
 
 const updatePendingBalance = async (wallets, token) => {
-  logger.info({network}, 'PENDING_UPDATE_BALANCE')
-
+  logger.info({network}, 'UPDATING_PENDING_BALANCES')
   const promises = wallets.map(wallet => () =>
     db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
       .then(async (transaction) => {
@@ -157,7 +156,7 @@ const updatePendingBalance = async (wallets, token) => {
       network,
       token: token.name,
       wallets: wallets.length,
-    }, 'PENDING_UPDATE_BALANCE')
+    }, 'UPDATED_PENDING_BALANCES')
   })
 }
 
