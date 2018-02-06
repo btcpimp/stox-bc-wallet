@@ -52,7 +52,7 @@ const updateTokensBalances = async () =>
         transaction.commit()
       } catch (e) {
         transaction.rollback()
-        throw new UnexpectedError('updateBalanceFailed', e)
+        throw new UnexpectedError('update balance failed', e)
       }
     })
 

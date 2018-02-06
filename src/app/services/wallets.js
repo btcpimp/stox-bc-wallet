@@ -94,6 +94,20 @@ const getWalletBalance = async (walletAddress) => {
   })
 }
 
+const getUnassignedWalletsCount = async () => {
+  const count = await db.wallets.count({
+    where: {
+      [Op.and]: [
+        {assignedAt: {[Op.eq]: null}},
+        {setWithdrawAddressAt: {[Op.eq]: null}},
+        {corruptedAt: {[Op.eq]: null}},
+        {network: {[Op.eq]: network}},
+      ],
+    },
+  })
+  return {count}
+}
+
 const createWallet = async address =>
   db.wallets.create({
     id: `${network}.${address.toLowerCase()}`,
@@ -189,4 +203,5 @@ module.exports = {
   mockWallets,
   createWallet,
   createWallets,
+  getUnassignedWalletsCount,
 }

@@ -19,7 +19,7 @@ const scheduleJob = async (name, spec, func) => {
           })
           .catch((e) => {
             if (e.original) {
-              logger.error({...e.original}, e.message)
+              logger.error(e, e.original.message)
             } else {
               logger.error(e)
             }

@@ -11,7 +11,7 @@ const http = (() => {
     caller[method] = (...args) =>
       ax[method](...args)
         .then(res => res.data)
-        .catch(err => Promise.reject(new UnexpectedError('frontend failed', err)))
+        .catch(err => Promise.reject(new UnexpectedError('backend api failed', err)))
     return caller
   }, {})
 })()

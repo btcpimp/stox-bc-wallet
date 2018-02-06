@@ -23,7 +23,7 @@ const fetchLastReadBlock = async (tokenId) => {
 
 const fetchLatestTransactions = async ({id, address}) => {
   const lastReadBlockNumber = await fetchLastReadBlock(id)
-  const fromBlock = lastReadBlockNumber === 0 ? lastReadBlockNumber + 1 : 0
+  const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
   const currentBlock = await getCurrentBlockNumber()
   const currentBlockTime = await getBlockTime(currentBlock)
 
@@ -36,7 +36,7 @@ const fetchLatestTransactions = async ({id, address}) => {
       currentBlockTime,
     }
   } catch (e) {
-    throw new UnexpectedError('blockchainReadFailed', e)
+    throw new UnexpectedError('blockchain read failed', e)
   }
 }
 
@@ -85,7 +85,7 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
       }, 'WRITE_TRANSACTIONS')
     } catch (e) {
       transaction.rollback()
-      throw new UnexpectedError('insertTransactionsFailed', e)
+      throw new UnexpectedError('insert transactions failed', e)
     }
   })
 
@@ -134,7 +134,7 @@ const updatePendingBalance = async (wallets, token) => {
           transaction.commit()
         } catch (e) {
           transaction.rollback()
-          throw new UnexpectedError('updatePendingBalanceFailed', e)
+          throw new UnexpectedError('update pending balance failed', e)
         }
       }))
 
@@ -164,7 +164,7 @@ const sendTransactionsMessages = async (token, wallets, transactions) => {
     })
   })
 
-  return promiseSerial(messagesToSend)
+  return promiseSerial(messagesToSend).catch(e => logger.error(e))
 }
 
 const getTransactionsWallets = async (transactions) => {
