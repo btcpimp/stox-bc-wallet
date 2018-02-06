@@ -21,7 +21,8 @@ const fetchLastReadBlock = async (tokenId) => {
   return lastReadBlockNumber
 }
 
-const fetchLatestTransactions = async ({id, address}) => {
+const fetchLatestTransactions = async ({id, name, address}) => {
+  logger.info({network}, 'FETCHING_LATEST_TRANSACTIONS')
   const lastReadBlockNumber = await fetchLastReadBlock(id)
   const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
   const currentBlock = await getCurrentBlockNumber()
@@ -29,6 +30,15 @@ const fetchLatestTransactions = async ({id, address}) => {
 
   try {
     const result = await tokenTracker.getLatestTransferTransactions(address.toLowerCase(), fromBlock)
+    logger.info({
+      network,
+      token: name,
+      transactions: result.transactions.length,
+      fromBlock,
+      toBlock: result.toBlock,
+      currentBlock,
+      currentBlockTime: new Date(currentBlockTime).toUTCString(),
+    }, 'FETCH_LATEST_TRANSACTIONS')
     return {
       ...result,
       fromBlock,
@@ -40,8 +50,9 @@ const fetchLatestTransactions = async ({id, address}) => {
   }
 }
 
-const insertTransactions = async (token, transactions, toBlock, currentBlockTime) =>
-  db.sequelize.transaction().then(async (transaction) => {
+const insertTransactions = async (token, transactions, toBlock, currentBlockTime) => {
+  logger.info({network}, 'WRITING_TRANSACTIONS')
+  return db.sequelize.transaction().then(async (transaction) => {
     try {
       await db.tokensTransfersReads.upsert(
         {
@@ -88,8 +99,11 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
       throw new UnexpectedError('insert transactions failed', e)
     }
   })
+}
 
 const updatePendingBalance = async (wallets, token) => {
+  logger.info({network}, 'PENDING_UPDATE_BALANCE')
+
   const promises = wallets.map(wallet => () =>
     db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
       .then(async (transaction) => {
@@ -148,6 +162,7 @@ const updatePendingBalance = async (wallets, token) => {
 }
 
 const sendTransactionsMessages = async (token, wallets, transactions) => {
+  logger.info({network}, 'SENDING_TRANSACTIONS')
   const messagesToSend = wallets.map(({address}) => {
     const transaction = transactions.find(t => t.to === address || t.from === address)
     const {to, amount, currentBlockTime, transactionHash} = transaction
@@ -164,7 +179,9 @@ const sendTransactionsMessages = async (token, wallets, transactions) => {
     })
   })
 
-  return promiseSerial(messagesToSend).catch(e => logger.error(e))
+  return promiseSerial(messagesToSend)
+    .then(res => logger.info({network, ...res}, 'SEND_TRANSACTIONS'))
+    .catch(e => logger.error(e))
 }
 
 const getTransactionsWallets = async (transactions) => {
@@ -175,8 +192,9 @@ const getTransactionsWallets = async (transactions) => {
   })
 }
 
-const readWriteTransactions = async () =>
-  db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+const readWriteTransactions = async () => {
+  logger.info({network}, 'READING_TRANSACTIONS')
+  return db.tokens.findAll({where: {network: {[Op.eq]: network}}})
     .then(tokens => promiseSerial(tokens.map(token => async () => {
       const {
         transactions: allTransactions,
@@ -201,7 +219,8 @@ const readWriteTransactions = async () =>
       if (allTransactions.length) {
         const wallets = await getTransactionsWallets(allTransactions)
         const addresses = wallets.map(w => w.address.toLowerCase())
-        transactions = allTransactions.filter(t => intersection(addresses, [t.to.toLowerCase(), t.from.toLowerCase()]))
+        transactions = allTransactions.filter(t =>
+          addresses.includes(t.to.toLowerCase()) || addresses.includes(t.from.toLowerCase()))
 
         if (transactions.length) {
           await updatePendingBalance(wallets, token)
@@ -213,6 +232,7 @@ const readWriteTransactions = async () =>
 
       await insertTransactions(token, transactions, toBlock, currentBlockTime)
     })))
+}
 
 module.exports = {
   start: async () => scheduleJob('tokensTransfers', tokenTransferCron, readWriteTransactions),
