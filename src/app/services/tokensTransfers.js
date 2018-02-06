@@ -208,7 +208,7 @@ const readWriteTransactions = async () => {
       logger.info({
         network,
         token: token.name,
-        allTransactions: allTransactions.length,
+        transactions: allTransactions.length,
         fromBlock,
         toBlock,
         currentBlock,
