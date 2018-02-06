@@ -31,7 +31,7 @@ router.get(
 )
 
 router.get(
-  '/wallets/unassgined/count',
+  '/wallets/unassigned/count',
   _(() => wallets.getUnassignedWalletsCount())
 )
 
