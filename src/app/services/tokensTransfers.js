@@ -1,4 +1,4 @@
-const {flatten, uniq, intersection} = require('lodash')
+const {flatten, uniq} = require('lodash')
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
@@ -160,27 +160,28 @@ const updatePendingBalance = async (wallets, token) => {
   })
 }
 
-const sendTransactionsMessages = async (token, wallets, transactions) => {
+const sendTransactionsMessages = async (token, wallets, transactions, currentBlockTime) => {
   logger.info({network}, 'SENDING_TRANSACTIONS')
   const messagesToSend = wallets.map(({address}) => {
     const walletAddress = address.toLowerCase()
-    const transaction = transactions.find(t =>
+    const walletTransactions = transactions.filter(t =>
       t.to.toLowerCase() === walletAddress || t.from.toLowerCase() === walletAddress)
-    const {to, amount, currentBlockTime, transactionHash} = transaction
-    const event = to.toLowerCase() === walletAddress ? 'withdraw' : 'deposit'
-    return () => frontendApi.sendTransactionMessage({
-      event,
-      address: walletAddress,
-      network,
-      amount,
-      currentBlockTime,
-      token: token.name,
-      status: 'confirmed',
-      transactionHash,
+    return walletTransactions.map((transaction) => {
+      const {to, amount, transactionHash} = transaction
+      const event = to.toLowerCase() === walletAddress ? 'deposit' : 'withdraw'
+      return frontendApi.sendTransactionMessage({
+        event,
+        address: walletAddress,
+        network,
+        amount,
+        currentBlockTime,
+        token: token.name,
+        status: 'confirmed',
+        transactionHash,
+      })
     })
   })
-
-  return promiseSerial(messagesToSend)
+  return Promise.all(flatten(messagesToSend))
     .then(res => logger.info({network, ...res}, 'SEND_TRANSACTIONS'))
     .catch(e => logger.error(e))
 }
@@ -227,7 +228,7 @@ const readWriteTransactions = async () => {
           await updatePendingBalance(wallets, token)
 
           // TODO: what if server fails ?
-          await sendTransactionsMessages(token, wallets, transactions)
+          await sendTransactionsMessages(token, wallets, transactions, currentBlockTime)
         }
       }
 
