@@ -33,7 +33,7 @@ dbInit(databaseUrl)
       logger.info({binding: server.address()}, 'http server started')
 
       const online = await utils.isListening()
-      logger.info(`ethereum network ${online ? '' : 'not '}online`)
+      logger.info(`ethereum network is ${online ? '' : 'not '}online`)
 
       tokensTransfers.start()
       tokensBalances.start()
