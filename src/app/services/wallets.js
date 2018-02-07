@@ -72,7 +72,7 @@ const assignWallet = async (withdrawAddress, times = 1) => {
     //   return assignWallet(withdrawAddress.toLowerCase(), ++times)
     // }
 
-    //todo: set withdraw address
+    // todo: set withdraw address
     // if (await setWithdrawAddress(wallet.address, withdrawAddress.toLowerCase())) {
     //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
     //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
@@ -88,9 +88,10 @@ const assignWallet = async (withdrawAddress, times = 1) => {
 
 const getWalletBalance = async (walletAddress) => {
   validateAddress(walletAddress)
+  // todo: implement case sensitive query
   db.tokensBalances.findAll({
     attributes: ['tokenId', 'balance'],
-    where: {walletId: {[Op.eq]: `${network}.${walletAddress.toLowerCase()}`}},
+    where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}},
   })
 }
 
@@ -112,8 +113,8 @@ const createWallets = async addresses => db.sequelize.transaction().then(async (
   try {
     const promises = addresses.map(async address => db.wallets.create(
       {
-        id: `${network}.${address.toLowerCase()}`,
-        address: address.toLowerCase(),
+        id: `${network}.${address}`,
+        address,
         network,
         version: 1,
       },
