@@ -22,14 +22,13 @@ const fetchLastReadBlock = async (tokenId) => {
 }
 
 const fetchLatestTransactions = async ({id, name, address}) => {
-  logger.info({network}, 'FETCHING_LATEST_TRANSACTIONS')
   const lastReadBlockNumber = await fetchLastReadBlock(id)
   const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
   const currentBlock = await getCurrentBlockNumber()
   const currentBlockTime = await getBlockTime(currentBlock)
 
   try {
-    const result = await tokenTracker.getLatestTransferTransactions(address.toLowerCase(), fromBlock)
+    const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
     logger.info({
       network,
       token: name,
@@ -50,9 +49,8 @@ const fetchLatestTransactions = async ({id, name, address}) => {
   }
 }
 
-const insertTransactions = async (token, transactions, toBlock, currentBlockTime) => {
-  logger.info({network}, 'WRITING_TRANSACTIONS')
-  return db.sequelize.transaction().then(async (transaction) => {
+const insertTransactions = async (token, transactions, toBlock, currentBlockTime) =>
+  db.sequelize.transaction().then(async (transaction) => {
     try {
       await db.tokensTransfersReads.upsert(
         {
@@ -79,8 +77,8 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
             tokenId: token.id,
             network,
             currentBlockTime,
-            fromAddress: from.toLowerCase(),
-            toAddress: to.toLowerCase(),
+            fromAddress: from,
+            toAddress: to,
             amount: Number(amount),
             rawData: event,
           },
@@ -99,10 +97,8 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
       throw new UnexpectedError('insert transactions failed', e)
     }
   })
-}
 
 const updatePendingBalance = async (wallets, token) => {
-  logger.info({network}, 'UPDATING_PENDING_BALANCES')
   const promises = wallets.map(wallet => () =>
     db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
       .then(async (transaction) => {
@@ -161,7 +157,6 @@ const updatePendingBalance = async (wallets, token) => {
 }
 
 const sendTransactionsMessages = async (token, wallets, transactions, currentBlockTime) => {
-  logger.info({network}, 'SENDING_TRANSACTIONS')
   const messagesToSend = wallets.map(({address}) => {
     const walletAddress = address.toLowerCase()
     const walletTransactions = transactions.filter(t =>
@@ -194,9 +189,8 @@ const getTransactionsWallets = async (transactions) => {
   })
 }
 
-const readWriteTransactions = async () => {
-  logger.info({network}, 'READING_TRANSACTIONS')
-  return db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+const readWriteTransactions = async () =>
+  db.tokens.findAll({where: {network: {[Op.eq]: network}}})
     .then(tokens => promiseSerial(tokens.map(token => async () => {
       const {
         transactions: allTransactions,
@@ -226,15 +220,12 @@ const readWriteTransactions = async () => {
 
         if (transactions.length) {
           await updatePendingBalance(wallets, token)
-
-          // TODO: what if server fails ?
           await sendTransactionsMessages(token, wallets, transactions, currentBlockTime)
         }
       }
 
       await insertTransactions(token, transactions, toBlock, currentBlockTime)
     })))
-}
 
 module.exports = {
   start: async () => scheduleJob('tokensTransfers', tokenTransferCron, readWriteTransactions),
