@@ -4,7 +4,6 @@ COPY package.json /service/
 COPY package-lock.json /service/
 
 WORKDIR /service
-
 RUN npm install
 
 ADD . /service
