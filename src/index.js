@@ -27,16 +27,16 @@ app.use('/api/v1', apiRouter)
 app.use(expressStatusMonitor())
 app.use(errorHandler)
 
-const server = app.listen(port, async () => {
-  logger.info({binding: server.address()}, 'http server started')
+dbInit(databaseUrl)
+  .then(() => {
+    const server = app.listen(port, async () => {
+      logger.info({binding: server.address()}, 'http server started')
 
-  const online = await utils.isListening()
-  logger.info(`ethereum network ${online ? '' : 'not '}online`)
+      const online = await utils.isListening()
+      logger.info(`ethereum network ${online ? '' : 'not '}online`)
 
-  dbInit(databaseUrl)
-    .then(() => {
       tokensTransfers.start()
       tokensBalances.start()
     })
-    .catch(err => logger.error(err))
-})
+  })
+  .catch(err => logger.error(err))
