@@ -165,15 +165,15 @@ const updateBalance = async (token, wallet, balance) => {
 const sendWalletMessage = (token, wallet, transactions, balance, currentBlockTime) => {
   const message = {
     network,
-    walletAddress: wallet.address,
-    token: token.name,
-    currentBlockTime,
-    transactions: transactions.map(transaction => ({
-      ...transaction,
-      amount: Number(transaction.amount),
+    address: wallet.address,
+    asset: token.name,
+    balance,
+    happenedAt: currentBlockTime,
+    transactions: transactions.map(({transactionHash, to, amount}) => ({
+      transactionHash,
+      amount,
       status: 'confirmed',
-      event: transaction.to.toLowerCase() === wallet.address.toLowerCase() ? 'deposit' : 'withdraw',
-      balance,
+      type: to.toLowerCase() === wallet.address.toLowerCase() ? 'deposit' : 'withdraw',
     })),
   }
 
