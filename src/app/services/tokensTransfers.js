@@ -183,12 +183,12 @@ const sendWalletMessage = (token, wallet, transactions, balance, currentBlockTim
 }
 
 const getWalletsFromTransactions = async (transactions) => {
-  const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()]))))
-  // todo: implement case sensitive query
-  return db.wallets.findAll({
-    attributes: ['id', 'address', 'network'],
-    where: {address: {[Op.or]: addresses}},
-  })
+  const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
+  // todo: should we query only assigned wallets ?
+  return db.sequelize.query(
+    `select * from wallets where lower(address) similar to '%(${addresses})%'`,
+    {type: Sequelize.QueryTypes.SELECT},
+  )
 }
 
 const filterTransactionsByWallets = (transactions, wallets) => {
