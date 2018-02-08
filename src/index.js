@@ -13,7 +13,6 @@ const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
 const utils = require('app/utils')
 const tokensTransfers = require('app/services/tokensTransfers')
-const tokensBalances = require('app/services/tokensBalances')
 
 const app = express()
 
@@ -32,11 +31,11 @@ dbInit(databaseUrl)
     const server = app.listen(port, async () => {
       logger.info({binding: server.address()}, 'http server started')
 
+      // todo: handle parity timeout/hang
       const online = await utils.isListening()
       logger.info(`ethereum network is ${online ? '' : 'not '}online`)
 
       tokensTransfers.start()
-      tokensBalances.start()
     })
   })
   .catch(err => logger.error(err))

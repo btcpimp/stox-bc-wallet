@@ -3,7 +3,7 @@ const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
-const frontendApi = require('../services/frontendApi')
+const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../promise')
 const {network, tokenTransferCron} = require('app/config')
 const {getBlockTime, getCurrentBlockNumber} = require('app/utils')
@@ -21,6 +21,9 @@ const fetchLastReadBlock = async (tokenId) => {
   return lastReadBlockNumber
 }
 
+const updateLastReadBlock = async (tokenId, lastReadBlockNumber) =>
+  db.tokensTransfersReads.upsert({tokenId, lastReadBlockNumber})
+
 const fetchLatestTransactions = async ({id, name, address}) => {
   const lastReadBlockNumber = await fetchLastReadBlock(id)
   const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
@@ -37,7 +40,7 @@ const fetchLatestTransactions = async ({id, name, address}) => {
       toBlock: result.toBlock,
       currentBlock,
       currentBlockTime: new Date(currentBlockTime).toUTCString(),
-    }, 'FETCH_LATEST_TRANSACTIONS')
+    }, 'READ_TRANSACTIONS')
     return {
       ...result,
       fromBlock,
@@ -49,16 +52,9 @@ const fetchLatestTransactions = async ({id, name, address}) => {
   }
 }
 
-const insertTransactions = async (token, transactions, toBlock, currentBlockTime) =>
+const insertTransactions = async (token, transactions, currentBlockTime) =>
   db.sequelize.transaction().then(async (transaction) => {
     try {
-      await db.tokensTransfersReads.upsert(
-        {
-          tokenId: token.id,
-          lastReadBlockNumber: toBlock,
-        },
-        {transaction},
-      )
       await Promise.all(transactions.map(async (t) => {
         const {
           amount,
@@ -90,145 +86,156 @@ const insertTransactions = async (token, transactions, toBlock, currentBlockTime
       logger.info({
         network,
         token: token.name,
+        currentBlockTime,
         transactions: transactions.length,
       }, 'WRITE_TRANSACTIONS')
     } catch (e) {
       transaction.rollback()
-      throw new UnexpectedError('insert transactions failed', e)
+      if (e.original) {
+        logger.error(e, e.original.message)
+      } else {
+        logger.error(e)
+      }
     }
   })
 
-const updatePendingBalance = async (wallets, token) => {
-  const promises = wallets.map(wallet => () =>
-    db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
-      .then(async (transaction) => {
-        try {
-          const walletId = wallet.id
-          const tokenId = token.id
-          const tokenBalance = await db.tokensBalances.findOne({
-            where: {
-              [Op.and]: [
-                {walletId: {[Op.eq]: walletId}},
-                {tokenId: {[Op.eq]: tokenId}},
-              ],
-            },
-            transaction,
-          })
-
-          if (!tokenBalance) {
-            await db.tokensBalances.create(
-              {
-                walletId,
-                tokenId,
-                pendingUpdateBalance: 1,
-                balance: 0,
-              },
-              {transaction}
-            )
-          } else {
-            await tokenBalance.update(
-              {
-                pendingUpdateBalance: Number(tokenBalance.pendingUpdateBalance) + 1,
-              },
-              {
-                where: {
-                  walletId,
-                  tokenId,
-                },
-              },
-              {transaction}
-            )
-          }
-
-          transaction.commit()
-        } catch (e) {
-          transaction.rollback()
-          throw new UnexpectedError('update pending balance failed', e)
-        }
-      }))
-
-  return promiseSerial(promises).then(() => {
-    logger.info({
-      network,
-      token: token.name,
-      wallets: wallets.length,
-    }, 'UPDATED_PENDING_BALANCES')
-  })
+const getBalanceInEther = async (token, wallet) => {
+  const lastReadBlock = await fetchLastReadBlock(token.id)
+  const {balance} = await tokenTracker.getAccountBalanceInEther(token.address, wallet.address, lastReadBlock)
+  return balance
 }
 
-const sendTransactionsMessages = async (token, wallets, transactions, currentBlockTime) => {
-  const messagesToSend = wallets.map(({address}) => {
-    const walletAddress = address.toLowerCase()
-    const walletTransactions = transactions.filter(t =>
-      t.to.toLowerCase() === walletAddress || t.from.toLowerCase() === walletAddress)
-    return walletTransactions.map((transaction) => {
-      const {to, amount, transactionHash} = transaction
-      const event = to.toLowerCase() === walletAddress ? 'deposit' : 'withdraw'
-      return frontendApi.sendTransactionMessage({
-        event,
-        address: walletAddress,
-        network,
-        amount,
-        currentBlockTime,
-        token: token.name,
-        status: 'confirmed',
-        transactionHash,
-      })
+const updateBalance = async (token, wallet, balance) => {
+  const walletAddress = wallet.address
+  const walletId = wallet.id
+  const tokenId = token.id
+
+  await db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+    .then(async (transaction) => {
+      try {
+        const tokenBalance = await db.tokensBalances.findOne({
+          where: {
+            [Op.and]: [
+              {walletId: {[Op.eq]: walletId}},
+              {tokenId: {[Op.eq]: tokenId}},
+            ],
+          },
+          transaction,
+        })
+
+        if (!tokenBalance) {
+          await db.tokensBalances.create(
+            {
+              walletId,
+              tokenId,
+              balance,
+              pendingUpdateBalance: 0,
+            },
+            {transaction}
+          )
+        } else {
+          await tokenBalance.update({balance, pendingUpdateBalance: 0}, {
+            where: {
+              walletId,
+              tokenId,
+            },
+          }, {transaction})
+        }
+
+        transaction.commit()
+        logger.info({
+          network,
+          token: token.name,
+          walletAddress,
+          balance,
+        }, 'UPDATE_BALANCE')
+      } catch (e) {
+        transaction.rollback()
+        if (e.original) {
+          logger.error(e, e.original.message)
+        } else {
+          logger.error(e)
+        }
+      }
     })
-  })
-  return Promise.all(flatten(messagesToSend))
-    .then(res => logger.info({network, ...res}, 'SEND_TRANSACTIONS'))
+
+  return balance
+}
+
+const sendWalletMessage = (token, wallet, transactions, balance, currentBlockTime) => {
+  const message = {
+    network,
+    address: wallet.address,
+    asset: token.name,
+    balance,
+    happenedAt: currentBlockTime,
+    transactions: transactions.map(({transactionHash, to, amount}) => ({
+      transactionHash,
+      amount,
+      status: 'confirmed',
+      type: to.toLowerCase() === wallet.address.toLowerCase() ? 'deposit' : 'withdraw',
+    })),
+  }
+
+  return backendApi.sendTransactionMessage(message)
+    .then(() => logger.info(message, 'SEND_TRANSACTIONS'))
     .catch(e => logger.error(e))
 }
 
-const getTransactionsWallets = async (transactions) => {
-  const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()]))))
-  return db.wallets.findAll({
-    attributes: ['id', 'address', 'network'],
-    where: {address: {[Op.or]: addresses}},
-  })
+const getWalletsFromTransactions = async (transactions) => {
+  const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
+  // todo: should we query only assigned wallets ?
+  return db.sequelize.query(
+    `select * from wallets where lower(address) similar to '%(${addresses})%'`,
+    {type: Sequelize.QueryTypes.SELECT},
+  )
 }
 
-const readWriteTransactions = async () =>
+const filterTransactionsByWallets = (transactions, wallets) => {
+  const addresses = wallets.map(w => w.address.toLowerCase())
+  return transactions.filter(t => addresses.includes(t.to.toLowerCase()) || addresses.includes(t.from.toLowerCase()))
+}
+
+const filterTransactionsByAddress = (transactions, address) =>
+  transactions.filter(t =>
+    t.to.toLowerCase() === address.toLowerCase() ||
+    t.from.toLowerCase() === address.toLowerCase())
+
+const updateTokenBalances = async (token, wallet, tokenTransactions, currentBlockTime) => {
+  const balance = await getBalanceInEther(token, wallet)
+  await updateBalance(token, wallet, balance)
+  const {address} = wallet
+  const addressTransactions = filterTransactionsByAddress(tokenTransactions, address.toLowerCase())
+  return sendWalletMessage(token, wallet, addressTransactions, balance, currentBlockTime)
+}
+
+const tokensTransfersJob = async () =>
   db.tokens.findAll({where: {network: {[Op.eq]: network}}})
     .then(tokens => promiseSerial(tokens.map(token => async () => {
-      const {
-        transactions: allTransactions,
-        fromBlock,
-        toBlock,
-        currentBlock,
-        currentBlockTime,
-      } = await fetchLatestTransactions(token)
+      const {transactions, toBlock, currentBlockTime} = await fetchLatestTransactions(token)
 
-      logger.info({
-        network,
-        token: token.name,
-        transactions: allTransactions.length,
-        fromBlock,
-        toBlock,
-        currentBlock,
-        currentBlockTime: new Date(currentBlockTime).toUTCString(),
-      }, 'READ_TRANSACTIONS')
+      if (transactions.length) {
+        const wallets = await getWalletsFromTransactions(transactions)
+        const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
+        const funcs = wallets.map(wallet =>
+          () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
 
-      let transactions = []
+        try {
+          await promiseSerial(funcs)
+        } catch (e) {
+          logger.error(e)
+        }
 
-      if (allTransactions.length) {
-        const wallets = await getTransactionsWallets(allTransactions)
-        const addresses = wallets.map(w => w.address.toLowerCase())
-        transactions = allTransactions.filter(t =>
-          addresses.includes(t.to.toLowerCase()) || addresses.includes(t.from.toLowerCase()))
-
-        if (transactions.length) {
-          await updatePendingBalance(wallets, token)
-          await sendTransactionsMessages(token, wallets, transactions, currentBlockTime)
+        if (tokenTransactions.length) {
+          await insertTransactions(token, tokenTransactions, currentBlockTime)
         }
       }
 
-      await insertTransactions(token, transactions, toBlock, currentBlockTime)
+      await updateLastReadBlock(token.id, toBlock)
     })))
 
 module.exports = {
-  start: async () => scheduleJob('tokensTransfers', tokenTransferCron, readWriteTransactions),
+  start: async () => scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob),
   stop: async () => cancelJob('tokensTransfers'),
   fetchLastReadBlock,
 }

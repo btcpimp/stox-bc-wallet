@@ -3,7 +3,7 @@ const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 
 const jobs = {}
 const scheduleJob = async (name, spec, func) => {
-  logger.info({name}, 'STARTED')
+  logger.info({name, spec}, 'STARTED')
 
   let promise = null
   const job = jobs[name]
