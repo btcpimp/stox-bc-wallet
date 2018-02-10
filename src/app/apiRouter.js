@@ -42,7 +42,7 @@ router.post(
 
 router.post(
   '/tokens/transfers/stop',
-  _(() => tokensBalances.stop())
+  _(() => tokensTransfers.stop())
 )
 
 router.post(
