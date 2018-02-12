@@ -19,7 +19,8 @@ const validateAddress = (address) => {
 const isAddressEmpty = address => (address === '0x0000000000000000000000000000000000000000')
 
 const getBlockTime = async (blockNumber = 'latest') => {
-  const blockTime = (await web3.eth.getBlock(blockNumber, false)).timestamp
+  const block = await web3.eth.getBlock(blockNumber, false)
+  const blockTime = block.timestamp
   return secondsToDate(blockTime)
 }
 

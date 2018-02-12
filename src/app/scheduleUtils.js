@@ -18,12 +18,7 @@ const scheduleJob = async (name, spec, func) => {
             promise = null
           })
           .catch((e) => {
-            if (e.original) {
-              logger.error(e, e.original.message)
-            } else {
-              logger.error(e)
-            }
-
+            logger.error(e.original || e, e.message)
             promise = null
           })
       }

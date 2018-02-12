@@ -11,7 +11,6 @@ const {
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('app/db')
 const {port, databaseUrl} = require('app/config')
-const utils = require('app/utils')
 const tokensTransfers = require('app/services/tokensTransfers')
 
 const app = express()
@@ -30,11 +29,6 @@ dbInit(databaseUrl)
   .then(() => {
     const server = app.listen(port, async () => {
       logger.info({binding: server.address()}, 'http server started')
-
-      // todo: handle parity timeout/hang
-      const online = await utils.isListening()
-      logger.info(`ethereum network is ${online ? '' : 'not '}online`)
-
       tokensTransfers.start()
     })
   })

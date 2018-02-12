@@ -28,10 +28,11 @@ const fetchLatestTransactions = async ({id, name, address}) => {
   const lastReadBlockNumber = await fetchLastReadBlock(id)
   const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
   const currentBlock = await getCurrentBlockNumber()
-  const currentBlockTime = await getBlockTime(currentBlock)
 
   try {
+    const currentBlockTime = await getBlockTime(currentBlock)
     const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
+
     logger.info({
       network,
       token: name,
@@ -41,6 +42,7 @@ const fetchLatestTransactions = async ({id, name, address}) => {
       currentBlock,
       currentBlockTime: new Date(currentBlockTime).toUTCString(),
     }, 'READ_TRANSACTIONS')
+
     return {
       ...result,
       fromBlock,
@@ -48,7 +50,7 @@ const fetchLatestTransactions = async ({id, name, address}) => {
       currentBlockTime,
     }
   } catch (e) {
-    throw new UnexpectedError('blockchain read failed', e)
+    throw new UnexpectedError(`blockchain read failed, current block: ${currentBlock}, ${e.message}`, e)
   }
 }
 
@@ -101,8 +103,13 @@ const insertTransactions = async (token, transactions, currentBlockTime) =>
 
 const getBalanceInEther = async (token, wallet) => {
   const lastReadBlock = await fetchLastReadBlock(token.id)
-  const {balance} = await tokenTracker.getAccountBalanceInEther(token.address, wallet.address, lastReadBlock)
-  return balance
+
+  try {
+    const {balance} = await tokenTracker.getAccountBalanceInEther(token.address, wallet.address, lastReadBlock)
+    return balance
+  } catch (e) {
+    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
+  }
 }
 
 const updateBalance = async (token, wallet, balance) => {
@@ -162,7 +169,7 @@ const updateBalance = async (token, wallet, balance) => {
   return balance
 }
 
-const sendWalletMessage = (token, wallet, transactions, balance, currentBlockTime) => {
+const sendWalletMessage = async (token, wallet, transactions, balance, currentBlockTime) => {
   const message = {
     network,
     address: wallet.address,
@@ -177,9 +184,12 @@ const sendWalletMessage = (token, wallet, transactions, balance, currentBlockTim
     })),
   }
 
-  return backendApi.sendTransactionMessage(message)
-    .then(() => logger.info(message, 'SEND_TRANSACTIONS'))
-    .catch(e => logger.error(e))
+  try {
+    await backendApi.sendTransactionMessage(message)
+    logger.info(message, 'SEND_TRANSACTIONS')
+  } catch (e) {
+    logger.error(e)
+  }
 }
 
 const getWalletsFromTransactions = async (transactions) => {
@@ -203,10 +213,14 @@ const filterTransactionsByAddress = (transactions, address) =>
 
 const updateTokenBalances = async (token, wallet, tokenTransactions, currentBlockTime) => {
   const balance = await getBalanceInEther(token, wallet)
-  await updateBalance(token, wallet, balance)
-  const {address} = wallet
-  const addressTransactions = filterTransactionsByAddress(tokenTransactions, address.toLowerCase())
-  return sendWalletMessage(token, wallet, addressTransactions, balance, currentBlockTime)
+
+  if (balance) {
+    const {address} = wallet
+    const addressTransactions = filterTransactionsByAddress(tokenTransactions, address.toLowerCase())
+
+    await updateBalance(token, wallet, balance)
+    await sendWalletMessage(token, wallet, addressTransactions, balance, currentBlockTime)
+  }
 }
 
 const tokensTransfersJob = async () =>
