@@ -8,7 +8,6 @@ module.exports = mapEnv({
   maxBlocksRead: 10000,
   network: '',
   tokenTransferCron: '*/20 * * * * *', // cron syntax,
-  updateBalanceCron: '*/5 * * * * *', // cron syntax,
   maxWalletAssignRetires: 5,
   backendBaseUrl: '',
 })
