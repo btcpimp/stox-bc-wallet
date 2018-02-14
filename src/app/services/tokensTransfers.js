@@ -8,6 +8,7 @@ const {promiseSerial} = require('../promise')
 const {network, tokenTransferCron} = require('app/config')
 const {getBlockTime, getCurrentBlockNumber} = require('app/utils')
 const {scheduleJob, cancelJob} = require('../scheduleUtils')
+const {logError} = require('../errorHandle')
 
 const {Op} = Sequelize
 
@@ -93,11 +94,7 @@ const insertTransactions = async (token, transactions, currentBlockTime) =>
       }, 'WRITE_TRANSACTIONS')
     } catch (e) {
       transaction.rollback()
-      if (e.original) {
-        throw new UnexpectedError(e.original.message, e)
-      } else {
-        throw new UnexpectedError(e)
-      }
+      logError(e)
     }
   })
 
@@ -149,11 +146,7 @@ const updateBalance = async (token, wallet, balance) => {
         }, 'UPDATE_BALANCE')
       } catch (e) {
         transaction.rollback()
-        if (e.original) {
-          throw new UnexpectedError(e.original.message, e)
-        } else {
-          throw new UnexpectedError(e)
-        }
+        logError(e)
       }
     })
 
@@ -179,7 +172,7 @@ const sendWalletMessage = async (token, wallet, transactions, balance, currentBl
     await backendApi.sendTransactionMessage(message)
     logger.info(message, 'SEND_TRANSACTIONS')
   } catch (e) {
-    throw new UnexpectedError(e)
+    logError(e)
   }
 }
 
@@ -228,7 +221,7 @@ const tokensTransfersJob = async () => {
       try {
         await promiseSerial(funcs)
       } catch (e) {
-        throw new UnexpectedError(e)
+        logError(e)
       }
 
       if (tokenTransactions.length) {
