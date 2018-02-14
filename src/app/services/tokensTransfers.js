@@ -94,9 +94,9 @@ const insertTransactions = async (token, transactions, currentBlockTime) =>
     } catch (e) {
       transaction.rollback()
       if (e.original) {
-        logger.error(e, e.original.message)
+        throw new UnexpectedError(e.original.message, e)
       } else {
-        logger.error(e)
+        throw new UnexpectedError(e)
       }
     }
   })
@@ -150,9 +150,9 @@ const updateBalance = async (token, wallet, balance) => {
       } catch (e) {
         transaction.rollback()
         if (e.original) {
-          logger.error(e, e.original.message)
+          throw new UnexpectedError(e.original.message, e)
         } else {
-          logger.error(e)
+          throw new UnexpectedError(e)
         }
       }
     })
@@ -179,7 +179,7 @@ const sendWalletMessage = async (token, wallet, transactions, balance, currentBl
     await backendApi.sendTransactionMessage(message)
     logger.info(message, 'SEND_TRANSACTIONS')
   } catch (e) {
-    logger.error(e)
+    throw new UnexpectedError(e)
   }
 }
 
@@ -214,30 +214,31 @@ const updateTokenBalances = async (token, wallet, tokenTransactions, currentBloc
   }
 }
 
-const tokensTransfersJob = async () =>
-  db.tokens.findAll({where: {network: {[Op.eq]: network}}})
-    .then(tokens => promiseSerial(tokens.map(token => async () => {
-      const {transactions, toBlock, currentBlockTime} = await fetchLatestTransactions(token)
+const tokensTransfersJob = async () => {
+  const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+  return promiseSerial(tokens.map(token => async () => {
+    const {transactions, toBlock, currentBlockTime} = await fetchLatestTransactions(token)
 
-      if (transactions.length) {
-        const wallets = await getWalletsFromTransactions(transactions)
-        const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
-        const funcs = wallets.map(wallet =>
-          () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
+    if (transactions.length) {
+      const wallets = await getWalletsFromTransactions(transactions)
+      const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
+      const funcs = wallets.map(wallet =>
+        () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
 
-        try {
-          await promiseSerial(funcs)
-        } catch (e) {
-          logger.error(e)
-        }
-
-        if (tokenTransactions.length) {
-          await insertTransactions(token, tokenTransactions, currentBlockTime)
-        }
+      try {
+        await promiseSerial(funcs)
+      } catch (e) {
+        throw new UnexpectedError(e)
       }
 
-      await updateLastReadBlock(token.id, toBlock)
-    })))
+      if (tokenTransactions.length) {
+        await insertTransactions(token, tokenTransactions, currentBlockTime)
+      }
+    }
+
+    await updateLastReadBlock(token.id, toBlock)
+  }))
+}
 
 module.exports = {
   start: async () => scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob),
