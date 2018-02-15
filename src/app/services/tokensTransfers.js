@@ -1,4 +1,4 @@
-const {flatten, uniq} = require('lodash')
+const {flatten, uniq, omit} = require('lodash')
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
@@ -30,16 +30,15 @@ const fetchLatestTransactions = async ({id, name, address}) => {
       fromBlock: result.fromBlock,
       toBlock: result.toBlock,
       currentBlock,
-      currentBlockTime: new Date(currentBlockTime).toUTCString(),
+      currentBlockTime: currentBlockTime.toUTCString(),
     }, 'READ_TRANSACTIONS')
 
     return {
       ...result,
-      currentBlock,
       currentBlockTime,
     }
   } catch (e) {
-    throw new UnexpectedError(`blockchain read failed, current block: ${currentBlock}, ${e.message}`, e)
+    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
   }
 }
 
@@ -71,7 +70,6 @@ const updateBalance = async (token, wallet, balance) => {
   }
 }
 
-let counter = 0
 const sendMessageToBackend = async (token, wallet, transactions, balance, currentBlockTime) => {
   const walletAddress = wallet.address
   const message = {
@@ -89,9 +87,12 @@ const sendMessageToBackend = async (token, wallet, transactions, balance, curren
   }
 
   try {
-    // await backendApi.sendTransactionMessage(message)
-    counter += message.transactions.length
-    logger.info({counter}, 'SEND_TRANSACTIONS')
+    await backendApi.sendTransactionMessage(message)
+    const rest = omit(message, 'transactions')
+    logger.info({
+      ...rest,
+      transactions: transactions.length,
+    }, 'SEND_TRANSACTIONS')
   } catch (e) {
     logError(e)
   }
@@ -142,10 +143,6 @@ const tokensTransfersJob = async () => {
     const {transactions, toBlock, currentBlockTime} = await fetchLatestTransactions(token)
 
     if (transactions.length) {
-      const tran1 = transactions.find(t => t.transactionHash === '0xef0ca6d8ab2c4838be8052d36294699c7f182bc6881d23bfa172e6761b002f2b')
-      const tran2 = transactions.find(t => t.transactionHash === '0x41f62f9ec48062af486f86b743c6cb951e9dc631c5f246724e0f39eec429d68d')
-      const tran3 = transactions.find(t => t.transactionHash === '0x96f7f96490743a72076cb42b02ca57feb9b0638234c5a248a5e28adffa5ac748')
-
       const wallets = await getWalletsFromTransactions(transactions)
       const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
 
