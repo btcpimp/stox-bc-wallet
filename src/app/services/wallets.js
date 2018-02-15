@@ -78,7 +78,7 @@ const assignWallet = async (withdrawAddress, times = 1) => {
   // } catch (e) {
   //   logger.error(e)
   //   return assignWallet(network, withdrawAddress, ++times)
-  }
+  // }
 }
 
 const getWalletBalance = async (walletAddress) => {
