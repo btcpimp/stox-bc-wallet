@@ -44,38 +44,41 @@ const tryAssignWallet = async () => {
 
 
 const assignWallet = async (withdrawAddress, times = 1) => {
-  validateAddress(withdrawAddress)
-  if (times >= maxWalletAssignRetires) {
-    throw new Error('too many tries')
-  }
+  logger.error('======= Test ============== not implemented')
+  throw new UnexpectedError('Error assigning wallet')
 
-  const wallet = await tryAssignWallet()
-
-  if (!wallet) {
-    throw new UnexpectedError('wallets pool is empty')
-  }
-
-  try {
-    // todo: validate withdraw address
-    // if (await isWithdrawAddressSet(wallet.address)) {
-    //   await wallet.updateAttributes({corruptedAt: new Date()})
-    //   logger.info({wallet}, 'CORRUPTED')
-    //
-    //   return assignWallet(withdrawAddress.toLowerCase(), ++times)
-    // }
-
-    // todo: set withdraw address
-    // if (await setWithdrawAddress(wallet.address, withdrawAddress.toLowerCase())) {
-    //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
-    //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
-    // }
-
-    logger.info({wallet}, 'ASSIGNED')
-    return wallet
-  } catch (e) {
-    logger.error(e)
-    return assignWallet(network, withdrawAddress, ++times)
-  }
+  // validateAddress(withdrawAddress)
+  // if (times >= maxWalletAssignRetires) {
+  //   throw new Error('too many tries')
+  // }
+  //
+  // const wallet = await tryAssignWallet()
+  //
+  // if (!wallet) {
+  //   throw new UnexpectedError('wallets pool is empty')
+  // }
+  //
+  // try {
+  //   // todo: validate withdraw address
+  //   // if (await isWithdrawAddressSet(wallet.address)) {
+  //   //   await wallet.updateAttributes({corruptedAt: new Date()})
+  //   //   logger.info({wallet}, 'CORRUPTED')
+  //   //
+  //   //   return assignWallet(withdrawAddress.toLowerCase(), ++times)
+  //   // }
+  //
+  //   // todo: set withdraw address
+  //   // if (await setWithdrawAddress(wallet.address, withdrawAddress.toLowerCase())) {
+  //   //   await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
+  //   //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
+  //   // }
+  //
+  //   logger.info({wallet}, 'ASSIGNED')
+  //   return wallet
+  // } catch (e) {
+  //   logger.error(e)
+  //   return assignWallet(network, withdrawAddress, ++times)
+  // }
 }
 
 const getWalletBalance = async (walletAddress) => {
