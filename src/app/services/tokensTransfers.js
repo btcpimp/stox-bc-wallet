@@ -120,14 +120,9 @@ const updateBalance = async (token, wallet, balance) => {
   await db.sequelize.transaction()
     .then(async (transaction) => {
       try {
+        const where = {walletId, tokenId}
         const tokenBalance = await db.tokensBalances.findOne({
-          where: {
-            [Op.and]: [
-              {walletId: {[Op.eq]: walletId}},
-              {tokenId: {[Op.eq]: tokenId}},
-            ],
-          },
-          lock: Sequelize.Transaction.LOCK.UPDATE,
+          where,
           transaction,
         })
 
@@ -142,12 +137,7 @@ const updateBalance = async (token, wallet, balance) => {
             {transaction}
           )
         } else {
-          await tokenBalance.update({balance, pendingUpdateBalance: 0}, {
-            where: {
-              walletId,
-              tokenId,
-            },
-          }, {transaction})
+          await tokenBalance.update({balance, pendingUpdateBalance: 0}, {where, transaction})
         }
 
         transaction.commit()

@@ -34,7 +34,6 @@ const tryAssignWallet = async () =>
               {network: {[Op.eq]: network}},
             ],
           },
-          lock: Sequelize.Transaction.LOCK.UPDATE,
           transaction,
         })
 
@@ -42,7 +41,7 @@ const tryAssignWallet = async () =>
           throw new UnexpectedError('wallets pool is empty')
         }
 
-        await wallet.updateAttributes({assignedAt: new Date()}, {transaction})
+        await wallet.update({assignedAt: new Date()}, {where: {walletId: wallet.id}, transaction})
         await transaction.commit()
 
         return wallet
