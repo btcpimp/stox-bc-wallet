@@ -3,6 +3,7 @@ const {
   exceptions: {InvalidArgumentError},
   loggers: {logger},
 } = require('@welldone-software/node-toolbelt')
+const {requiredConfirmations} = require('app/config')
 
 const weiToEther = wei => web3.utils.fromWei(wei.toString(), 'ether')
 
@@ -23,6 +24,11 @@ const getBlockData = async (blockNumber = 'latest') => {
   return {blockNumber: block.number, timestamp: secondsToDate(block.timestamp)}
 }
 
+const getLastConfirmedBlock = async () => {
+  const currentBlock = await web3.eth.getBlockNumber()
+  return (currentBlock - requiredConfirmations)
+}
+
 const isListening = async () => {
   try {
     return await web3.eth.net.isListening()
@@ -39,4 +45,5 @@ module.exports = {
   isAddressEmpty,
   isListening,
   getBlockData,
+  getLastConfirmedBlock,
 }

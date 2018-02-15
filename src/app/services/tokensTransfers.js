@@ -5,8 +5,8 @@ const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../promise')
-const {network, tokenTransferCron} = require('app/config')
-const {getBlockData} = require('app/utils')
+const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('app/config')
+const {getBlockData, getLastConfirmedBlock} = require('app/utils')
 const {scheduleJob, cancelJob} = require('../scheduleUtils')
 const {logError} = require('../errorHandle')
 const tokensTransfersReads = require('./db/tokensTransfersReads')
@@ -15,26 +15,50 @@ const tokensBalances = require('./db/tokensBalances')
 
 const {Op} = Sequelize
 
-const fetchLatestTransactions = async ({id, name, address}) => {
-  const lastReadBlockNumber = await tokensTransfersReads.fetchLastReadBlock(id)
-  const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
+const getNextBlocksRange = async (token) => {
+  const lastReadBlockNumber = await tokensTransfersReads.fetchLastReadBlock(token.id)
+  let fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
+  const toBlock = await getLastConfirmedBlock()
 
+  if ((toBlock - fromBlock) > maxBlocksRead) {
+    fromBlock = toBlock - maxBlocksRead
+    fromBlock = fromBlock < 0 ? fromBlock = 0 : fromBlock
+  }
+
+  if (fromBlock > toBlock) {
+    logger.info({
+      network,
+      token: token.name,
+      fromBlock,
+      lastConfirmedBlock: toBlock,
+      requiredConfirmations,
+    }, 'NOT_ENOUGH_CONFIRMATIONS')
+    return null
+  }
+
+  return {
+    fromBlock,
+    toBlock,
+  }
+}
+
+const fetchLatestTransactions = async ({name, address}, fromBlock, toBlock) => {
   try {
     const {blockNumber: currentBlock, timestamp: currentBlockTime} = await getBlockData()
-    const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
+    const transactions = await tokenTracker.getLatestTransferTransactions(address, fromBlock, toBlock)
 
     logger.info({
       network,
       token: name,
-      transactions: result.transactions.length,
-      fromBlock: result.fromBlock,
-      toBlock: result.toBlock,
+      transactions: transactions.length,
+      fromBlock,
+      toBlock,
       currentBlock,
       currentBlockTime: currentBlockTime.toUTCString(),
     }, 'READ_TRANSACTIONS')
 
     return {
-      ...result,
+      transactions,
       currentBlockTime,
     }
   } catch (e) {
@@ -139,29 +163,36 @@ const updateTokenBalances = async (token, wallet, tokenTransactions, currentBloc
 
 const tokensTransfersJob = async () => {
   const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
-  return promiseSerial(tokens.map(token => async () => {
-    const {transactions, toBlock, currentBlockTime} = await fetchLatestTransactions(token)
+  const promises = tokens.map(token => async () => {
+    const blocksRange = await getNextBlocksRange(token)
 
-    if (transactions.length) {
-      const wallets = await getWalletsFromTransactions(transactions)
-      const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
+    if (blocksRange) {
+      const {fromBlock, toBlock} = blocksRange
+      const {transactions, currentBlockTime} = await fetchLatestTransactions(token, fromBlock, toBlock)
 
-      if (tokenTransactions.length) {
-        await insertTransactions(token, tokenTransactions, currentBlockTime)
+      if (transactions.length) {
+        const wallets = await getWalletsFromTransactions(transactions)
+        const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
+
+        if (tokenTransactions.length) {
+          await insertTransactions(token, tokenTransactions, currentBlockTime)
+        }
+
+        const funcs = wallets.map(wallet =>
+          () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
+
+        try {
+          await promiseSerial(funcs)
+        } catch (e) {
+          logError(e)
+        }
       }
 
-      const funcs = wallets.map(wallet =>
-        () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
-
-      try {
-        await promiseSerial(funcs)
-      } catch (e) {
-        logError(e)
-      }
+      await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
     }
+  })
 
-    await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
-  }))
+  return promiseSerial(promises)
 }
 
 module.exports = {
