@@ -57,7 +57,7 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
     // }
   })
 
-  return ({toBlock, transactions})
+  return ({fromBlock, toBlock, transactions})
 }
 
 const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
