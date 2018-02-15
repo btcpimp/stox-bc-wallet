@@ -93,7 +93,8 @@ const getWalletBalance = async (walletAddress) => {
 
 const getUnassignedWalletsCount = async () => {
   logger.error('======= Test ============== getUnassignedWalletsCount')
-  throw new UnexpectedError('Error getting wallet count')
+  const count = 1
+
   // const count = await db.wallets.count({
   //   where: {
   //     [Op.and]: [
@@ -104,7 +105,7 @@ const getUnassignedWalletsCount = async () => {
   //     ],
   //   },
   // })
-  // return {count}
+  return {count}
 }
 
 const createWallets = async addresses => db.sequelize.transaction().then(async (transaction) => {
