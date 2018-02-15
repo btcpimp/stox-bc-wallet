@@ -18,15 +18,9 @@ const validateAddress = (address) => {
 
 const isAddressEmpty = address => (address === '0x0000000000000000000000000000000000000000')
 
-const getBlockTime = async (blockNumber = 'latest') => {
+const getBlockData = async (blockNumber = 'latest') => {
   const block = await web3.eth.getBlock(blockNumber, false)
-  const blockTime = block.timestamp
-  return secondsToDate(blockTime)
-}
-
-const getCurrentBlockNumber = async () => {
-  const currentBlock = await web3.eth.getBlockNumber()
-  return currentBlock
+  return {blockNumber: block.number, timestamp: secondsToDate(block.timestamp)}
 }
 
 const isListening = async () => {
@@ -43,7 +37,6 @@ module.exports = {
   etherToWei,
   validateAddress,
   isAddressEmpty,
-  getBlockTime,
   isListening,
-  getCurrentBlockNumber,
+  getBlockData,
 }

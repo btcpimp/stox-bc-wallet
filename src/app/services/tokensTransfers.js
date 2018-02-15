@@ -6,7 +6,7 @@ const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../promise')
 const {network, tokenTransferCron} = require('app/config')
-const {getBlockTime, getCurrentBlockNumber} = require('app/utils')
+const {getBlockData} = require('app/utils')
 const {scheduleJob, cancelJob} = require('../scheduleUtils')
 const {logError} = require('../errorHandle')
 const tokensTransfersReads = require('./db/tokensTransfersReads')
@@ -18,10 +18,9 @@ const {Op} = Sequelize
 const fetchLatestTransactions = async ({id, name, address}) => {
   const lastReadBlockNumber = await tokensTransfersReads.fetchLastReadBlock(id)
   const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
-  const currentBlock = await getCurrentBlockNumber()
 
   try {
-    const currentBlockTime = await getBlockTime(currentBlock)
+    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await getBlockData()
     const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
 
     logger.info({

@@ -30,7 +30,7 @@
     "pg-hstore": "^2.3.2",
     "pino": "^4.8.0",
     "sequelize": "^4.33.4",
-    "web3": "^1.0.0-beta.24"
+    "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
     "axios": "^0.17.1",
