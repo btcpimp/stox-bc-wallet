@@ -21,35 +21,27 @@ const isWithdrawAddressSet = async (walletAddress) => {
   return !isAddressEmpty((await getWallet(walletAddress.toLowerCase())).userWithdrawalAccount)
 }
 
-const tryAssignWallet = async () =>
-  db.sequelize.transaction()
-    .then(async (transaction) => {
-      try {
-        const wallet = await db.wallets.findOne({
-          where: {
-            [Op.and]: [
-              {assignedAt: {[Op.eq]: null}},
-              {setWithdrawAddressAt: {[Op.eq]: null}},
-              {corruptedAt: {[Op.eq]: null}},
-              {network: {[Op.eq]: network}},
-            ],
-          },
-          transaction,
-        })
+const tryAssignWallet = async () => {
+  const wallet = await db.wallets.findOne({
+    where: {
+      [Op.and]: [
+        {assignedAt: {[Op.eq]: null}},
+        {setWithdrawAddressAt: {[Op.eq]: null}},
+        {corruptedAt: {[Op.eq]: null}},
+        {network: {[Op.eq]: network}},
+      ],
+    },
+  })
 
-        if (!wallet) {
-          throw new UnexpectedError('wallets pool is empty')
-        }
+  if (!wallet) {
+    throw new UnexpectedError('wallets pool is empty')
+  }
 
-        await wallet.update({assignedAt: new Date()}, {where: {walletId: wallet.id}, transaction})
-        await transaction.commit()
+  await wallet.update({assignedAt: new Date()}, {where: {assignedAt: {[Op.eq]: null}}})
 
-        return wallet
-      } catch (e) {
-        transaction.rollback()
-        throw e
-      }
-    })
+  return wallet
+}
+
 
 const assignWallet = async (withdrawAddress, times = 1) => {
   validateAddress(withdrawAddress)
