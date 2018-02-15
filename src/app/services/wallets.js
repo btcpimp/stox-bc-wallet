@@ -22,7 +22,7 @@ const isWithdrawAddressSet = async (walletAddress) => {
 }
 
 const tryAssignWallet = async () =>
-  db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+  db.sequelize.transaction()
     .then(async (transaction) => {
       try {
         const wallet = await db.wallets.findOne({
@@ -34,6 +34,7 @@ const tryAssignWallet = async () =>
               {network: {[Op.eq]: network}},
             ],
           },
+          lock: Sequelize.Transaction.LOCK.UPDATE,
           transaction,
         })
 
