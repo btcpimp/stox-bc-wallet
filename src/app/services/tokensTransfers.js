@@ -1,178 +1,104 @@
-const {flatten, uniq} = require('lodash')
+const {flatten, uniq, omit} = require('lodash')
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../promise')
-const {network, tokenTransferCron} = require('app/config')
-const {getBlockTime, getCurrentBlockNumber} = require('app/utils')
+const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('app/config')
+const {getBlockData, getLastConfirmedBlock} = require('app/utils')
 const {scheduleJob, cancelJob} = require('../scheduleUtils')
+const {logError} = require('../errorHandle')
+const tokensTransfersReads = require('./db/tokensTransfersReads')
+const tokensTransfers = require('./db/tokensTransfers')
+const tokensBalances = require('./db/tokensBalances')
 
 const {Op} = Sequelize
 
-const fetchLastReadBlock = async (tokenId) => {
-  const row = await db.tokensTransfersReads.findOne({
-    attributes: ['lastReadBlockNumber'],
-    where: {tokenId: {[Op.eq]: tokenId}},
-  })
+const getNextBlocksRange = async (token) => {
+  const lastReadBlockNumber = await tokensTransfersReads.fetchLastReadBlock(token.id)
+  let fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
+  const toBlock = await getLastConfirmedBlock()
 
-  const lastReadBlockNumber = row ? Number(row.lastReadBlockNumber) : 0
-  return lastReadBlockNumber
+  if ((toBlock - fromBlock) > maxBlocksRead) {
+    fromBlock = toBlock - maxBlocksRead
+    fromBlock = fromBlock < 0 ? fromBlock = 0 : fromBlock
+  }
+
+  if (fromBlock > toBlock) {
+    logger.info({
+      network,
+      token: token.name,
+      fromBlock,
+      lastConfirmedBlock: toBlock,
+      requiredConfirmations,
+    }, 'NOT_ENOUGH_CONFIRMATIONS')
+    return null
+  }
+
+  return {
+    fromBlock,
+    toBlock,
+  }
 }
 
-const updateLastReadBlock = async (tokenId, lastReadBlockNumber) =>
-  db.tokensTransfersReads.upsert({tokenId, lastReadBlockNumber})
-
-const fetchLatestTransactions = async ({id, name, address}) => {
-  const lastReadBlockNumber = await fetchLastReadBlock(id)
-  const fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
-  const currentBlock = await getCurrentBlockNumber()
-
+const fetchLatestTransactions = async ({name, address}, fromBlock, toBlock) => {
   try {
-    const currentBlockTime = await getBlockTime(currentBlock)
-    const result = await tokenTracker.getLatestTransferTransactions(address, fromBlock)
+    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await getBlockData()
+    const transactions = await tokenTracker.getLatestTransferTransactions(address, fromBlock, toBlock)
 
     logger.info({
       network,
       token: name,
-      transactions: result.transactions.length,
+      transactions: transactions.length,
       fromBlock,
-      toBlock: result.toBlock,
+      toBlock,
       currentBlock,
-      currentBlockTime: new Date(currentBlockTime).toUTCString(),
+      currentBlockTime: currentBlockTime.toUTCString(),
     }, 'READ_TRANSACTIONS')
 
     return {
-      ...result,
-      fromBlock,
-      currentBlock,
+      transactions,
       currentBlockTime,
     }
-  } catch (e) {
-    throw new UnexpectedError(`blockchain read failed, current block: ${currentBlock}, ${e.message}`, e)
-  }
-}
-
-const insertTransactions = async (token, transactions, currentBlockTime) =>
-  db.sequelize.transaction().then(async (transaction) => {
-    try {
-      await Promise.all(transactions.map(async (t) => {
-        const {
-          amount,
-          blockNumber,
-          logIndex,
-          from,
-          to,
-          transactionHash,
-          event,
-        } = t
-        return db.tokensTransfers.create(
-          {
-            blockNumber: Number(blockNumber),
-            logIndex,
-            transactionHash,
-            tokenId: token.id,
-            network,
-            currentBlockTime,
-            fromAddress: from,
-            toAddress: to,
-            amount: Number(amount),
-            rawData: event,
-          },
-          {transaction}
-        )
-      }))
-
-      await transaction.commit()
-      logger.info({
-        network,
-        token: token.name,
-        currentBlockTime,
-        transactions: transactions.length,
-      }, 'WRITE_TRANSACTIONS')
-    } catch (e) {
-      transaction.rollback()
-      if (e.original) {
-        logger.error(e, e.original.message)
-      } else {
-        logger.error(e)
-      }
-    }
-  })
-
-const getBalanceInEther = async (token, wallet) => {
-  const lastReadBlock = await fetchLastReadBlock(token.id)
-
-  try {
-    const {balance} = await tokenTracker.getAccountBalanceInEther(token.address, wallet.address, lastReadBlock)
-    return balance
   } catch (e) {
     throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
   }
 }
 
-const updateBalance = async (token, wallet, balance) => {
-  const walletAddress = wallet.address
-  const walletId = wallet.id
-  const tokenId = token.id
-
-  await db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
-    .then(async (transaction) => {
-      try {
-        const tokenBalance = await db.tokensBalances.findOne({
-          where: {
-            [Op.and]: [
-              {walletId: {[Op.eq]: walletId}},
-              {tokenId: {[Op.eq]: tokenId}},
-            ],
-          },
-          transaction,
-        })
-
-        if (!tokenBalance) {
-          await db.tokensBalances.create(
-            {
-              walletId,
-              tokenId,
-              balance,
-              pendingUpdateBalance: 0,
-            },
-            {transaction}
-          )
-        } else {
-          await tokenBalance.update({balance, pendingUpdateBalance: 0}, {
-            where: {
-              walletId,
-              tokenId,
-            },
-          }, {transaction})
-        }
-
-        transaction.commit()
-        logger.info({
-          network,
-          token: token.name,
-          walletAddress,
-          balance,
-        }, 'UPDATE_BALANCE')
-      } catch (e) {
-        transaction.rollback()
-        if (e.original) {
-          logger.error(e, e.original.message)
-        } else {
-          logger.error(e)
-        }
-      }
-    })
-
-  return balance
+const insertTransactions = async (token, transactions, currentBlockTime) => {
+  try {
+    await tokensTransfers.insertTransactions(token.id, transactions, currentBlockTime)
+    logger.info({
+      network,
+      token: token.name,
+      currentBlockTime,
+      transactions: transactions.length,
+    }, 'WRITE_TRANSACTIONS')
+  } catch (e) {
+    logError(e)
+  }
 }
 
-const sendWalletMessage = async (token, wallet, transactions, balance, currentBlockTime) => {
+const updateBalance = async (token, wallet, balance) => {
+  try {
+    await tokensBalances.updateBalance(token.id, wallet.id, balance)
+    logger.info({
+      network,
+      token: token.name,
+      walletAddress: wallet.address,
+      balance,
+    }, 'UPDATE_BALANCE')
+  } catch (e) {
+    logError(e)
+  }
+}
+
+const sendMessageToBackend = async (token, wallet, transactions, balance, currentBlockTime) => {
+  const walletAddress = wallet.address
   const message = {
     network,
-    address: wallet.address,
+    address: walletAddress,
     asset: token.name,
     balance,
     happenedAt: currentBlockTime,
@@ -180,25 +106,40 @@ const sendWalletMessage = async (token, wallet, transactions, balance, currentBl
       transactionHash,
       amount,
       status: 'confirmed',
-      type: to.toLowerCase() === wallet.address.toLowerCase() ? 'deposit' : 'withdraw',
+      type: to.toLowerCase() === walletAddress.toLowerCase() ? 'deposit' : 'withdraw',
     })),
   }
 
   try {
     await backendApi.sendTransactionMessage(message)
-    logger.info(message, 'SEND_TRANSACTIONS')
+    const rest = omit(message, 'transactions')
+    logger.info({
+      ...rest,
+      transactions: transactions.length,
+    }, 'SEND_TRANSACTIONS')
   } catch (e) {
-    logger.error(e)
+    logError(e)
   }
 }
 
 const getWalletsFromTransactions = async (transactions) => {
   const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
-  // todo: should we query only assigned wallets ?
+  // todo: should we filter unassigned wallets ?
   return db.sequelize.query(
     `select * from wallets where lower(address) similar to '%(${addresses})%'`,
     {type: Sequelize.QueryTypes.SELECT},
   )
+}
+
+const getBalanceInEther = async (token, wallet) => {
+  const lastReadBlock = await tokensTransfersReads.fetchLastReadBlock(token.id)
+
+  try {
+    const {balance} = await tokenTracker.getAccountBalanceInEther(token.address, wallet.address, lastReadBlock)
+    return balance
+  } catch (e) {
+    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
+  }
 }
 
 const filterTransactionsByWallets = (transactions, wallets) => {
@@ -213,43 +154,48 @@ const filterTransactionsByAddress = (transactions, address) =>
 
 const updateTokenBalances = async (token, wallet, tokenTransactions, currentBlockTime) => {
   const balance = await getBalanceInEther(token, wallet)
+  const {address} = wallet
+  const addressTransactions = filterTransactionsByAddress(tokenTransactions, address.toLowerCase())
 
-  if (balance) {
-    const {address} = wallet
-    const addressTransactions = filterTransactionsByAddress(tokenTransactions, address.toLowerCase())
-
-    await updateBalance(token, wallet, balance)
-    await sendWalletMessage(token, wallet, addressTransactions, balance, currentBlockTime)
-  }
+  await updateBalance(token, wallet, balance)
+  await sendMessageToBackend(token, wallet, addressTransactions, balance, currentBlockTime)
 }
 
-const tokensTransfersJob = async () =>
-  db.tokens.findAll({where: {network: {[Op.eq]: network}}})
-    .then(tokens => promiseSerial(tokens.map(token => async () => {
-      const {transactions, toBlock, currentBlockTime} = await fetchLatestTransactions(token)
+const tokensTransfersJob = async () => {
+  const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+  const promises = tokens.map(token => async () => {
+    const blocksRange = await getNextBlocksRange(token)
+
+    if (blocksRange) {
+      const {fromBlock, toBlock} = blocksRange
+      const {transactions, currentBlockTime} = await fetchLatestTransactions(token, fromBlock, toBlock)
 
       if (transactions.length) {
         const wallets = await getWalletsFromTransactions(transactions)
         const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
+
+        if (tokenTransactions.length) {
+          await insertTransactions(token, tokenTransactions, currentBlockTime)
+        }
+
         const funcs = wallets.map(wallet =>
           () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
 
         try {
           await promiseSerial(funcs)
         } catch (e) {
-          logger.error(e)
-        }
-
-        if (tokenTransactions.length) {
-          await insertTransactions(token, tokenTransactions, currentBlockTime)
+          logError(e)
         }
       }
 
-      await updateLastReadBlock(token.id, toBlock)
-    })))
+      await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
+    }
+  })
+
+  return promiseSerial(promises)
+}
 
 module.exports = {
   start: async () => scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob),
   stop: async () => cancelJob('tokensTransfers'),
-  fetchLastReadBlock,
 }

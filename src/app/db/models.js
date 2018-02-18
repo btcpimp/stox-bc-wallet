@@ -6,7 +6,7 @@ const ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)
 
 module.exports = (sequelize) => {
-  sequelize.define(
+  const Token = sequelize.define(
     'tokens',
     {
       id: {type: STRING(256), primaryKey: true},
@@ -21,7 +21,7 @@ module.exports = (sequelize) => {
     }
   )
 
-  sequelize.define(
+  const Wallet = sequelize.define(
     'wallets',
     {
       id: {type: STRING(256), primaryKey: true},
@@ -46,7 +46,7 @@ module.exports = (sequelize) => {
     }
   )
 
-  sequelize.define(
+  const TokensBalance = sequelize.define(
     'tokensBalances',
     {
       walletId: {type: STRING(256), primaryKey: true, references: {model: 'wallets', key: 'id'}},
@@ -57,8 +57,12 @@ module.exports = (sequelize) => {
       pendingUpdateBalance: {type: SMALLINT, allowNull: false},
     },
   )
+  TokensBalance.belongsTo(Wallet)
+  Wallet.hasMany(TokensBalance)
+  TokensBalance.belongsTo(Token)
+  Token.hasMany(TokensBalance)
 
-  sequelize.define(
+  const TokenTransfer = sequelize.define(
     'tokensTransfers',
     {
       blockNumber: {type: BIGINT, defaultValue: 0, primaryKey: true},
@@ -77,8 +81,10 @@ module.exports = (sequelize) => {
       updatedAt: false,
     }
   )
+  TokenTransfer.belongsTo(Token)
+  Token.hasMany(TokenTransfer)
 
-  sequelize.define(
+  const TokensTransfersRead = sequelize.define(
     'tokensTransfersReads',
     {
       tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
@@ -89,6 +95,8 @@ module.exports = (sequelize) => {
       updatedAt: false,
     }
   )
+  TokensTransfersRead.belongsTo(Token)
+  Token.hasOne(TokensTransfersRead)
 
   return sequelize
 }

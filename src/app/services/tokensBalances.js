@@ -9,11 +9,12 @@ const {scheduleJob, cancelJob} = require('../scheduleUtils')
 const {Op} = Sequelize
 
 const updateTokensBalances = async () =>
-  db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+  db.sequelize.transaction()
     .then(async (transaction) => {
       try {
         const tokenBalance = await db.tokensBalances.findOne({
           where: {pendingUpdateBalance: {[Op.gt]: 0}},
+          lock: Sequelize.Transaction.LOCK.UPDATE,
           transaction,
         })
 

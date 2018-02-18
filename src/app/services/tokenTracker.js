@@ -2,7 +2,6 @@ const {getERC20TokenContract, web3} = require('./blockchain')
 
 const {
   requiredConfirmations,
-  maxBlocksRead,
 } = require('app/config')
 
 const {
@@ -19,23 +18,12 @@ const getLastConfirmedBlock = async () => {
   return (currentBlock - requiredConfirmations)
 }
 
-const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
+const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)
   const tokenContract = getERC20TokenContract(tokenAddress)
-
-  const toBlock = await getLastConfirmedBlock()
-  if ((toBlock - fromBlock) > maxBlocksRead) {
-    fromBlock = toBlock - maxBlocksRead
-    fromBlock = fromBlock < 0 ? fromBlock = 0 : fromBlock
-  }
-
-  if (fromBlock > toBlock) {
-    logger.info(`Block number ${fromBlock} does not have enough confirmations (${requiredConfirmations}). 
-    Current block number is ${await web3.eth.getBlockNumber()}`)
-  }
-
   const transactions = []
   const events = await tokenContract.getPastEvents('Transfer', {fromBlock, toBlock})
+
   events.forEach((event) => {
     const transaction = {
       // eslint-disable-next-line no-underscore-dangle
@@ -57,7 +45,7 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock) => {
     // }
   })
 
-  return ({toBlock, transactions})
+  return transactions
 }
 
 const getAccountBalance = async (tokenAddress, owner, blockNumber) => {

@@ -1,5 +1,6 @@
 const schedule = require('node-schedule')
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
+const {logError} = require('./errorHandle')
 
 const jobs = {}
 const scheduleJob = async (name, spec, func) => {
@@ -18,7 +19,7 @@ const scheduleJob = async (name, spec, func) => {
             promise = null
           })
           .catch((e) => {
-            logger.error(e.original || e, e.message)
+            logError(e)
             promise = null
           })
       }

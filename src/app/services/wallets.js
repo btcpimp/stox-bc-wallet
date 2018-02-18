@@ -22,7 +22,7 @@ const isWithdrawAddressSet = async (walletAddress) => {
 }
 
 const tryAssignWallet = async () =>
-  db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+  db.sequelize.transaction()
     .then(async (transaction) => {
       try {
         const wallet = await db.wallets.findOne({
@@ -34,6 +34,7 @@ const tryAssignWallet = async () =>
               {network: {[Op.eq]: network}},
             ],
           },
+          lock: Sequelize.Transaction.LOCK.UPDATE,
           transaction,
         })
 
@@ -78,7 +79,7 @@ const assignWallet = async (withdrawAddress, times = 1) => {
     //   logger.info({wallet}, 'SET_WITHDRAW_ADDRESSAT')
     // }
 
-    logger.info({wallet}, 'ASSIGNED')
+    logger.info(wallet, 'ASSIGNED')
     return wallet
   } catch (e) {
     logger.error(e)
@@ -87,6 +88,7 @@ const assignWallet = async (withdrawAddress, times = 1) => {
 }
 
 const getWalletBalance = async (walletAddress) => {
+  logger.error('======= Test ============== getWalletBalance')
   validateAddress(walletAddress)
   // todo: implement case sensitive query
   db.tokensBalances.findAll({
@@ -96,37 +98,41 @@ const getWalletBalance = async (walletAddress) => {
 }
 
 const getUnassignedWalletsCount = async () => {
-  const count = await db.wallets.count({
-    where: {
-      [Op.and]: [
-        {assignedAt: {[Op.eq]: null}},
-        {setWithdrawAddressAt: {[Op.eq]: null}},
-        {corruptedAt: {[Op.eq]: null}},
-        {network: {[Op.eq]: network}},
-      ],
-    },
-  })
+  logger.error('======= Test ============== getUnassignedWalletsCount')
+  const count = 1
+
+  // const count = await db.wallets.count({
+  //   where: {
+  //     [Op.and]: [
+  //       {assignedAt: {[Op.eq]: null}},
+  //       {setWithdrawAddressAt: {[Op.eq]: null}},
+  //       {corruptedAt: {[Op.eq]: null}},
+  //       {network: {[Op.eq]: network}},
+  //     ],
+  //   },
+  // })
   return {count}
 }
 
-const createWallets = async addresses => db.sequelize.transaction().then(async (transaction) => {
-  try {
-    const promises = addresses.map(async address => db.wallets.create(
-      {
-        id: `${network}.${address}`,
-        address,
-        network,
-        version: 1,
-      },
-      {transaction}
-    ))
+const createWallets = async addresses =>
+  db.sequelize.transaction().then(async (transaction) => {
+    try {
+      const promises = addresses.map(async address => db.wallets.create(
+        {
+          id: `${network}.${address}`,
+          address,
+          network,
+          version: 1,
+        },
+        {transaction}
+      ))
 
-    await Promise.all(promises)
-    await transaction.commit()
-  } catch (e) {
-    await transaction.rollback()
-  }
-})
+      await Promise.all(promises)
+      await transaction.commit()
+    } catch (e) {
+      await transaction.rollback()
+    }
+  })
 
 const createWallet = async address => createWallets([address])
 

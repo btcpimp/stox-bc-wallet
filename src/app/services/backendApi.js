@@ -11,7 +11,11 @@ const http = (() => {
     caller[method] = (...args) =>
       ax[method](...args)
         .then(res => res.data)
-        .catch(err => Promise.reject(new UnexpectedError('backend api failed', err)))
+        .catch((err) => {
+          // Remove unused data
+          const error = Object.assign(err, {config: undefined, request: undefined, response: err.response && err.response.data})
+          return Promise.reject(new UnexpectedError('backend api failed', error))
+        })
     return caller
   }, {})
 })()
