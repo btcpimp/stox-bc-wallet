@@ -21,17 +21,22 @@ const isWithdrawAddressSet = async (walletAddress) => {
   return !isAddressEmpty((await getWallet(walletAddress.toLowerCase())).userWithdrawalAccount)
 }
 
-const tryAssignWallet = async () => {
-  const wallet = await db.wallets.findOne({
-    where: {
-      [Op.and]: [
-        {assignedAt: {[Op.eq]: null}},
-        {setWithdrawAddressAt: {[Op.eq]: null}},
-        {corruptedAt: {[Op.eq]: null}},
-        {network: {[Op.eq]: network}},
-      ],
-    },
-  })
+const tryAssignWallet = async () =>
+  db.sequelize.transaction()
+    .then(async (transaction) => {
+      try {
+        const wallet = await db.wallets.findOne({
+          where: {
+            [Op.and]: [
+              {assignedAt: {[Op.eq]: null}},
+              {setWithdrawAddressAt: {[Op.eq]: null}},
+              {corruptedAt: {[Op.eq]: null}},
+              {network: {[Op.eq]: network}},
+            ],
+          },
+          transaction,
+          lock: Sequelize.Transaction.LOCK.UPDATE,
+        })
 
   if (!wallet) {
     throw new UnexpectedError('wallets pool is empty')
@@ -105,24 +110,25 @@ const getUnassignedWalletsCount = async () => {
   return {count}
 }
 
-const createWallets = async addresses => db.sequelize.transaction().then(async (transaction) => {
-  try {
-    const promises = addresses.map(async address => db.wallets.create(
-      {
-        id: `${network}.${address}`,
-        address,
-        network,
-        version: 1,
-      },
-      {transaction}
-    ))
+const createWallets = async addresses =>
+  db.sequelize.transaction().then(async (transaction) => {
+    try {
+      const promises = addresses.map(async address => db.wallets.create(
+        {
+          id: `${network}.${address}`,
+          address,
+          network,
+          version: 1,
+        },
+        {transaction}
+      ))
 
-    await Promise.all(promises)
-    await transaction.commit()
-  } catch (e) {
-    await transaction.rollback()
-  }
-})
+      await Promise.all(promises)
+      await transaction.commit()
+    } catch (e) {
+      await transaction.rollback()
+    }
+  })
 
 const createWallet = async address => createWallets([address])
 

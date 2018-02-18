@@ -5,7 +5,7 @@ const db = require('app/db')
 const {Op} = Sequelize
 
 const updateBalance = async (tokenId, walletId, balance) =>
-  db.sequelize.transaction({lock: Sequelize.Transaction.LOCK.UPDATE})
+  db.sequelize.transaction()
     .then(async (transaction) => {
       try {
         const tokenBalance = await db.tokensBalances.findOne({
@@ -16,6 +16,7 @@ const updateBalance = async (tokenId, walletId, balance) =>
             ],
           },
           transaction,
+          lock: Sequelize.Transaction.LOCK.UPDATE,
         })
 
         if (!tokenBalance) {
