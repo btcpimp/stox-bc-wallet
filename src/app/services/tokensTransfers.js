@@ -124,7 +124,7 @@ const sendMessageToBackend = async (token, wallet, transactions, balance, curren
 
 const getWalletsFromTransactions = async (transactions) => {
   const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
-  // todo: sould we filter unassigned wallets ?
+  // todo: should we filter unassigned wallets ?
   return db.sequelize.query(
     `select * from wallets where lower(address) similar to '%(${addresses})%'`,
     {type: Sequelize.QueryTypes.SELECT},

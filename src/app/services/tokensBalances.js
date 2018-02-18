@@ -16,7 +16,6 @@ const updateTokensBalances = async () =>
           where: {pendingUpdateBalance: {[Op.gt]: 0}},
           lock: Sequelize.Transaction.LOCK.UPDATE,
           transaction,
-          lock: Sequelize.Transaction.LOCK.UPDATE,
         })
 
         if (tokenBalance) {
