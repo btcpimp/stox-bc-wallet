@@ -88,7 +88,6 @@ const assignWallet = async (withdrawAddress, times = 1) => {
 }
 
 const getWalletBalance = async (walletAddress) => {
-  logger.error('======= Test ============== getWalletBalance')
   validateAddress(walletAddress)
   // todo: implement case sensitive query
   db.tokensBalances.findAll({
@@ -98,19 +97,16 @@ const getWalletBalance = async (walletAddress) => {
 }
 
 const getUnassignedWalletsCount = async () => {
-  logger.error('======= Test ============== getUnassignedWalletsCount')
-  const count = 1
-
-  // const count = await db.wallets.count({
-  //   where: {
-  //     [Op.and]: [
-  //       {assignedAt: {[Op.eq]: null}},
-  //       {setWithdrawAddressAt: {[Op.eq]: null}},
-  //       {corruptedAt: {[Op.eq]: null}},
-  //       {network: {[Op.eq]: network}},
-  //     ],
-  //   },
-  // })
+  const count = await db.wallets.count({
+    where: {
+      [Op.and]: [
+        {assignedAt: {[Op.eq]: null}},
+        {setWithdrawAddressAt: {[Op.eq]: null}},
+        {corruptedAt: {[Op.eq]: null}},
+        {network: {[Op.eq]: network}},
+      ],
+    },
+  })
   return {count}
 }
 
