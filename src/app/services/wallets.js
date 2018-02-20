@@ -29,7 +29,6 @@ const tryAssignWallet = async () =>
           where: {
             [Op.and]: [
               {assignedAt: {[Op.eq]: null}},
-              {setWithdrawAddressAt: {[Op.eq]: null}},
               {corruptedAt: {[Op.eq]: null}},
               {network: {[Op.eq]: network}},
             ],
