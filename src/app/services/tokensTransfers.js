@@ -116,6 +116,7 @@ const sendMessageToBackend = async (token, wallet, transactions, balance, curren
     logger.info({
       ...rest,
       transactions: transactions.length,
+      hash: transactions.map(t => t.transactionHash),
     }, 'SEND_TRANSACTIONS')
   } catch (e) {
     logError(e)
