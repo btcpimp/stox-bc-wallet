@@ -1,4 +1,3 @@
-const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const db = require('app/db')
 
@@ -12,7 +11,6 @@ const updateBalance = async (tokenId, walletId, balance) => {
         tokenId,
       },
       transaction,
-      lock: Sequelize.Transaction.LOCK.UPDATE,
     })
 
     if (!tokenBalance) {
