@@ -1,11 +1,10 @@
 const {getERC20TokenContract, web3} = require('./blockchain')
-
 const {
   requiredConfirmations,
 } = require('app/config')
 
 const {
-  loggers: {logger},
+  exceptions: {UnexpectedError},
 } = require('@welldone-software/node-toolbelt')
 
 const {
@@ -55,7 +54,7 @@ const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
 
   const lastConfirmedBlock = await getLastConfirmedBlock()
   if (blockNumber >= lastConfirmedBlock) {
-    logger.info(`Ethereum node is behind database last confirmed block. db block is ${blockNumber}.
+    throw new UnexpectedError(`Ethereum node is behind database last confirmed block. db block is ${blockNumber}.
      node block is ${lastConfirmedBlock}.`)
   }
 
