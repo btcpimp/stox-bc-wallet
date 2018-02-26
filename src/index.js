@@ -1,4 +1,3 @@
-// import {link} from fs
 
 require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
 
@@ -33,10 +32,7 @@ dbInit(databaseUrl)
   .then(() => {
     const server = app.listen(port, async () => {
       logger.info({binding: server.address()}, 'http server started')
-      debugger;
       scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob)
     })
   })
   .catch(err => logger.error(err))
-
-// yarn workspace or npm link to replace '../..'
