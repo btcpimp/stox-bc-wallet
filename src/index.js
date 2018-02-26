@@ -1,3 +1,5 @@
+// import {link} from fs
+
 require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
 
 const express = require('express')
@@ -11,7 +13,9 @@ const {
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('../common/db')
 const {port, databaseUrl} = require('app/config')
-const tokensTransfers = require('../common/services/tokensTransfers')
+
+const {scheduleJob, cancelJob} = require('app/scheduleUtils')
+const{tokenTransferCron, tokensTransfersJob} = require('../common/services/tokensTransfers')
 
 const app = express()
 
@@ -29,7 +33,9 @@ dbInit(databaseUrl)
   .then(() => {
     const server = app.listen(port, async () => {
       logger.info({binding: server.address()}, 'http server started')
-      tokensTransfers.start()
+      scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob)
     })
   })
   .catch(err => logger.error(err))
+
+// yarn workspace or npm link to replace '../..'

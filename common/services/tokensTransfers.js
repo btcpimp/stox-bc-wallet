@@ -7,7 +7,6 @@ const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('app/promise')
 const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('app/config')
 const {getBlockData, getLastConfirmedBlock} = require('app/utils')
-const {scheduleJob, cancelJob} = require('app/scheduleUtils')
 const {logError} = require('app/errorHandle')
 const tokensTransfersReads = require('./db/tokensTransfersReads')
 const tokensTransfers = require('./db/tokensTransfers')
@@ -197,6 +196,6 @@ const tokensTransfersJob = async () => {
 }
 
 module.exports = {
-  start: async () => scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob),
-  stop: async () => cancelJob('tokensTransfers'),
+  tokenTransferCron : tokenTransferCron,
+  tokensTransfersJob : tokensTransfersJob
 }
