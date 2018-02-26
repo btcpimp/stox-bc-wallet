@@ -1,9 +1,9 @@
 const {Router} = require('express')
 const bodyParser = require('body-parser')
 const {expressHelpers: {createApiEndpoint}} = require('@welldone-software/node-toolbelt')
-const wallets = require('app/services/wallets')
-const tokensTransfers = require('app/services/tokensTransfers')
-const tokensBalances = require('app/services/tokensBalances')
+const wallets = require('../../common/services/wallets')
+const tokensTransfers = require('../../common/services/tokensTransfers')
+const tokensBalances = require('../../common/services/tokensBalances')
 
 const _ = createApiEndpoint
 const router = new Router()

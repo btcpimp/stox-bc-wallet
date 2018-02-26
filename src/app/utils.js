@@ -1,4 +1,4 @@
-const {web3} = require('./services/blockchain')
+const {web3} = require('../../common/services/blockchain')
 const {
   exceptions: {InvalidArgumentError},
   loggers: {logger},

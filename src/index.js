@@ -9,9 +9,9 @@ const {
   expressHelpers: {errorHandler},
 } = require('@welldone-software/node-toolbelt')
 const apiRouter = require('app/apiRouter')
-const {dbInit} = require('app/db')
+const {dbInit} = require('../common/db')
 const {port, databaseUrl} = require('app/config')
-const tokensTransfers = require('app/services/tokensTransfers')
+const tokensTransfers = require('../common/services/tokensTransfers')
 
 const app = express()
 

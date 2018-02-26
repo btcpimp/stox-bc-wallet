@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize')
-const db = require('app/db')
+const db = require('../../db')
 
 const {Op} = Sequelize
 

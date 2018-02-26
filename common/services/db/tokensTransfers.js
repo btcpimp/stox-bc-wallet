@@ -1,5 +1,5 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const db = require('app/db')
+const db = require('../../db')
 const {network} = require('app/config')
 
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
