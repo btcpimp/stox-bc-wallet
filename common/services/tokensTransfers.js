@@ -5,7 +5,7 @@ const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('app/promise')
-const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('app/config')
+const {network, maxBlocksRead, requiredConfirmations} = require('app/config')
 const {getBlockData, getLastConfirmedBlock} = require('app/utils')
 const {logError} = require('app/errorHandle')
 const tokensTransfersReads = require('./db/tokensTransfersReads')
@@ -162,6 +162,7 @@ const updateTokenBalances = async (token, wallet, tokenTransactions, currentBloc
 }
 
 const tokensTransfersJob = async () => {
+
   const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
   const promises = tokens.map(token => async () => {
     const blocksRange = await getNextBlocksRange(token)
@@ -196,6 +197,5 @@ const tokensTransfersJob = async () => {
 }
 
 module.exports = {
-  tokenTransferCron : tokenTransferCron,
   tokensTransfersJob : tokensTransfersJob
 }

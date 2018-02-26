@@ -12,10 +12,10 @@ const {
 } = require('@welldone-software/node-toolbelt')
 const apiRouter = require('app/apiRouter')
 const {dbInit} = require('../common/db')
-const {port, databaseUrl} = require('app/config')
+const {port, databaseUrl, tokenTransferCron} = require('app/config')
 
 const {scheduleJob, cancelJob} = require('app/scheduleUtils')
-const{tokenTransferCron, tokensTransfersJob} = require('../common/services/tokensTransfers')
+const{tokensTransfersJob} = require('../common/services/tokensTransfers') 
 
 const app = express()
 
@@ -33,6 +33,7 @@ dbInit(databaseUrl)
   .then(() => {
     const server = app.listen(port, async () => {
       logger.info({binding: server.address()}, 'http server started')
+      debugger;
       scheduleJob('tokensTransfers', tokenTransferCron, tokensTransfersJob)
     })
   })
