@@ -2,12 +2,12 @@ require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-u
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 
 const {createService} = require('stox-common')
-const jobs = require('./jobs')
-const {databaseUrl, mqConnectionUrl} = require('./config')
-const consumerQueues = require('./queues/consumer')
-const rpcQueues = require('./queues/rpc')
-const models = require('../common/db/models')
-const routes = require('./routes')
+const jobs = require('./src/jobs')
+const {databaseUrl, mqConnectionUrl} = require('./src/config')
+const consumerQueues = require('./src/queues/consumer')
+const rpcQueues = require('./src/queues/rpc')
+const models = require('../common/src/db/models')
+const routes = require('./src/routes')
 
 const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
@@ -18,5 +18,4 @@ const service = createService('wallets-sync', (builder) => {
 })
 
 service.start()
-  .then(console.log)
-  .catch(console.error)
+  .catch(logger.error)
