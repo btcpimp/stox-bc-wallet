@@ -9,4 +9,5 @@ module.exports = mapEnv({
   maxBlocksRead: 10000,
   network: '',
   tokenTransferCron: '*/20 * * * * *',
+  activemqUrl: '',
 })

@@ -10,17 +10,15 @@
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "jest:integration": "jest"
   },
-  "private": true,
   "main": "src/index.js",
-  "workspaces": [
-    "common"
-  ],
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.2.0",
     "app-module-path": "^2.2.0",
+    "common": "1.0.0",
     "lodash": "^4.17.4",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#07c81713a756531e31cf32b063a625eb41b2b42b",
-    "common": "file:../common"
+    "cross-env": "5.0.5",
+    "pino": "^4.8.0",
+    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev"
   },
   "devDependencies": {
     "eslint": "^4.14.0",

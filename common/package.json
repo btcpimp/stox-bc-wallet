@@ -1,9 +1,9 @@
 {
   "name": "common",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.2.0",
-    "cross-env": "5.0.5",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev"
-  }
+    "cross-env": "5.0.5"
+  },
+  "main": "src/index.js"
 }

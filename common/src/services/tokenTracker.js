@@ -1,9 +1,3 @@
-const {getERC20TokenContract, web3} = require('./blockchain')
-const {
-  requiredConfirmations,
-} = require('../../../wallets-sync/src/config')
- // todo - change to opts
- 
 const {
   exceptions: {UnexpectedError},
 } = require('@welldone-software/node-toolbelt')
@@ -11,13 +5,9 @@ const {
 const {
   validateAddress,
   weiToEther,
+  getLastConfirmedBlock,
 } = require('../utils/blockchain')
  // todo - change to opts
-
-const getLastConfirmedBlock = async () => {
-  const currentBlock = await web3.eth.getBlockNumber()
-  return (currentBlock - requiredConfirmations)
-}
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)

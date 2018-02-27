@@ -1,8 +1,7 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const {db} = require('stox-common')
-const {network} = require('../../../../wallets-sync/src/config')
 
-const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
+const insertTransactions = async (tokenId, transactions, currentBlockTime, network) => {
   const transaction = await db.sequelize.transaction()
 
   try {
