@@ -13,6 +13,8 @@
   "main": "src/index.js",
   "workspaces": [
     "common",
+    "wallets-sync",
+    "wallet-issuing",
     "src"
   ]
 }
