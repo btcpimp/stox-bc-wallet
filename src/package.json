@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@welldone-software/node-toolbelt": "^1.2.0",
+    "cross-env": "5.0.5",
+    "wallet-common": "0.0.1",
     "app-module-path": "^2.2.0",
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
