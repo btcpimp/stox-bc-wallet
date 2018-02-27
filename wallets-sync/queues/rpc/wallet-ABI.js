@@ -1,4 +1,3 @@
-module.exports = async (message) => {
-  const {address} = message
-  return await blockchain.getABI(address)
+module.exports = (addRpcRoute) => {
+  addRpcRoute('getABI', ({headers, body: {address}}) => `Your address is - ${address}`)
 }

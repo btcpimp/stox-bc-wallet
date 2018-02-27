@@ -4,8 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@welldone-software/node-toolbelt": "^1.2.0",
+    "app-module-path": "^2.2.0",
+    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#07c81713a756531e31cf32b063a625eb41b2b42b"
+  }
 }
