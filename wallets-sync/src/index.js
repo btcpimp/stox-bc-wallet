@@ -3,22 +3,12 @@ const {createServer} = require('stox-common')
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {initRoutes} = require('app/apiRouter')
 const models = require('common/src/db/models')
-const {port, databaseUrl} = require('./config')
-const tokensTransfers = require('common/src/services/tokensTransfers')
+const {port, databaseUrl, tokenTransferCron} = require('./config')
+const tokensTransfers = require('./jobs/tokens-transfers')
+const {schedule: {scheduleJob}} = require('stox-common')
 
-const server = createServer(port, (builder) => {
-  builder.initDb(databaseUrl, models)
-  builder.initRoutes(initRoutes)
-})
+scheduleJob('tokensTransfers', tokensTransfers.cron, tokensTransfers.job)
 
-// server.start()
-//   .then(initBlockchain)
-//   .then(tokensTransfers.start)
-//   .catch(logger.error)
-//
-// const {schedule: {cancelJob, scheduleJob}} = require('stox-common')
-// const {tokensTransfersJob} = require('common/src/services/tokensTransfers')
-//
 // const app = express()
 //
 // app.use(bodyParser.json())

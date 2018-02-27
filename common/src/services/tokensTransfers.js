@@ -198,6 +198,4 @@ const tokensTransfersJob = async () => {
   return promiseSerial(promises)
 }
 
-module.exports = {
-  tokensTransfersJob
-}
+module.exports = tokensTransfersJob

@@ -1,5 +1,5 @@
 const {mq} = require('stox-common')
-const tokensTransfers = require('common/services/tokensTransfers')
+const tokensTransfers = require('common/src/services/tokensTransfers')
 const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('../config')
 
 module.exports = {
