@@ -1,16 +1,14 @@
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const tokenTransfers = require('../services/tokensTransfers')
 
 // todo - change to opts
 const {network, updateBalanceCron} = require('../../../wallets-sync/src/app/config')
-const {scheduleJob, cancelJob} = require('../../../wallets-sync/src/app/scheduleUtils')
 
 const {Op} = Sequelize
 
-const updateTokensBalances = async () =>
+const updateTokensBalancesJob = async () =>
   db.sequelize.transaction()
     .then(async (transaction) => {
       try {
@@ -60,6 +58,5 @@ const updateTokensBalances = async () =>
     })
 
 module.exports = {
-  start: async () => scheduleJob('tokensBalances', updateBalanceCron, updateTokensBalances),
-  stop: async () => cancelJob('tokensBalances'),
+  updateTokensBalancesJob
 }

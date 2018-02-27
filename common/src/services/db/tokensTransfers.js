@@ -1,5 +1,5 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const db = require('../../db')
+const {db} = require('stox-common')
 const {network} = require('../../../../wallets-sync/src/app/config')
 
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {

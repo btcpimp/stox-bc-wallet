@@ -1,58 +1,52 @@
-const {Router} = require('express')
-const bodyParser = require('body-parser')
-const {expressHelpers: {createApiEndpoint}} = require('@welldone-software/node-toolbelt')
 const wallets = require('wallet-common/src/services/wallets')
 const tokensTransfers = require('wallet-common/src/services/tokensTransfers')
 const tokensBalances = require('wallet-common/src/services/tokensBalances')
 
-const _ = createApiEndpoint
-const router = new Router()
+const initRoutes = (router, _) => {
+  router.post(
+    '/wallets/create',
+    _(({body: {address}}) => wallets.createWallet(address))
+  )
 
-router.use(bodyParser.json())
-``
-router.post(
-  '/wallets/create',
-  _(({body: {address}}) => wallets.createWallet(address))
-)
+  router.post(
+    '/wallets/createWallets',
+    _(({body: {addresses}}) => wallets.createWallets(addresses))
+  )
 
-router.post(
-  '/wallets/createWallets',
-  _(({body: {addresses}}) => wallets.createWallets(addresses))
-)
+  router.post(
+    '/wallets/assign',
+    _(({body: {withdrawAddress}}) => wallets.assignWallet(withdrawAddress))
+  )
 
-router.post(
-  '/wallets/assign',
-  _(({body: {withdrawAddress}}) => wallets.assignWallet(withdrawAddress))
-)
+  router.get(
+    '/wallets/balance',
+    _(({query: {address}}) => wallets.getWalletBalance(address))
+  )
 
-router.get(
-  '/wallets/balance',
-  _(({query: {address}}) => wallets.getWalletBalance(address))
-)
+  router.get(
+    '/wallets/unassigned/count',
+    _(() => wallets.getUnassignedWalletsCount())
+  )
 
-router.get(
-  '/wallets/unassigned/count',
-  _(() => wallets.getUnassignedWalletsCount())
-)
+  router.post(
+    '/tokens/transfers/start',
+    _(() => tokensTransfers.start())
+  )
 
-router.post(
-  '/tokens/transfers/start',
-  _(() => tokensTransfers.start())
-)
+  router.post(
+    '/tokens/transfers/stop',
+    _(() => tokensTransfers.stop())
+  )
 
-router.post(
-  '/tokens/transfers/stop',
-  _(() => tokensTransfers.stop())
-)
+  router.post(
+    '/tokens/balances/start',
+    _(() => tokensBalances.start())
+  )
 
-router.post(
-  '/tokens/balances/start',
-  _(() => tokensBalances.start())
-)
+  router.post(
+    '/tokens/balances/stop',
+    _(() => tokensBalances.stop())
+  )
+}
 
-router.post(
-  '/tokens/balances/stop',
-  _(() => tokensBalances.stop())
-)
-
-module.exports = router
+module.exports = {initRoutes}

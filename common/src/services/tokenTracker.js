@@ -11,7 +11,7 @@ const {
 const {
   validateAddress,
   weiToEther,
-} = require('../../../wallets-sync/src/app//utils')
+} = require('../utils/blockchain')
  // todo - change to opts
 
 const getLastConfirmedBlock = async () => {

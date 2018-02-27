@@ -1,9 +1,9 @@
-const {web3} = require('wallet-common/src/services/blockchain')
+const {web3} = require('./services/blockchain')
 const {
   exceptions: {InvalidArgumentError},
   loggers: {logger},
 } = require('@welldone-software/node-toolbelt')
-const {requiredConfirmations} = require('../config')
+const {requiredConfirmations} = require('app/config')
 
 const weiToEther = wei => web3.utils.fromWei(wei.toString(), 'ether')
 

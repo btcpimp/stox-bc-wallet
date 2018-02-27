@@ -4,15 +4,19 @@ const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-so
 const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
+const {promiseSerial} = require('../utils/promises')
+const {getBlockData, getLastConfirmedBlock} = require('../utils/blockchain')
+const {logError} = require('../utils/errorHandle')
+const {
+  tokensTransfersReads,
+  tokensTransfers,
+  tokensBalances,
+  tokens,
+  wallets
+} = require('./db')
 
- // todo - change to opts
-const {promiseSerial} = require('../../../wallets-sync/src/app/promise')
+// todo - change to opts
 const {network, maxBlocksRead, requiredConfirmations} = require('../../../wallets-sync/src/app/config')
-const {getBlockData, getLastConfirmedBlock} = require('../../../wallets-sync/src/app/utils')
-const {logError} = require('../../../wallets-sync/src/app/errorHandle')
-const tokensTransfersReads = require('./db/tokensTransfersReads')
-const tokensTransfers = require('./db/tokensTransfers')
-const tokensBalances = require('./db/tokensBalances')
 
 const {Op} = Sequelize
 
@@ -127,10 +131,7 @@ const sendMessageToBackend = async (token, wallet, transactions, balance, curren
 const getWalletsFromTransactions = async (transactions) => {
   const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
   // todo: should we filter unassigned wallets ?
-  return db.sequelize.query(
-    `select * from wallets where lower(address) similar to '%(${addresses})%'`,
-    {type: Sequelize.QueryTypes.SELECT},
-  )
+  return wallets.getWalletsByAddresses(addresses)
 }
 
 const getBalanceInEther = async (token, wallet) => {
@@ -165,7 +166,7 @@ const updateTokenBalances = async (token, wallet, tokenTransactions, currentBloc
 
 const tokensTransfersJob = async () => {
 
-  const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+  const tokens = await tokens.getTokensByNetwork(network)
   const promises = tokens.map(token => async () => {
     const blocksRange = await getNextBlocksRange(token)
 
@@ -199,5 +200,5 @@ const tokensTransfersJob = async () => {
 }
 
 module.exports = {
-  tokensTransfersJob : tokensTransfersJob
+  tokensTransfersJob
 }

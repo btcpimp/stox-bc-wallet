@@ -1,4 +1,4 @@
-const wallets = require('wallet-common/services/wallets')
+const wallets = require('common/services/wallets')
 
 module.exports = (router, createEndPoint) => {
   router.post('/wallets/assign', createEndPoint(async ({body: {address}}) => wallets.assign(address)))
