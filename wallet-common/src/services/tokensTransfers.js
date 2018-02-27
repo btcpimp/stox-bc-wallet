@@ -4,10 +4,12 @@ const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-so
 const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
-const {promiseSerial} = require('app/promise')
-const {network, maxBlocksRead, requiredConfirmations} = require('app/config')
-const {getBlockData, getLastConfirmedBlock} = require('app/utils')
-const {logError} = require('app/errorHandle')
+
+ // todo - change to opts
+const {promiseSerial} = require('../../../wallets-sync/src/app/promise')
+const {network, maxBlocksRead, requiredConfirmations} = require('../../../wallets-sync/src/app/config')
+const {getBlockData, getLastConfirmedBlock} = require('../../../wallets-sync/src/app/utils')
+const {logError} = require('../../../wallets-sync/src/app/errorHandle')
 const tokensTransfersReads = require('./db/tokensTransfersReads')
 const tokensTransfers = require('./db/tokensTransfers')
 const tokensBalances = require('./db/tokensBalances')

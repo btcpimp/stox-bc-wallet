@@ -10,7 +10,7 @@
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "jest:integration": "jest"
   },
-  "main": "src/index.js",
+  "main": "wallets-sync/index.js",
   "workspaces": [
     "wallet-common",
     "wallets-sync",

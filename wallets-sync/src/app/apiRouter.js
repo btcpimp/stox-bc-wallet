@@ -9,7 +9,7 @@ const _ = createApiEndpoint
 const router = new Router()
 
 router.use(bodyParser.json())
-
+``
 router.post(
   '/wallets/create',
   _(({body: {address}}) => wallets.createWallet(address))
