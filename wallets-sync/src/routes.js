@@ -1,5 +1,5 @@
-// const wallets = require('../common/services/wallets')
 const {port} = require('./config')
+const wallets = require('common/services/wallets')
 
 module.exports = {
   port,

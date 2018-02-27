@@ -1,5 +1,5 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const db = require('../../db')
+const {db} = require('stox-common')
 
 const updateBalance = async (tokenId, walletId, balance) => {
   const transaction = await db.sequelize.transaction()
