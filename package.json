@@ -12,7 +12,7 @@
   },
   "main": "src/index.js",
   "workspaces": [
-    "common",
+    "wallet-common",
     "wallets-sync",
     "wallet-issuing",
     "src"
