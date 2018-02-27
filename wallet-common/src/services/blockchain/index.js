@@ -1,7 +1,7 @@
 const Web3 = require('web3')
 const fs = require('fs')
 const path = require('path')
-const config = require('app/config')
+const config = require('../../../../wallets-sync/src/app/config') // todo - change to opts
 
 const contractsDir = path.resolve(__dirname, './contracts')
 

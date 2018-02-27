@@ -3,8 +3,10 @@ const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-so
 const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const tokenTransfers = require('../services/tokensTransfers')
-const {network, updateBalanceCron} = require('app/config')
-const {scheduleJob, cancelJob} = require('app/scheduleUtils')
+
+// todo - change to opts
+const {network, updateBalanceCron} = require('../../../wallets-sync/src/app/config')
+const {scheduleJob, cancelJob} = require('../../../wallets-sync/src/app/scheduleUtils')
 
 const {Op} = Sequelize
 

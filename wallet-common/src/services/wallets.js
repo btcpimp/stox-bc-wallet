@@ -2,8 +2,10 @@ const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-so
 const Sequelize = require('sequelize')
 const db = require('../db')
 const {getSmartWalletContract} = require('./blockchain')
-const {maxWalletAssignRetires, network} = require('app/config')
-const {validateAddress, isAddressEmpty} = require('app/utils')
+
+// todo - change to opts
+const {maxWalletAssignRetires, network} = require('../../../wallets-sync/src/app/config')
+const {validateAddress, isAddressEmpty} = require('../../../wallets-sync/src/app/utils')
 
 const {Op} = Sequelize
 
