@@ -12,12 +12,15 @@
   },
   "private": true,
   "main": "src/index.js",
-  "workspaces": ["common"],
+  "workspaces": [
+    "common"
+  ],
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.2.0",
     "app-module-path": "^2.2.0",
     "lodash": "^4.17.4",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev"
+    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
+    "common": "file:../common"
   },
   "devDependencies": {
     "eslint": "^4.14.0",

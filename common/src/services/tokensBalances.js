@@ -4,7 +4,7 @@ const tokenTracker = require('../services/tokenTracker')
 const tokenTransfers = require('../services/tokensTransfers')
 
 // todo - change to opts
-const {network, updateBalanceCron} = require('../../../wallets-sync/src/app/config')
+const {network, updateBalanceCron} = require('../../../wallets-sync/src/config')
 
 const {Op} = Sequelize
 

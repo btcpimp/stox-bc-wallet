@@ -5,7 +5,6 @@ const {initRoutes} = require('app/apiRouter')
 const models = require('common/src/db/models')
 const {port, databaseUrl} = require('./config')
 const tokensTransfers = require('common/src/services/tokensTransfers')
-const {initBlockchain} = require('common/src/services/blockchain')
 
 const server = createServer(port, (builder) => {
   builder.initDb(databaseUrl, models)

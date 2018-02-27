@@ -1,8 +1,8 @@
-const tokensTransfersReads = require('./db/tokensTransfersReads')
-const tokensTransfers = require('./db/tokensTransfers')
-const tokensBalances = require('./db/tokensBalances')
-const tokens = require('./db/tokens')
-const wallets = require('./db/tokens')
+const tokensTransfersReads = require('./tokensTransfersReads')
+const tokensTransfers = require('./tokensTransfers')
+const tokensBalances = require('./tokensBalances')
+const tokens = require('./tokens')
+const wallets = require('./tokens')
 
 module.export = {
   tokensTransfersReads,

@@ -1,11 +1,11 @@
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
-const db = require('../db')
+const {db} = require('stox-common')
 const {getSmartWalletContract} = require('./blockchain')
 
 // todo - change to opts
-const {maxWalletAssignRetires, network} = require('../../../wallets-sync/src/app/config')
-const {validateAddress, isAddressEmpty} = require('../../../wallets-sync/src/app/utils')
+const {maxWalletAssignRetires, network} = require('../../../wallets-sync/src/config') // todo - change to opts
+const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
 
 const {Op} = Sequelize
 

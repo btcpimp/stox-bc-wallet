@@ -1,7 +1,7 @@
 const {getERC20TokenContract, web3} = require('./blockchain')
 const {
   requiredConfirmations,
-} = require('../../../wallets-sync/src/app/config')
+} = require('../../../wallets-sync/src/config')
  // todo - change to opts
  
 const {

@@ -1,7 +1,6 @@
 const {flatten, uniq, omit} = require('lodash')
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../utils/promises')
@@ -16,7 +15,7 @@ const {
 } = require('./db')
 
 // todo - change to opts
-const {network, maxBlocksRead, requiredConfirmations} = require('../../../wallets-sync/src/app/config')
+const {network, maxBlocksRead, requiredConfirmations} = require('../../../wallets-sync/src/config')
 
 const {Op} = Sequelize
 
