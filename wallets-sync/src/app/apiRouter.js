@@ -1,6 +1,6 @@
-const wallets = require('wallet-common/src/services/wallets')
-const tokensTransfers = require('wallet-common/src/services/tokensTransfers')
-const tokensBalances = require('wallet-common/src/services/tokensBalances')
+const wallets = require('common/src/services/wallets')
+const tokensTransfers = require('common/src/services/tokensTransfers')
+const tokensBalances = require('common/src/services/tokensBalances')
 
 const initRoutes = (router, _) => {
   router.post(
