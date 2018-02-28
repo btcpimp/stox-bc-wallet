@@ -7,11 +7,10 @@ const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../utils/promise')
 const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('../config')
 const {getBlockData, getLastConfirmedBlock} = require('../utils/utils')
-const {schedule: {scheduleJob, cancelJob}} = require('stox-common')
 const {logError} = require('../utils/errorHandle')
-const tokensTransfersReads = require('./db/tokensTransfersReads')
-const tokensTransfers = require('./db/tokensTransfers')
-const tokensBalances = require('./db/tokensBalances')
+const tokensTransfersReads = require('../services/db/tokensTransfersReads')
+const tokensTransfers = require('../services/db/tokensTransfers')
+const tokensBalances = require('../services/db/tokensBalances')
 
 const {Op} = Sequelize
 
@@ -196,4 +195,7 @@ const tokensTransfersJob = async () => {
   return promiseSerial(promises)
 }
 
-module.exports = tokensTransfersJob
+module.exports = {
+  cron: '*/5 * * * * *',
+  job: tokensTransfersJob
+}

@@ -3,6 +3,5 @@
   "version": "1.0.0",
   "dependencies": {
     "sequelize": "^4.33.4"
-  },
-  "main": "src/index.js"
+  }
 }

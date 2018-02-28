@@ -4,11 +4,9 @@ const {createService} = require('stox-common')
 const {port, databaseUrl} = require('./config')
 const models = require('common/src/db/models')
 const jobs = require('./jobs')
-const api = require('./api')
 
 const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
-  builder.api(api)
   builder.addJobs(jobs)
 })
 
