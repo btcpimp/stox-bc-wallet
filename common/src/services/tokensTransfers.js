@@ -161,9 +161,8 @@ const updateTokenBalances = async (token, wallet, tokenTransactions, currentBloc
 }
 
 const tokensTransfersJob = async () => {
-
-  const tokens = await tokens.getTokensByNetwork(network)
-  const promises = tokens.map(token => async () => {
+  const networkTokens = await tokens.getTokensByNetwork(network)
+  const promises = networkTokens.map(token => async () => {
     const blocksRange = await getNextBlocksRange(token)
 
     if (blocksRange) {
