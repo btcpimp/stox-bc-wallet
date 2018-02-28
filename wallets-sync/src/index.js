@@ -1,17 +1,17 @@
 require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {createService, blockchain} = require('stox-common')
-const {port, databaseUrl, web3Url, mqConnectionUrl} = require('./config')
+const {createService} = require('stox-common')
+const {port, databaseUrl} = require('./config')
 const models = require('../../common/src/db/models')
 const jobs = require('./jobs')
 const routes = require('./routes')
 
+console.log({port, databaseUrl})
+
 const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
   builder.api(routes)
-  // builder.api
-  // builder.api -- get routes from routes.js
-  // builder.addJobs(jobs)
+  builder.addJobs(jobs)
 })
 
 service

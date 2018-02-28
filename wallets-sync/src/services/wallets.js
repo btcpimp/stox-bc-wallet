@@ -1,24 +1,24 @@
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
 const {db} = require('stox-common')
-// todo - change to opts
-const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
+const {getSmartWalletContract} = require('./blockchain')
+const {maxWalletAssignRetires, network} = require('../config')
+const {validateAddress, isAddressEmpty} = require('../utils/utils')
+
 const {Op} = Sequelize
 
-const maxWalletAssignRetires = 10
-
-const getWallet = async (walletAddress, blockchain) => {
+const getWallet = async (walletAddress) => {
   validateAddress(walletAddress)
-  const walletContract = blockchain.getSmartWalletContract(walletAddress.toLowerCase())
+  const walletContract = getSmartWalletContract(walletAddress.toLowerCase())
   const {operatorAccount, backupAccount, feesAccount, userWithdrawalAccount} =
     await walletContract.methods.wallet().call()
 
   return {walletAddress, operatorAccount, backupAccount, feesAccount, userWithdrawalAccount}
 }
 
-const isWithdrawAddressSet = async (walletAddress, blockchain) => {
+const isWithdrawAddressSet = async (walletAddress) => {
   validateAddress(walletAddress)
-  return !isAddressEmpty((await getWallet(walletAddress.toLowerCase()), blockchain).userWithdrawalAccount)
+  return !isAddressEmpty((await getWallet(walletAddress.toLowerCase())).userWithdrawalAccount)
 }
 
 const tryAssignWallet = async () =>
@@ -51,7 +51,7 @@ const tryAssignWallet = async () =>
       }
     })
 
-const assignWallet = async (withdrawAddress, network, times = 1) => {
+const assignWallet = async (withdrawAddress, times = 1) => {
   validateAddress(withdrawAddress)
   if (times >= maxWalletAssignRetires) {
     throw new Error('too many tries')
@@ -82,11 +82,11 @@ const assignWallet = async (withdrawAddress, network, times = 1) => {
     return wallet
   } catch (e) {
     logger.error(e)
-    return assignWallet(withdrawAddress, network, ++times)
+    return assignWallet(network, withdrawAddress, ++times)
   }
 }
 
-const getWalletBalance = async (walletAddress, network) => {
+const getWalletBalance = async (walletAddress) => {
   validateAddress(walletAddress)
   // todo: implement case sensitive query
   db.tokensBalances.findAll({
@@ -95,7 +95,7 @@ const getWalletBalance = async (walletAddress, network) => {
   })
 }
 
-const getUnassignedWalletsCount = async (network) => {
+const getUnassignedWalletsCount = async () => {
   const count = await db.wallets.count({
     where: {
       [Op.and]: [
@@ -109,7 +109,7 @@ const getUnassignedWalletsCount = async (network) => {
   return {count}
 }
 
-const createWallets = async (addresses, network) =>
+const createWallets = async addresses =>
   db.sequelize.transaction().then(async (transaction) => {
     try {
       const promises = addresses.map(async address => db.wallets.create(
@@ -129,7 +129,7 @@ const createWallets = async (addresses, network) =>
     }
   })
 
-const createWallet = async (address, network) => createWallets([address], network)
+const createWallet = async address => createWallets([address])
 
 module.exports = {
   assignWallet,

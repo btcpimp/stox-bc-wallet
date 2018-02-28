@@ -1,20 +1,19 @@
 const {flatten, uniq, omit} = require('lodash')
+const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
+const {db} = require('stox-common')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
-const {promiseSerial} = require('../utils/promises')
-const {getBlockData, getLastConfirmedBlock} = require('../utils/blockchain')
+const {promiseSerial} = require('../utils/promise')
+const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('../config')
+const {getBlockData, getLastConfirmedBlock} = require('../utils/utils')
+const {schedule: {scheduleJob, cancelJob}} = require('stox-common')
 const {logError} = require('../utils/errorHandle')
-const {
-  tokensTransfersReads,
-  tokensTransfers,
-  tokensBalances,
-  tokens,
-  wallets
-} = require('./db')
+const tokensTransfersReads = require('./db/tokensTransfersReads')
+const tokensTransfers = require('./db/tokensTransfers')
+const tokensBalances = require('./db/tokensBalances')
 
-// todo - change to opts
-const {network, maxBlocksRead, requiredConfirmations} = require('../../../wallets-sync/src/config')
+const {Op} = Sequelize
 
 const getNextBlocksRange = async (token) => {
   const lastReadBlockNumber = await tokensTransfersReads.fetchLastReadBlock(token.id)
@@ -127,7 +126,10 @@ const sendMessageToBackend = async (token, wallet, transactions, balance, curren
 const getWalletsFromTransactions = async (transactions) => {
   const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
   // todo: should we filter unassigned wallets ?
-  return wallets.getWalletsByAddresses(addresses)
+  return db.sequelize.query(
+    `select * from wallets where lower(address) similar to '%(${addresses})%'`,
+    {type: Sequelize.QueryTypes.SELECT},
+  )
 }
 
 const getBalanceInEther = async (token, wallet) => {
@@ -161,8 +163,8 @@ const updateTokenBalances = async (token, wallet, tokenTransactions, currentBloc
 }
 
 const tokensTransfersJob = async () => {
-  const networkTokens = await tokens.getTokensByNetwork(network)
-  const promises = networkTokens.map(token => async () => {
+  const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
+  const promises = tokens.map(token => async () => {
     const blocksRange = await getNextBlocksRange(token)
 
     if (blocksRange) {

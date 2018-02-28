@@ -1,6 +1,6 @@
 const axios = require('axios')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const {backendBaseUrl} = require('../../../wallets-sync/src/config')
+const {backendBaseUrl} = require('../config')
 
 const http = (() => {
   const ax = axios.create({
