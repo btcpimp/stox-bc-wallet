@@ -4,7 +4,7 @@ const tokensBalances = require('./tokensBalances')
 const tokens = require('./tokens')
 const wallets = require('./tokens')
 
-module.export = {
+module.exports = {
   tokensTransfersReads,
   tokensTransfers,
   tokensBalances,
