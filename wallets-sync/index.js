@@ -1,6 +1,5 @@
 require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
-
 const {createService} = require('stox-common')
 const jobs = require('./src/jobs')
 const {databaseUrl, mqConnectionUrl} = require('./src/config')
