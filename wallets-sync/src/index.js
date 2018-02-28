@@ -4,15 +4,19 @@ const {createService, blockchain} = require('stox-common')
 const {port, databaseUrl, web3Url, mqConnectionUrl} = require('./config')
 const models = require('../../common/src/db/models')
 const jobs = require('./jobs')
+const routes = require('./routes')
 
 const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
-  builder.addJobs(jobs)
+  builder.api(routes)
+  // builder.api
+  // builder.api -- get routes from routes.js
+  // builder.addJobs(jobs)
 })
 
 service
   .start()
-  .catch(logger.error)
+  .catch(console.error)
 
 
 // const createWalletRequest = require('./queues/consumer/create-wallet-request')
