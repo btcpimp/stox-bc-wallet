@@ -11,10 +11,13 @@
     "jest:integration": "jest"
   },
   "main": "src/index.js",
+  "workspaces": [
+    "common"
+  ],
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.2.0",
     "app-module-path": "^2.2.0",
-    "common": "1.0.0",
+    "common": "file:../common",
     "lodash": "^4.17.4",
     "cross-env": "5.0.5",
     "pino": "^4.8.0",
