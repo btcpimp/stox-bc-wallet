@@ -11,10 +11,6 @@
     "jest:integration": "jest"
   },
   "main": "src/index.js",
-  "private": true,
-  "workspaces": [
-    "common"
-  ],
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.2.0",
     "app-module-path": "^2.2.0",
