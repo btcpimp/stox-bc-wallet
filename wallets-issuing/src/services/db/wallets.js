@@ -1,6 +1,6 @@
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
-const {db} = require('stox-common')
+const db = require('../../db')
 
 const {Op} = Sequelize
 

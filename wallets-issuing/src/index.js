@@ -5,12 +5,14 @@ const {mqConnectionUrl, databaseUrl} = require('./config')
 const models = require('common/src/db/models')
 const jobs = require('./jobs')
 const api = require('./api')
+const queues = require('./queues/consumer')
+const db = require('./db')
 
 const service = createService('wallets-sync', (builder) => {
-  builder.db(databaseUrl, models)
+  builder.db(databaseUrl, models, db)
   builder.api(api)
   builder.addJobs(jobs)
-  builder.addQueues(mqConnectionUrl)
+  builder.addQueues(mqConnectionUrl, {listeners: queues})
 })
 
 service

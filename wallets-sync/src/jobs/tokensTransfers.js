@@ -1,7 +1,7 @@
 const {flatten, uniq, omit} = require('lodash')
 const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {db} = require('stox-common')
+const db = require('../db')
 const tokenTracker = require('../services/tokenTracker')
 const backendApi = require('../services/backendApi')
 const {promiseSerial} = require('../utils/promise')

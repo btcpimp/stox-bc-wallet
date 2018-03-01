@@ -5,9 +5,10 @@ const {databaseUrl} = require('./config')
 const models = require('common/src/db/models')
 const jobs = require('./jobs')
 const api = require('./api')
+const db = require('./db')
 
 const service = createService('wallets-sync', (builder) => {
-  builder.db(databaseUrl, models)
+  builder.db(databaseUrl, models, db)
   builder.api(api)
   builder.addJobs(jobs)
 })

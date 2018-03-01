@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 const {times} = require('lodash')
-const {mq, db} = require('stox-common')
+const {mq} = require('stox-common')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
 const {getUnassignedWalletsCount} = require('../services/db/wallets')
 const {walletsPoolThreshold, network} = require('config')
