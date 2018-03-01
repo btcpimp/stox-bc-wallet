@@ -1,45 +1,34 @@
-const {mq, db} = require('stox-common')
 const Sequelize = require('sequelize')
+const {times} = require('lodash')
+const {mq, db} = require('stox-common')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-const {minimumWalletPoolThreshold, network} = require('config')
+const {getUnassignedWalletsCount} = require('../services/db/wallets')
+const {walletsPoolThreshold, network} = require('config')
+
+// todo: query to see how much pending 'CREATE_WALLET' requests exist
+const getRequestsCount = () => 500
 
 const {Op} = Sequelize
-
 const logger = baseLogger.child({name: 'walletsPool'})
 
-const getUnassignedWalletsCount = async () => {
-  const count = await db.wallets.count({
-    where: {
-      [Op.and]: [
-        {assignedAt: {[Op.eq]: null}},
-        {setWithdrawAddressAt: {[Op.eq]: null}},
-        {corruptedAt: {[Op.eq]: null}},
-        {network: {[Op.eq]: network}},
-      ],
-    },
-  })
-
-  return count
-}
-
-const issueWallets = amount => mq.publish('request-reader/create-requests', {
-  type: 'create_wallet',
-  requestData: amount,
-})
+const issueWallet = () => mq.publish('request-reader/create-requests', {type: 'CREATE_WALLET'})
 
 module.exports = {
   cron: '*/30 * * * * *',
   job: async () => {
-    const unassigned = await getUnassignedWalletsCount()
-    if (unassigned >= minimumWalletPoolThreshold) {
-      logger.debug(
-        {unassigned, minimumWalletPoolThreshold},
-        'Unassigned wallet pool size bigger then minimum threshold'
-      )
-      return
-    }
+    const {count} = await getUnassignedWalletsCount(network)
+    const inQueue = await getRequestsCount(network, 'CREATE_WALLET')
+    const requestsAmount = walletsPoolThreshold - count - inQueue
 
-    const requestAmount = minimumWalletPoolThreshold - unassigned
-    issueWallets(requestAmount)
+    logger.info({
+      network,
+      count,
+      inQueue,
+      requestsAmount: requestsAmount < 0 ? 0 : requestsAmount
+    }, 'WALLETS_POOL')
+
+    if (requestsAmount > 0) {
+      times(requestsAmount, issueWallet)
+    }
   },
 }

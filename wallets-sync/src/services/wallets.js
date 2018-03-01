@@ -95,20 +95,6 @@ const getWalletBalance = async (walletAddress) => {
   })
 }
 
-const getUnassignedWalletsCount = async () => {
-  const count = await db.wallets.count({
-    where: {
-      [Op.and]: [
-        {assignedAt: {[Op.eq]: null}},
-        {setWithdrawAddressAt: {[Op.eq]: null}},
-        {corruptedAt: {[Op.eq]: null}},
-        {network: {[Op.eq]: network}},
-      ],
-    },
-  })
-  return {count}
-}
-
 const createWallets = async addresses =>
   db.sequelize.transaction().then(async (transaction) => {
     try {
@@ -136,5 +122,4 @@ module.exports = {
   getWalletBalance,
   createWallet,
   createWallets,
-  getUnassignedWalletsCount,
 }
