@@ -10,7 +10,7 @@ const {
 const {
   validateAddress,
   weiToEther,
-} = require('../utils/utils')
+} = require('../utils/blockchainUtils')
 
 const getLastConfirmedBlock = async () => {
   const currentBlock = await web3.eth.getBlockNumber()

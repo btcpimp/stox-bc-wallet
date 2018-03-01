@@ -8,6 +8,4 @@ module.exports = mapEnv({
   requiredConfirmations: 12,
   maxBlocksRead: 10000,
   network: '',
-  tokenTransferCron: '*/20 * * * * *',
-  mqConnectionUrl: '',
 })

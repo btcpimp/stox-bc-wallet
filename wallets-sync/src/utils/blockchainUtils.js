@@ -1,9 +1,9 @@
 const {web3} = require('../services/blockchain')
 const {
-  exceptions: {InvalidArgumentError},
+  exceptions: {InvalidArgumentError, UnexpectedError},
   loggers: {logger},
 } = require('@welldone-software/node-toolbelt')
-const {requiredConfirmations} = require('../config')
+const {maxBlocksRead, requiredConfirmations} = require('../config')
 
 const weiToEther = wei => web3.utils.fromWei(wei.toString(), 'ether')
 
@@ -38,6 +38,25 @@ const isListening = async () => {
   }
 }
 
+const getNextBlocksRange = async (lastReadBlockNumber) => {
+  try {
+    let fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
+    const toBlock = await getLastConfirmedBlock()
+
+    if ((toBlock - fromBlock) > maxBlocksRead) {
+      fromBlock = toBlock - maxBlocksRead
+      fromBlock = fromBlock < 0 ? fromBlock = 0 : fromBlock
+    }
+
+    return {
+      fromBlock,
+      toBlock,
+    }
+  } catch (e) {
+    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
+  }
+}
+
 module.exports = {
   weiToEther,
   etherToWei,
@@ -46,4 +65,5 @@ module.exports = {
   isListening,
   getBlockData,
   getLastConfirmedBlock,
+  getNextBlocksRange,
 }

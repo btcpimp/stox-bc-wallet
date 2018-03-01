@@ -3,7 +3,7 @@ const Sequelize = require('sequelize')
 const db = require('../db')
 const {getSmartWalletContract} = require('./blockchain')
 const {maxWalletAssignRetires, network} = require('../config')
-const {validateAddress, isAddressEmpty} = require('../utils/utils')
+const {validateAddress, isAddressEmpty} = require('../utils/blockchainUtils')
 
 const {Op} = Sequelize
 

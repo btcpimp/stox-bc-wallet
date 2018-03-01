@@ -5,3 +5,4 @@ create postgress container
 
 `$ docker run -p 61613:61613 -p 8161:8161 -d --name="activemq" rmohr/activemq`
 
+use npm link to link common with all services.
