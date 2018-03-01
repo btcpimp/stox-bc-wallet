@@ -19,7 +19,7 @@
     "lodash": "^4.17.4",
     "pino": "^4.8.0",
     "sequelize": "^4.35.0",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#mq-access-with-require",
+    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
     "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
