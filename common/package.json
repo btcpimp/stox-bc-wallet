@@ -2,6 +2,8 @@
   "name": "common",
   "version": "1.0.0",
   "dependencies": {
+    "@welldone-software/node-toolbelt": "^1.2.0",
+    "lodash": "^4.17.5",
     "sequelize": "^4.33.4"
   }
 }

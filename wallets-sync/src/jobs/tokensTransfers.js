@@ -11,6 +11,7 @@ const {logError} = require('../utils/errorHandle')
 const tokensTransfersReads = require('../services/db/tokensTransfersReads')
 const tokensTransfers = require('../services/db/tokensTransfers')
 const tokensBalances = require('../services/db/tokensBalances')
+const createDatabase = require('common/src/services/db')
 
 const {Op} = Sequelize
 
@@ -197,5 +198,8 @@ const tokensTransfersJob = async () => {
 
 module.exports = {
   cron: '*/5 * * * * *',
-  job: tokensTransfersJob
+  job: async () => {
+    const database = createDatabase(db)
+    // tokensTransfersJob()
+  }
 }
