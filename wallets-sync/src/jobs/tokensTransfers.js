@@ -7,7 +7,7 @@ const blockchainUtils = require('../utils/blockchainUtils')
 const {promiseSerial} = require('../utils/promise')
 const {network, requiredConfirmations} = require('../config')
 const {logError} = require('../utils/errorHandle')
-const createDatabaseServices = require('common/src/services/db')
+const createDatabaseServices = require('stox-bc-wallet-common/src/services/db')
 
 const extractAddresses = transactions =>
   uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')

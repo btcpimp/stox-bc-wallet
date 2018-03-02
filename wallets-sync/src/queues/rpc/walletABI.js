@@ -1,3 +1,6 @@
-module.exports = (addRpcRoute) => {
-  addRpcRoute('getABI', ({headers, body: {address}}) => `Your address is - ${address}`)
+module.exports = ({headers, body: {address}}) => {
+  return {
+    address,
+    data:'0X30313233343536373839',
+  }
 }
