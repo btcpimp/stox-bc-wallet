@@ -1,6 +1,6 @@
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
-const db = require('../db')
+const context = require('context')
 const {getSmartWalletContract} = require('./blockchain')
 const {maxWalletAssignRetires, network} = require('../config')
 const {validateAddress, isAddressEmpty} = require('../utils/blockchainUtils')
@@ -22,7 +22,7 @@ const isWithdrawAddressSet = async (walletAddress) => {
 }
 
 const tryAssignWallet = async () =>
-  db.sequelize.transaction()
+  context.db.sequelize.transaction()
     .then(async (transaction) => {
       try {
         const wallet = await db.wallets.findOne({
@@ -89,14 +89,14 @@ const assignWallet = async (withdrawAddress, times = 1) => {
 const getWalletBalance = async (walletAddress) => {
   validateAddress(walletAddress)
   // todo: implement case sensitive query
-  db.tokensBalances.findAll({
+  context.db.tokensBalances.findAll({
     attributes: ['tokenId', 'balance'],
     where: {walletId: {[Op.eq]: `${network}.${walletAddress}`}},
   })
 }
 
 const createWallets = async addresses =>
-  db.sequelize.transaction().then(async (transaction) => {
+  context.db.sequelize.transaction().then(async (transaction) => {
     try {
       const promises = addresses.map(async address => db.wallets.create(
         {

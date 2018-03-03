@@ -1,7 +1,7 @@
 const {flatten, uniq, omit} = require('lodash')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {mq} = require('stox-common')
-const db = require('../db')
+const context = require('context')
 const tokenTracker = require('../services/tokenTracker')
 const blockchainUtils = require('../utils/blockchainUtils')
 const {promiseSerial} = require('../utils/promise')
@@ -51,7 +51,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
   }
 
   try {
-    mq.publish('backend/wallet-transactions', message)
+    mq.publish('assets-manager/walletTransactions', message)
     const rest = omit(message, 'transactions')
     logger.info({
       ...rest,
@@ -72,7 +72,7 @@ module.exports = {
       tokensTransfers,
       wallets,
       tokensBalances,
-    } = createDatabaseServices(db)
+    } = createDatabaseServices(context)
 
     const networkTokens = await tokens.getTokensByNetwork(network)
 

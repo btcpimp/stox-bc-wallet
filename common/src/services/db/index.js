@@ -5,7 +5,7 @@ const {transform} = require('lodash')
 const normalizedPath = path.join(__dirname, './')
 const files = fs.readdirSync(normalizedPath)
 
-module.exports = (db) => {
+module.exports = ({db}) => {
   return transform(files, (acc, file) => {
     if (file === 'index.js') return
     const name = file.replace('.js', '')

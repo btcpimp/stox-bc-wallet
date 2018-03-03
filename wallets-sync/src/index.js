@@ -5,11 +5,11 @@ const {databaseUrl, mqConnectionUrl} = require('./config')
 const models = require('stox-bc-wallet-common/src/db/models')
 const jobs = require('jobs')
 const api = require('api')
-const db = require('db')
-const rpcListeners = require('queues/rpc')
+const context = require('context')
+const rpcListeners = require('queues/rpcListeners')
 
 const service = createService('wallets-sync', (builder) => {
-  builder.db(databaseUrl, models, db)
+  builder.db(databaseUrl, models)
   builder.api(api)
   builder.addJobs(jobs)
   builder.addQueues(mqConnectionUrl,{rpcListeners})
@@ -17,4 +17,5 @@ const service = createService('wallets-sync', (builder) => {
 
 service
   .start()
+  .then(c => Object.assign(context, c))
   .catch(e => logger.error(e))
