@@ -2,7 +2,7 @@ require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-u
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {createService} = require('stox-common')
 const {databaseUrl, mqConnectionUrl} = require('./config')
-const models = require('stox-bc-wallet-common/src/db/models')
+const {models} = require('stox-bc-wallet-common')
 const jobs = require('jobs')
 const api = require('api')
 const context = require('context')

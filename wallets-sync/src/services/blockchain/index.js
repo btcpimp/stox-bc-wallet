@@ -1,7 +1,7 @@
 const Web3 = require('web3')
 const fs = require('fs')
 const path = require('path')
-const config = require('../../config')
+const config = require('config')
 
 const contractsDir = path.resolve(__dirname, './contracts')
 

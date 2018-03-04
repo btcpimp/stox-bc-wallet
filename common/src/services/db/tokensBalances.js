@@ -1,8 +1,6 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const Sequelize = require('sequelize')
-const {Op} = Sequelize
 
-module.exports = (db) => ({
+module.exports = ({db}) => ({
   updateBalance: async (tokenId, walletId, balance) => {
     const transaction = await db.sequelize.transaction()
 

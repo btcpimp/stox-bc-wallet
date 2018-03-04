@@ -1,7 +1,8 @@
 const {times} = require('lodash')
 const {mq} = require('stox-common')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-const {getUnassignedWalletsCount} = require('../services/db/wallets')
+const context = require('context')
+const {createDatabaseServices} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network} = require('config')
 
 // todo: query to see how much pending 'CREATE_WALLET' requests exist
@@ -14,7 +15,10 @@ const issueWallet = () => mq.publish('request-reader/create-requests', {type: 'C
 module.exports = {
   cron: '*/30 * * * * *',
   job: async () => {
-    const {count} = await getUnassignedWalletsCount(network)
+    const {
+      wallets
+    } = createDatabaseServices(context)
+    const {count} = await wallets.getUnassignedWalletsCount(network)
     const inQueue = await getRequestsCount(network, 'CREATE_WALLET')
     const requestsAmount = walletsPoolThreshold - count - inQueue
 

@@ -1,4 +1,4 @@
-const wallets = require('./services/db/wallets')
+const {createDatabaseServices} = require('stox-bc-wallet-common')
 const {network} = require('config')
 
 module.exports = {
@@ -6,6 +6,9 @@ module.exports = {
   version: 1,
   cors: false,
   routes: (router, createApiEndpoint) => {
-    router.get('/wallets/unassigned/count', createApiEndpoint(() => wallets.getUnassignedWalletsCount(network)))
+    router.get('/wallets/unassigned/count', createApiEndpoint(() => {
+      const {wallets} = createDatabaseServices(context)
+      wallets.getUnassignedWalletsCount(network)
+    }))
   },
 }

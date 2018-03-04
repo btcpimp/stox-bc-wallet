@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
 const {Op} = Sequelize
 
-module.exports = (db) => ({
+module.exports = ({db}) => ({
   fetchLastReadBlock: async (tokenId) => {
     const row = await db.tokensTransfersReads.findOne({
       attributes: ['lastReadBlockNumber'],
