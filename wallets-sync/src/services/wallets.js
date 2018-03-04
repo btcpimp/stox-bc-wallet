@@ -1,15 +1,14 @@
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
 const context = require('context')
-const {getSmartWalletContract} = require('./blockchain')
-const {maxWalletAssignRetires, network} = require('../config')
-const {validateAddress, isAddressEmpty} = require('../utils/blockchainUtils')
+const {maxWalletAssignRetires, network} = require('config')
+const {validateAddress, isAddressEmpty} = require('utils/blockchainUtils')
 
 const {Op} = Sequelize
 
 const getWallet = async (walletAddress) => {
   validateAddress(walletAddress)
-  const walletContract = getSmartWalletContract(walletAddress.toLowerCase())
+  const walletContract = context.blockchain.getSmartWalletContract(walletAddress.toLowerCase())
   const {operatorAccount, backupAccount, feesAccount, userWithdrawalAccount} =
     await walletContract.methods.wallet().call()
 

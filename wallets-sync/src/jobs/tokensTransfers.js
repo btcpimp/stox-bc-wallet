@@ -2,11 +2,11 @@ const {flatten, uniq, omit} = require('lodash')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {mq} = require('stox-common')
 const context = require('context')
-const tokenTracker = require('../services/tokenTracker')
-const blockchainUtils = require('../utils/blockchainUtils')
-const {promiseSerial} = require('../utils/promise')
+const tokenTracker = require('services/tokenTracker')
+const blockchainUtils = require('utils/blockchainUtils')
+const {promiseSerial} = require('utils/promise')
 const {network, requiredConfirmations} = require('../config')
-const {logError} = require('../utils/errorHandle')
+const {logError} = require('utils/errorHandle')
 const {createDatabaseServices} = require('stox-bc-wallet-common')
 
 const extractAddresses = transactions =>
@@ -79,7 +79,6 @@ module.exports = {
     const getTokensTransfers = networkTokens.map(token => async () => {
       const lastReadBlock = await tokensTransfersReads.fetchLastReadBlock(token.id)
       const {fromBlock, toBlock} = await blockchainUtils.getNextBlocksRange(lastReadBlock)
-
       if (fromBlock < toBlock) {
         const {
           transactions,
