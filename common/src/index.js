@@ -1,5 +1,5 @@
 const models = require('./db/models')
-const createDatabaseServices = require('./services/db')
+const db = require('./services/db')
 const errorHandle = require('./utils/errorHandle')
 const promise = require('./utils/promise')
 const blockchainUtils = require('./utils/blockchainUtils')
@@ -20,7 +20,7 @@ const init = (context, web3Url, maxBlocksRead, requiredConfirmations) => {
 
 module.exports = {
   models,
-  createDatabaseServices,
+  db,
   errorHandle,
   promise,
   blockchainUtils,
