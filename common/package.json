@@ -9,7 +9,8 @@
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.2.0",
     "lodash": "^4.17.5",
-    "sequelize": "^4.35.2"
+    "sequelize": "^4.35.2",
+    "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
     "eslint": "^4.9.0",

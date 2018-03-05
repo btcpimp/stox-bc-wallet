@@ -1,5 +1,7 @@
-module.exports = ({db}) => {
-  return {
-    getTokensByNetwork: async network => db.tokens.findAll({where: {network}})
-  }
+const {db} = require('../../context')
+
+const getTokensByNetwork = network => db.tokens.findAll({where: {network}})
+
+module.exports = {
+    getTokensByNetwork,
 }

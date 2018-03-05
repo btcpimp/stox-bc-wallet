@@ -1,23 +1,25 @@
 const Sequelize = require('sequelize')
+const {db} = require('../../context')
+
 const {Op} = Sequelize
 
-module.exports = ({db}) => ({
-  getWalletsByAddresses: async (addresses) => db.sequelize.query(
-    `select * from wallets where lower(address) similar to '%(${addresses})%'`,
-    {type: Sequelize.QueryTypes.SELECT},
-  ),
+const getWalletsByAddresses = (addresses) => db.sequelize.query(
+  `select * from wallets where lower(address) similar to '%(${addresses})%'`,
+  {type: Sequelize.QueryTypes.SELECT},
+)
 
-  getUnassignedWalletsCount: async (network) => {
-    const count = await db.wallets.count({
-      where: {
-        [Op.and]: [
-          {assignedAt: {[Op.eq]: null}},
-          {corruptedAt: {[Op.eq]: null}},
-          {network: {[Op.eq]: network}},
-        ],
-      },
-    })
-    return {count}
-  }
+const getUnassignedWalletsCount = (network) =>
+  db.wallets.count({
+    where: {
+      [Op.and]: [
+        {assignedAt: {[Op.eq]: null}},
+        {corruptedAt: {[Op.eq]: null}},
+        {network: {[Op.eq]: network}},
+      ],
+    },
+  })
 
-})
+module.exports = {
+  getUnassignedWalletsCount,
+  getWalletsByAddresses,
+}
