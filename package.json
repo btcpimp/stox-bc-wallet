@@ -1,0 +1,15 @@
+{
+  "name": "stox-bc-wallet",
+  "version": "1.0.0",
+  "description": "global scripts",
+  "scripts": {
+    "precommit": "eslint src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://razkronenberg@bitbucket.org/stx_site/stox-bc-wallet.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/stx_site/stox-bc-wallet#readme"
+}
