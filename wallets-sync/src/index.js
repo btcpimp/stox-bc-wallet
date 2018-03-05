@@ -12,10 +12,9 @@ const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
   builder.addApi(api)
   builder.addJobs(jobs)
-  builder.addQueues(mqConnectionUrl,{rpcListeners})
+  builder.addQueues(mqConnectionUrl, {rpcListeners})
 })
 
-service
-  .start()
+service.start()
   .then(c => Object.assign(context, c))
   .catch(e => logger.error(e))
