@@ -1,4 +1,4 @@
-const context = require('context')
+const {getERC20TokenContract, web3} = require('./blockchain')
 const {
   requiredConfirmations,
 } = require('config')
@@ -13,13 +13,13 @@ const {
 } = require('utils/blockchainUtils')
 
 const getLastConfirmedBlock = async () => {
-  const currentBlock = await context.blockchain.web3.eth.getBlockNumber()
+  const currentBlock = await web3.eth.getBlockNumber()
   return (currentBlock - requiredConfirmations)
 }
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)
-  const tokenContract = context.blockchain.getERC20TokenContract(tokenAddress)
+  const tokenContract = getERC20TokenContract(tokenAddress)
   const transactions = []
   const events = await tokenContract.getPastEvents('Transfer', {fromBlock, toBlock})
 
@@ -50,7 +50,7 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) =
 const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   validateAddress(tokenAddress)
   validateAddress(owner)
-  const tokenContract = context.blockchain.getERC20TokenContract(tokenAddress)
+  const tokenContract = getERC20TokenContract(tokenAddress)
 
   const lastConfirmedBlock = await getLastConfirmedBlock()
   if (blockNumber >= lastConfirmedBlock) {

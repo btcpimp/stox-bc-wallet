@@ -15,9 +15,7 @@ const issueWallet = () => mq.publish('request-reader/create-requests', {type: 'C
 module.exports = {
   cron: '*/30 * * * * *',
   job: async () => {
-    const {
-      wallets
-    } = createDatabaseServices(context)
+    const {wallets} = createDatabaseServices(context)
     const {count} = await wallets.getUnassignedWalletsCount(network)
     const inQueue = await getRequestsCount(network, 'CREATE_WALLET')
     const requestsAmount = walletsPoolThreshold - count - inQueue

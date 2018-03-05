@@ -9,7 +9,7 @@ const context = require('context')
 
 const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
-  builder.api(api)
+  builder.addApi(api)
   builder.addJobs(jobs)
   builder.addQueues(mqConnectionUrl)
 })
