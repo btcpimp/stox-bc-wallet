@@ -25,7 +25,7 @@ const tryAssignWallet = async () =>
   context.db.sequelize.transaction()
     .then(async (transaction) => {
       try {
-        const wallet = await db.wallets.findOne({
+        const wallet = await context.db.wallets.findOne({
           where: {
             [Op.and]: [
               {assignedAt: {[Op.eq]: null}},
