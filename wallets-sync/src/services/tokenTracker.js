@@ -1,7 +1,7 @@
 const {getERC20TokenContract, web3} = require('./blockchain')
 const {
   requiredConfirmations,
-} = require('../config')
+} = require('config')
 
 const {
   exceptions: {UnexpectedError},
@@ -10,7 +10,7 @@ const {
 const {
   validateAddress,
   weiToEther,
-} = require('../utils/utils')
+} = require('utils/blockchainUtils')
 
 const getLastConfirmedBlock = async () => {
   const currentBlock = await web3.eth.getBlockNumber()

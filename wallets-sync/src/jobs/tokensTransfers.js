@@ -1,116 +1,57 @@
 const {flatten, uniq, omit} = require('lodash')
-const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const db = require('../db')
-const tokenTracker = require('../services/tokenTracker')
-const backendApi = require('../services/backendApi')
-const {promiseSerial} = require('../utils/promise')
-const {network, tokenTransferCron, maxBlocksRead, requiredConfirmations} = require('../config')
-const {getBlockData, getLastConfirmedBlock} = require('../utils/utils')
-const {logError} = require('../utils/errorHandle')
-const tokensTransfersReads = require('../services/db/tokensTransfersReads')
-const tokensTransfers = require('../services/db/tokensTransfers')
-const tokensBalances = require('../services/db/tokensBalances')
+const {mq} = require('stox-common')
+const context = require('context')
+const tokenTracker = require('services/tokenTracker')
+const blockchainUtils = require('utils/blockchainUtils')
+const {promiseSerial} = require('utils/promise')
+const {network, requiredConfirmations} = require('../config')
+const {logError} = require('utils/errorHandle')
+const {createDatabaseServices} = require('stox-bc-wallet-common')
 
-const {Op} = Sequelize
+const extractAddresses = transactions =>
+  uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
 
-const getNextBlocksRange = async (token) => {
-  const lastReadBlockNumber = await tokensTransfersReads.fetchLastReadBlock(token.id)
-  let fromBlock = lastReadBlockNumber !== 0 ? lastReadBlockNumber + 1 : 0
-  const toBlock = await getLastConfirmedBlock()
-
-  if ((toBlock - fromBlock) > maxBlocksRead) {
-    fromBlock = toBlock - maxBlocksRead
-    fromBlock = fromBlock < 0 ? fromBlock = 0 : fromBlock
-  }
-
-  if (fromBlock > toBlock) {
-    logger.info({
-      network,
-      token: token.name,
-      fromBlock,
-      lastConfirmedBlock: toBlock,
-      requiredConfirmations,
-    }, 'NOT_ENOUGH_CONFIRMATIONS')
-    return null
-  }
-
-  return {
-    fromBlock,
-    toBlock,
+const getBalanceInEther = async (tokenAddress, walletAddress, lastReadBlock) => {
+  try {
+    const {balance} = await tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
+    return balance
+  } catch (e) {
+    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
   }
 }
 
-const fetchLatestTransactions = async ({name, address}, fromBlock, toBlock) => {
+const fetchLatestTransactions = async (tokenAddress, fromBlock, toBlock) => {
   try {
-    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await getBlockData()
-    const transactions = await tokenTracker.getLatestTransferTransactions(address, fromBlock, toBlock)
-
-    logger.info({
-      network,
-      token: name,
-      transactions: transactions.length,
-      fromBlock,
-      toBlock,
-      currentBlock,
-      currentBlockTime: currentBlockTime.toUTCString(),
-    }, 'READ_TRANSACTIONS')
-
+    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await blockchainUtils.getBlockData()
+    const transactions = await tokenTracker.getLatestTransferTransactions(tokenAddress, fromBlock, toBlock)
     return {
       transactions,
       currentBlockTime,
+      currentBlock,
     }
   } catch (e) {
     throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
   }
 }
 
-const insertTransactions = async (token, transactions, currentBlockTime) => {
-  try {
-    await tokensTransfers.insertTransactions(token.id, transactions, currentBlockTime)
-    logger.info({
-      network,
-      token: token.name,
-      currentBlockTime,
-      transactions: transactions.length,
-    }, 'WRITE_TRANSACTIONS')
-  } catch (e) {
-    logError(e)
-  }
-}
-
-const updateBalance = async (token, wallet, balance) => {
-  try {
-    await tokensBalances.updateBalance(token.id, wallet.id, balance)
-    logger.info({
-      network,
-      token: token.name,
-      walletAddress: wallet.address,
-      balance,
-    }, 'UPDATE_BALANCE')
-  } catch (e) {
-    logError(e)
-  }
-}
-
-const sendMessageToBackend = async (token, wallet, transactions, balance, currentBlockTime) => {
-  const walletAddress = wallet.address
+const sendTransactionsToBackend = async (asset, address, transactions, balance, happenedAt) => {
   const message = {
     network,
-    address: walletAddress,
-    asset: token.name,
+    address,
+    asset,
     balance,
-    happenedAt: currentBlockTime,
+    happenedAt,
     transactions: transactions.map(({transactionHash, to, amount}) => ({
       transactionHash,
       amount,
       status: 'confirmed',
-      type: to.toLowerCase() === walletAddress.toLowerCase() ? 'deposit' : 'withdraw',
+      type: to.toLowerCase() === address.toLowerCase() ? 'deposit' : 'withdraw',
     })),
   }
 
   try {
-    await backendApi.sendTransactionMessage(message)
+    mq.publish('assets-manager/walletTransactions', message)
     const rest = omit(message, 'transactions')
     logger.info({
       ...rest,
@@ -122,80 +63,105 @@ const sendMessageToBackend = async (token, wallet, transactions, balance, curren
   }
 }
 
-const getWalletsFromTransactions = async (transactions) => {
-  const addresses = uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
-  // todo: should we filter unassigned wallets ?
-  return db.sequelize.query(
-    `select * from wallets where lower(address) similar to '%(${addresses})%'`,
-    {type: Sequelize.QueryTypes.SELECT},
-  )
-}
-
-const getBalanceInEther = async (token, wallet) => {
-  const lastReadBlock = await tokensTransfersReads.fetchLastReadBlock(token.id)
-
-  try {
-    const {balance} = await tokenTracker.getAccountBalanceInEther(token.address, wallet.address, lastReadBlock)
-    return balance
-  } catch (e) {
-    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
-  }
-}
-
-const filterTransactionsByWallets = (transactions, wallets) => {
-  const addresses = wallets.map(w => w.address.toLowerCase())
-  return transactions.filter(t => addresses.includes(t.to.toLowerCase()) || addresses.includes(t.from.toLowerCase()))
-}
-
-const filterTransactionsByAddress = (transactions, address) =>
-  transactions.filter(t =>
-    t.to.toLowerCase() === address.toLowerCase() ||
-    t.from.toLowerCase() === address.toLowerCase())
-
-const updateTokenBalances = async (token, wallet, tokenTransactions, currentBlockTime) => {
-  const balance = await getBalanceInEther(token, wallet)
-  const {address} = wallet
-  const addressTransactions = filterTransactionsByAddress(tokenTransactions, address.toLowerCase())
-
-  await updateBalance(token, wallet, balance)
-  await sendMessageToBackend(token, wallet, addressTransactions, balance, currentBlockTime)
-}
-
-const tokensTransfersJob = async () => {
-  const tokens = await db.tokens.findAll({where: {network: {[Op.eq]: network}}})
-  const promises = tokens.map(token => async () => {
-    const blocksRange = await getNextBlocksRange(token)
-
-    if (blocksRange) {
-      const {fromBlock, toBlock} = blocksRange
-      const {transactions, currentBlockTime} = await fetchLatestTransactions(token, fromBlock, toBlock)
-
-      if (transactions.length) {
-        const wallets = await getWalletsFromTransactions(transactions)
-        const tokenTransactions = filterTransactionsByWallets(transactions, wallets)
-
-        if (tokenTransactions.length) {
-          await insertTransactions(token, tokenTransactions, currentBlockTime)
-        }
-
-        const funcs = wallets.map(wallet =>
-          () => updateTokenBalances(token, wallet, tokenTransactions, currentBlockTime))
-
-        try {
-          await promiseSerial(funcs)
-        } catch (e) {
-          logError(e)
-        }
-      }
-
-      await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
-    }
-  })
-
-  return promiseSerial(promises)
-}
-
 module.exports = {
   cron: '*/5 * * * * *',
-  job: tokensTransfersJob
+  job: async () => {
+    const {
+      tokens,
+      tokensTransfersReads,
+      tokensTransfers,
+      wallets,
+      tokensBalances,
+    } = createDatabaseServices(context)
+
+    const networkTokens = await tokens.getTokensByNetwork(network)
+
+    const getTokensTransfers = networkTokens.map(token => async () => {
+      const lastReadBlock = await tokensTransfersReads.fetchLastReadBlock(token.id)
+      const {fromBlock, toBlock} = await blockchainUtils.getNextBlocksRange(lastReadBlock)
+      if (fromBlock < toBlock) {
+        const {
+          transactions,
+          currentBlockTime,
+          currentBlock,
+        } = await fetchLatestTransactions(token.address, fromBlock, toBlock)
+
+        logger.info({
+          network,
+          token: token.name,
+          transactions: transactions.length,
+          fromBlock,
+          toBlock,
+          currentBlock,
+          currentBlockTime: currentBlockTime.toUTCString(),
+        }, 'READ_TRANSACTIONS')
+
+        if (transactions.length) {
+          const addresses = extractAddresses(transactions)
+          const withdrawWallets = await wallets.getWalletsByAddresses(addresses)
+
+          const withdrawAddresses = withdrawWallets.map(w => w.address.toLowerCase())
+          const walletsTransactions = transactions.filter(t =>
+            withdrawAddresses.includes(t.to.toLowerCase()) ||
+            withdrawAddresses.includes(t.from.toLowerCase()))
+
+          if (walletsTransactions.length) {
+            try {
+              await tokensTransfers.insertTransactions(token.id, walletsTransactions, currentBlockTime, network)
+              logger.info({
+                network,
+                token: token.name,
+                currentBlockTime,
+                transactions: transactions.length,
+              }, 'WRITE_TRANSACTIONS')
+            } catch (e) {
+              logError(e)
+            }
+          }
+
+          const funcs = withdrawWallets.map(wallet => async () => {
+            const tokenAddress = token.address
+            const walletAddress = wallet.address
+            const balance = await getBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
+
+            try {
+              await tokensBalances.updateBalance(token.id, wallet.id, balance)
+              logger.info({
+                network,
+                token: token.name,
+                walletAddress,
+                balance,
+              }, 'UPDATE_BALANCE')
+            } catch (e) {
+              logError(e)
+            }
+
+            const walletTransactions = transactions.filter(t =>
+              t.to.toLowerCase() === tokenAddress.toLowerCase() ||
+              t.from.toLowerCase() === walletAddress.toLowerCase())
+
+            await sendTransactionsToBackend(token.name, walletAddress, walletTransactions, balance, currentBlockTime)
+          })
+
+          try {
+            await promiseSerial(funcs)
+          } catch (e) {
+            logError(e)
+          }
+        }
+        await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
+      } else {
+        logger.info({
+          network,
+          token: token.name,
+          lastReadBlock,
+          fromBlock,
+          lastConfirmedBlock: toBlock,
+          requiredConfirmations,
+        }, 'NOT_ENOUGH_CONFIRMATIONS')
+      }
+    })
+
+    return promiseSerial(getTokensTransfers)
+  },
 }

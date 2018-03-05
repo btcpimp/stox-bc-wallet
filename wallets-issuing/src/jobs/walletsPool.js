@@ -1,14 +1,13 @@
-const Sequelize = require('sequelize')
 const {times} = require('lodash')
 const {mq} = require('stox-common')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-const {getUnassignedWalletsCount} = require('../services/db/wallets')
+const context = require('context')
+const {createDatabaseServices} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network} = require('config')
 
 // todo: query to see how much pending 'CREATE_WALLET' requests exist
 const getRequestsCount = () => 500
 
-const {Op} = Sequelize
 const logger = baseLogger.child({name: 'walletsPool'})
 
 const issueWallet = () => mq.publish('request-reader/create-requests', {type: 'CREATE_WALLET'})
@@ -16,7 +15,8 @@ const issueWallet = () => mq.publish('request-reader/create-requests', {type: 'C
 module.exports = {
   cron: '*/30 * * * * *',
   job: async () => {
-    const {count} = await getUnassignedWalletsCount(network)
+    const {wallets} = createDatabaseServices(context)
+    const {count} = await wallets.getUnassignedWalletsCount(network)
     const inQueue = await getRequestsCount(network, 'CREATE_WALLET')
     const requestsAmount = walletsPoolThreshold - count - inQueue
 
@@ -24,7 +24,7 @@ module.exports = {
       network,
       count,
       inQueue,
-      requestsAmount: requestsAmount < 0 ? 0 : requestsAmount
+      requestsAmount: requestsAmount < 0 ? 0 : requestsAmount,
     }, 'WALLETS_POOL')
 
     if (requestsAmount > 0) {

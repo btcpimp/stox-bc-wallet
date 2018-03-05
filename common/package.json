@@ -1,7 +1,10 @@
 {
-  "name": "common",
+  "name": "stox-bc-wallet-common",
   "version": "1.0.0",
+  "main": "src/index.js",
   "dependencies": {
+    "@welldone-software/node-toolbelt": "^1.2.0",
+    "lodash": "^4.17.5",
     "sequelize": "^4.33.4"
   }
 }
