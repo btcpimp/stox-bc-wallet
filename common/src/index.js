@@ -8,13 +8,14 @@ const contextObject = require('./context')
 
 /**
  * init stox-bc-wallet-common
- * @param {{mq: Object, db: Object}} context
+ * @param {{db: Object}} context
  * @param {string} [web3Url]
  * @param {number} [maxBlocksRead]
  * @param {number} [requiredConfirmations]
  */
 const init = (context, web3Url, maxBlocksRead, requiredConfirmations) => {
   Object.assign(contextObject.db, context.db)
+  blockchainUtils.initBlockchain(web3Url, maxBlocksRead, requiredConfirmations)
 }
 
 module.exports = {
@@ -24,4 +25,5 @@ module.exports = {
   promise,
   blockchainUtils,
   blockchain,
+  init,
 }
