@@ -4,12 +4,10 @@ const {createService} = require('stox-common')
 const {mqConnectionUrl, databaseUrl} = require('./config')
 const {models} = require('stox-bc-wallet-common')
 const jobs = require('jobs')
-const api = require('api')
 const context = require('context')
 
 const service = createService('wallets-sync', (builder) => {
   builder.db(databaseUrl, models)
-  builder.addApi(api)
   builder.addJobs(jobs)
   builder.addQueues(mqConnectionUrl)
 })
