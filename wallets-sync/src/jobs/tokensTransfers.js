@@ -1,14 +1,13 @@
 const {flatten, uniq, omit} = require('lodash')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {mq} = require('stox-common')
-const context = require('context')
 const tokenTracker = require('services/tokenTracker')
-const blockchainUtils = require('utils/blockchainUtils')
-const {network, requiredConfirmations} = require('../config')
+const {network, requiredConfirmations, maxBlocksRead, web3Url} = require('../config')
 const {
-  createDatabaseServices,
+  db,
   promise: {promiseSerial},
-  errorHandle: {logError}
+  errorHandle: {logError},
+  blockchainUtils,
 } = require('stox-bc-wallet-common')
 
 const extractAddresses = transactions =>
@@ -25,7 +24,8 @@ const getBalanceInEther = async (tokenAddress, walletAddress, lastReadBlock) => 
 
 const fetchLatestTransactions = async (tokenAddress, fromBlock, toBlock) => {
   try {
-    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await blockchainUtils.getBlockData()
+    const {getBlockData} = blockchainUtils(maxBlocksRead, requiredConfirmations, web3Url)
+    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await getBlockData()
     const transactions = await tokenTracker.getLatestTransferTransactions(tokenAddress, fromBlock, toBlock)
     return {
       transactions,
@@ -72,13 +72,14 @@ const job = async () => {
     tokensTransfers,
     wallets,
     tokensBalances,
-  } = createDatabaseServices(context)
+  } = db
 
   const networkTokens = await tokens.getTokensByNetwork(network)
 
   const getTokensTransfers = networkTokens.map(token => async () => {
     const lastReadBlock = await tokensTransfersReads.fetchLastReadBlock(token.id)
-    const {fromBlock, toBlock} = await blockchainUtils.getNextBlocksRange(lastReadBlock)
+    const {getNextBlocksRange} = blockchainUtils(maxBlocksRead, requiredConfirmations, web3Url)
+    const {fromBlock, toBlock} = await getNextBlocksRange(lastReadBlock)
     if (fromBlock < toBlock) {
       const {
         transactions,

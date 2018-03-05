@@ -1,36 +1,20 @@
-const {getERC20TokenContract, web3} = require('./blockchain')
 const {
-  requiredConfirmations,
-} = require('config')
-
-const {
-  exceptions: {UnexpectedError},
-} = require('@welldone-software/node-toolbelt')
-
-const {
-  validateAddress,
-  weiToEther,
-} = require('utils/blockchainUtils')
-
-const getLastConfirmedBlock = async () => {
-  const currentBlock = await web3.eth.getBlockNumber()
-  return (currentBlock - requiredConfirmations)
-}
+  blockchainUtils: {validateAddress, weiToEther, getLastConfirmedBlock},
+  blockchain,
+} = require('stox-bc-wallet-common')
+const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)
-  const tokenContract = getERC20TokenContract(tokenAddress)
+  const tokenContract = blockchain.getERC20TokenContract(tokenAddress)
   const transactions = []
   const events = await tokenContract.getPastEvents('Transfer', {fromBlock, toBlock})
 
   events.forEach((event) => {
     const transaction = {
-      // eslint-disable-next-line no-underscore-dangle
-      from: event.returnValues._from,
-      // eslint-disable-next-line no-underscore-dangle
-      to: event.returnValues._to,
-      // eslint-disable-next-line no-underscore-dangle
-      amount: weiToEther(event.returnValues._value),
+      from: event.returnValues._from, // eslint-disable-line no-underscore-dangle
+      to: event.returnValues._to, // eslint-disable-line no-underscore-dangle
+      amount: weiToEther(event.returnValues._value), // eslint-disable-line no-underscore-dangle
       logIndex: event.logIndex,
       transactionIndex: event.transactionIndex,
       blockNumber: event.blockNumber,
@@ -50,7 +34,7 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) =
 const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   validateAddress(tokenAddress)
   validateAddress(owner)
-  const tokenContract = getERC20TokenContract(tokenAddress)
+  const tokenContract = blockchain.getERC20TokenContract(tokenAddress)
 
   const lastConfirmedBlock = await getLastConfirmedBlock()
   if (blockNumber >= lastConfirmedBlock) {
@@ -62,9 +46,11 @@ const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   return tokenContract.methods.balanceOf(owner).call(undefined, blockNumber)
 }
 
-const getAccountBalanceInEther = async (tokenAddress, owner, blockNumber) => ({
-  balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner, blockNumber))),
-})
+const getAccountBalanceInEther = async (tokenAddress, owner, blockNumber) => {
+  return {
+    balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner, blockNumber))),
+  }
+}
 
 module.exports = {
   getLatestTransferTransactions,
