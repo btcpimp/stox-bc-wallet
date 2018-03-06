@@ -4,6 +4,6 @@ module.exports = mapEnv({
   databaseUrl: '',
   mqConnectionUrl: '',
   network: '',
-  walletPoolCron: '*/30 * * * * *',
-  walletsPoolThreshold: 500,
+  walletsPoolCron: '',
+  walletsPoolThreshold: '',
 })

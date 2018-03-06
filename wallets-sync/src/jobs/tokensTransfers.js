@@ -1,21 +1,16 @@
 const {flatten, uniq, omit} = require('lodash')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {mq} = require('stox-common')
-const tokenTracker = require('services/tokenTracker')
-const {network, requiredConfirmations, maxBlocksRead, web3Url} = require('../config')
-const {
-  db,
-  promise: {promiseSerial},
-  errorHandle: {logError},
-  blockchainUtils,
-} = require('stox-bc-wallet-common')
+const {services, context, utils} = require('stox-bc-wallet-common')
+const {network, tokensTransfersCron, requiredConfirmations, maxBlocksRead} = require('../config')
+
+const {promise: {promiseSerial}, errorHandle: {logError}} = utils
 
 const extractAddresses = transactions =>
   uniq(flatten(transactions.map(t => ([t.to.toLowerCase(), t.from.toLowerCase()])))).join('|')
 
 const getBalanceInEther = async (tokenAddress, walletAddress, lastReadBlock) => {
   try {
-    const {balance} = await tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
+    const {balance} = await services.blockchain.tokenTracker.getAccountBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
     return balance
   } catch (e) {
     throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
@@ -24,9 +19,8 @@ const getBalanceInEther = async (tokenAddress, walletAddress, lastReadBlock) => 
 
 const fetchLatestTransactions = async (tokenAddress, fromBlock, toBlock) => {
   try {
-    const {getBlockData} = blockchainUtils(maxBlocksRead, requiredConfirmations, web3Url)
-    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await getBlockData()
-    const transactions = await tokenTracker.getLatestTransferTransactions(tokenAddress, fromBlock, toBlock)
+    const {blockNumber: currentBlock, timestamp: currentBlockTime} = await utils.blockchain.getBlockData()
+    const transactions = await services.blockchain.tokenTracker.getLatestTransferTransactions(tokenAddress, fromBlock, toBlock)
     return {
       transactions,
       currentBlockTime,
@@ -53,7 +47,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
   }
 
   try {
-    mq.publish('assets-manager/walletTransactions', message)
+    context.mq.publish('assets-manager/walletTransactions', message)
     const rest = omit(message, 'transactions')
     logger.info({
       ...rest,
@@ -65,6 +59,26 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
   }
 }
 
+const getNextBlocksRange = async (lastReadBlock) => {
+  try {
+    const {maxBlocksRead} = context.config
+    let fromBlock = lastReadBlock !== 0 ? lastReadBlock + 1 : 0
+    const toBlock = await utils.blockchain.getLastConfirmedBlock()
+
+    if ((toBlock - fromBlock) > maxBlocksRead) {
+      fromBlock = toBlock - maxBlocksRead
+      fromBlock = fromBlock < 0 ? fromBlock = 0 : fromBlock
+    }
+
+    return {
+      fromBlock,
+      toBlock,
+    }
+  } catch (e) {
+    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
+  }
+}
+
 const job = async () => {
   const {
     tokens,
@@ -72,14 +86,14 @@ const job = async () => {
     tokensTransfers,
     wallets,
     tokensBalances,
-  } = db
+  } = services.db
 
-  const networkTokens = await tokens.getTokensByNetwork(network)
+  const networkTokens = await tokens.getTokens(network)
 
   const getTokensTransfers = networkTokens.map(token => async () => {
-    const lastReadBlock = await tokensTransfersReads.fetchLastReadBlock(token.id)
-    const {getNextBlocksRange} = blockchainUtils(maxBlocksRead, requiredConfirmations, web3Url)
+    const lastReadBlock = await services.db.tokensTransfersReads.fetchLastReadBlock(token.id)
     const {fromBlock, toBlock} = await getNextBlocksRange(lastReadBlock)
+
     if (fromBlock < toBlock) {
       const {
         transactions,
@@ -167,6 +181,6 @@ const job = async () => {
 }
 
 module.exports = {
-  cron: '*/5 * * * * *',
+  cron: tokensTransfersCron,
   job,
 }

@@ -1,7 +1,5 @@
-const {
-  blockchainUtils: {validateAddress, weiToEther, getLastConfirmedBlock},
-  blockchain,
-} = require('stox-bc-wallet-common')
+const {validateAddress, weiToEther, getLastConfirmedBlock} = require('../../utils/blockchain')
+const {blockchain} = require('../../context')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {

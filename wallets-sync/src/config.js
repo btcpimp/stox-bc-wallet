@@ -4,7 +4,8 @@ module.exports = mapEnv({
   web3Url: '',
   databaseUrl: '',
   mqConnectionUrl: '',
-  requiredConfirmations: 12,
-  maxBlocksRead: 10000,
+  requiredConfirmations: 0,
+  maxBlocksRead: 0,
   network: '',
+  tokensTransfersCron: '',
 })

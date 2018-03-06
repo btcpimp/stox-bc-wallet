@@ -1,18 +1,21 @@
-require('app-module-path').addPath(__dirname)
+require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {createService} = require('stox-common')
-const {databaseUrl, web3Url, maxBlockRead, requiredConfirmation} = require('./config')
-const {models, init} = require('stox-bc-wallet-common')
-const api = require('api')
-const context = require('context')
+const {contractsDir, models, initContext} = require('stox-bc-wallet-common')
+const config = require('./config')
+const api = require('./api')
 
-const service = createService('wallets-sync', (builder) => {
+const {databaseUrl, web3Url} = config
+
+const builderFunc = (builder) => {
   builder.db(databaseUrl, models)
+  builder.blockchain(web3Url, contractsDir)
   builder.addApi(api)
-})
+}
 
-service
-  .start()
-  .then(c => Object.assign(context, c))
-  .then(() => init(context, web3Url, maxBlockRead, requiredConfirmation))
+createService('wallets-sync', builderFunc)
+  .then(service => {
+    initContext({...service.context, config})
+    return service.start()
+  })
   .catch(e => logger.error(e))

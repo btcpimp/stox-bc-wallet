@@ -1,7 +1,7 @@
-const {db} = require('../../context')
+const {db, config} = require('../../context')
 
-const getTokensByNetwork = network => db.tokens.findAll({where: {network}})
+const getTokens = () => db.tokens.findAll({where: {network: config.network}})
 
 module.exports = {
-    getTokensByNetwork,
+  getTokens,
 }

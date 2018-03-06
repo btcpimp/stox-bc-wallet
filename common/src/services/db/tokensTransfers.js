@@ -1,7 +1,7 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const {db} = require('../../context')
+const {db, config} = require('../../context')
 
-const insertTransactions = async (tokenId, transactions, currentBlockTime, network) => {
+const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   const transaction = await db.sequelize.transaction()
   
   try {
@@ -21,7 +21,7 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime, netwo
           logIndex,
           transactionHash,
           tokenId,
-          network,
+          network: config.network,
           currentBlockTime,
           fromAddress: from,
           toAddress: to,

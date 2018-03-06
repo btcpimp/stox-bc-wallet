@@ -7,7 +7,7 @@
   "scripts": {
     "start": "nodemon -e js . | pino",
     "serve": "node .",
-    "lint": "eslint .",
+    "lint": "eslint ./src",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "jest:integration": "jest"
   },
@@ -16,7 +16,7 @@
     "@welldone-software/node-toolbelt": "^1.2.0",
     "app-module-path": "^2.2.0",
     "lodash": "^4.17.4",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
+    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#blockchain-service",
     "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {

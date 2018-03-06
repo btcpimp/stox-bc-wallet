@@ -1,29 +1,21 @@
+const path = require('path')
 const models = require('./db/models')
-const db = require('./services/db')
-const errorHandle = require('./utils/errorHandle')
-const promise = require('./utils/promise')
-const blockchainUtils = require('./utils/blockchainUtils')
-const blockchain = require('./services/blockchain')
-const contextObject = require('./context')
+const services = require('./services')
+const utils = require('./utils')
+const context = require('./context')
 
-/**
- * init stox-bc-wallet-common
- * @param {{db: Object}} context
- * @param {string} [web3Url]
- * @param {number} [maxBlocksRead]
- * @param {number} [requiredConfirmations]
- */
-const init = (context, web3Url, maxBlocksRead, requiredConfirmations) => {
-  Object.assign(contextObject.db, context.db)
-  blockchainUtils.initBlockchain(web3Url, maxBlocksRead, requiredConfirmations)
+const contractsDir = path.resolve(__dirname, './services/blockchain/contracts')
+const initContext = (ctx) => {
+  for(var prop in ctx) {
+    Object.assign(context[prop], ctx[prop])
+  }
 }
 
 module.exports = {
+  initContext,
   models,
-  db,
-  errorHandle,
-  promise,
-  blockchainUtils,
-  blockchain,
-  init,
+  contractsDir,
+  context,
+  services,
+  utils,
 }
