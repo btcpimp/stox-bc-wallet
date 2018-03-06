@@ -1,8 +1,8 @@
 const {wallets} = require('./services/wallets')
-const {network} = require('config')
+const {network, port} = require('config')
 
 module.exports = {
-  port: 3000,
+  port,
   version: 1,
   cors: false,
   routes: (router, createApiEndpoint, secure) => {
