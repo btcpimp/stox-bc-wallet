@@ -3,7 +3,10 @@ const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {createService} = require('stox-common')
 const {models, initContext} = require('stox-bc-wallet-common')
 const config = require('config')
-const jobs = require('jobs')
+const requireAll = require('require-all')
+const path = require('path')
+
+const jobs = requireAll(path.resolve(__dirname, 'jobs'))
 
 const {databaseUrl, mqConnectionUrl} = config
 
