@@ -8,7 +8,6 @@ const services = requireAll({
   dirname: path.resolve(__dirname, 'services'),
   filter: /(.*)\.js$/,
 })
-console.log({services, utils})
 const contractsDir = path.resolve(__dirname, './services/blockchain/contracts')
 const initContext = (ctx) => {
   Object.keys(ctx).forEach(prop => Object.assign(context[prop], ctx[prop]))
