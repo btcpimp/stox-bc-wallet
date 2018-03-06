@@ -1,6 +1,6 @@
 const {times} = require('lodash')
-const {mq} = require('stox-common')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
+// eslint-disable-next-line import/no-extraneous-dependencies
 const {services, context} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
 
@@ -16,12 +16,15 @@ const job = async () => {
   const inQueue = await getRequestsCount('CREATE_WALLET')
   const requestsAmount = walletsPoolThreshold - count - inQueue
 
-  logger.info({
-    network,
-    count,
-    inQueue,
-    requestsAmount: requestsAmount < 0 ? 0 : requestsAmount,
-  }, 'WALLETS_POOL')
+  logger.info(
+    {
+      network,
+      count,
+      inQueue,
+      requestsAmount: requestsAmount < 0 ? 0 : requestsAmount,
+    },
+    'WALLETS_POOL'
+  )
 
   if (requestsAmount > 0) {
     times(requestsAmount, issueWallet)

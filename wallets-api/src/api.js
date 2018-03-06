@@ -1,4 +1,5 @@
 const {port} = require('config')
+// eslint-disable-next-line import/no-extraneous-dependencies
 const {services: {db}} = require('stox-bc-wallet-common')
 
 module.exports = {

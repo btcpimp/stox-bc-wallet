@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize')
 const {db} = require('../../context')
+
 const {Op} = Sequelize
 
 const fetchLastReadBlock = async (tokenId) => {
@@ -11,7 +12,7 @@ const fetchLastReadBlock = async (tokenId) => {
 }
 
 const updateLastReadBlock = (tokenId, lastReadBlockNumber) =>
-    db.tokensTransfersReads.upsert({tokenId, lastReadBlockNumber})
+  db.tokensTransfersReads.upsert({tokenId, lastReadBlockNumber})
 
 module.exports = {
   fetchLastReadBlock,

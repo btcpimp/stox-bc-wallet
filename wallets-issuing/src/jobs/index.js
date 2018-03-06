@@ -1,3 +1,5 @@
+const walletsPool = require('./walletsPool')
+
 module.exports = {
-  walletsPool: require('./walletsPool'),
+  walletsPool,
 }

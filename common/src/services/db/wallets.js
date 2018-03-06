@@ -5,10 +5,10 @@ const blockchain = require('../../utils/blockchain')
 
 const {Op} = Sequelize
 
-const getWalletsByAddresses = (addresses) => db.sequelize.query(
-  `select * from wallets where lower(address) similar to '%(${addresses})%'`,
-  {type: Sequelize.QueryTypes.SELECT},
-)
+const getWalletsByAddresses = addresses =>
+  db.sequelize.query(`select * from wallets where lower(address) similar to '%(${addresses})%'`, {
+    type: Sequelize.QueryTypes.SELECT,
+  })
 
 const getUnassignedWalletsCount = async () => {
   const count = await db.wallets.count({
@@ -55,15 +55,16 @@ const createWallets = async (addresses) => {
   const transaction = await db.sequelize.transaction()
   const {network} = config
   try {
-    await Promise.all(addresses.map(address => db.wallets.create(
-      {
-        id: `${network}.${address}`,
-        address,
-        network,
-        version: 1,
-      },
-      {transaction}
-    )))
+    await Promise.all(addresses.map(address =>
+      db.wallets.create(
+        {
+          id: `${network}.${address}`,
+          address,
+          network,
+          version: 1,
+        },
+        {transaction}
+      )))
 
     await transaction.commit()
   } catch (e) {
@@ -74,7 +75,7 @@ const createWallets = async (addresses) => {
 const createWallet = async address => createWallets([address])
 
 const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
-  const {maxWalletAssignRetires, network} = config
+  const {maxWalletAssignRetires} = config
   blockchain.validateAddress(withdrawAddress)
 
   if (times >= maxWalletAssignRetires || times >= max) {

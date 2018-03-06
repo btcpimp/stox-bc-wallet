@@ -1,6 +1,7 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
 const {db, config} = require('../../context')
+
 const {Op} = Sequelize
 
 const updateBalance = async (tokenId, walletId, balance) => {
@@ -26,12 +27,16 @@ const updateBalance = async (tokenId, walletId, balance) => {
         {transaction}
       )
     } else {
-      await tokenBalance.update({balance, pendingUpdateBalance: 0}, {
-        where: {
-          walletId,
-          tokenId,
+      await tokenBalance.update(
+        {balance, pendingUpdateBalance: 0},
+        {
+          where: {
+            walletId,
+            tokenId,
+          },
         },
-      }, {transaction})
+        {transaction}
+      )
     }
     transaction.commit()
   } catch (e) {
@@ -40,12 +45,13 @@ const updateBalance = async (tokenId, walletId, balance) => {
   }
 }
 
-const getBalance = async (address) => db.tokensBalances.findAll({
-  attributes: ['tokenId', 'balance'],
-  where: {walletId: {[Op.eq]: `${config.network}.${address}`}}
-})
+const getBalance = async address =>
+  db.tokensBalances.findAll({
+    attributes: ['tokenId', 'balance'],
+    where: {walletId: {[Op.eq]: `${config.network}.${address}`}},
+  })
 
 module.exports = {
   updateBalance,
-  getBalance
+  getBalance,
 }

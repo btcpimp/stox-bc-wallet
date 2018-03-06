@@ -1,3 +1,5 @@
+const tokensTransfers = require('./tokensTransfers')
+
 module.exports = {
-  tokensTransfers: require('./tokensTransfers'),
+  tokensTransfers,
 }

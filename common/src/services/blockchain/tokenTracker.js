@@ -44,11 +44,9 @@ const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   return tokenContract.methods.balanceOf(owner).call(undefined, blockNumber)
 }
 
-const getAccountBalanceInEther = async (tokenAddress, owner, blockNumber) => {
-  return {
-    balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner, blockNumber))),
-  }
-}
+const getAccountBalanceInEther = async (tokenAddress, owner, blockNumber) => ({
+  balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner, blockNumber))),
+})
 
 module.exports = {
   getLatestTransferTransactions,

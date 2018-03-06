@@ -3,18 +3,10 @@ const {db, config} = require('../../context')
 
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   const transaction = await db.sequelize.transaction()
-  
+
   try {
     await Promise.all(transactions.map(async (t) => {
-      const {
-        amount,
-        blockNumber,
-        logIndex,
-        from,
-        to,
-        transactionHash,
-        event,
-      } = t
+      const {amount, blockNumber, logIndex, from, to, transactionHash, event} = t
       return db.tokensTransfers.create(
         {
           blockNumber: Number(blockNumber),

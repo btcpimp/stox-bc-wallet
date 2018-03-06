@@ -13,7 +13,7 @@ const validateAddress = (address) => {
   }
 }
 
-const isAddressEmpty = address => (address === '0x0000000000000000000000000000000000000000')
+const isAddressEmpty = address => address === '0x0000000000000000000000000000000000000000'
 
 const getBlockData = async (blockNumber = 'latest') => {
   const block = await blockchain.web3.eth.getBlock(blockNumber, false)
@@ -22,7 +22,7 @@ const getBlockData = async (blockNumber = 'latest') => {
 
 const getLastConfirmedBlock = async () => {
   const currentBlock = await blockchain.web3.eth.getBlockNumber()
-  return (currentBlock - config.requiredConfirmations)
+  return currentBlock - config.requiredConfirmations
 }
 
 const isListening = async () => {
