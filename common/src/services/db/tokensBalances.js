@@ -45,7 +45,7 @@ const updateBalance = async (tokenId, walletId, balance) => {
   }
 }
 
-const getBalance = async address =>
+const getBalance = address =>
   db.tokensBalances.findAll({
     attributes: ['tokenId', 'balance'],
     where: {walletId: {[Op.eq]: `${config.network}.${address}`}},
