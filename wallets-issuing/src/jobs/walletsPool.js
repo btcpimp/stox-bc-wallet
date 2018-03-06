@@ -1,6 +1,5 @@
 const {times} = require('lodash')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-// eslint-disable-next-line import/no-extraneous-dependencies
 const {services, context} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
 
