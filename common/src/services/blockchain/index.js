@@ -5,7 +5,7 @@ const path = require('path')
 const contractsDir = path.resolve(__dirname, './contracts')
 
 const blockchain = {
-  web3: undefined,
+  web3: {},
 }
 
 blockchain.init = (web3Url) => {
@@ -19,7 +19,8 @@ blockchain.init = (web3Url) => {
 
     return obj
   }, {})
-  Object.assign(blockchain, {web3, ...contracts})
+  Object.assign(blockchain, {...contracts})
+  Object.assign(blockchain.web3, web3)
 }
 
 module.exports = blockchain

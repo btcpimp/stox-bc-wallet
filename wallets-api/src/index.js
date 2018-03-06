@@ -1,4 +1,4 @@
-require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
+require('app-module-path').addPath(__dirname)
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {createService} = require('stox-common')
 const {databaseUrl, web3Url, maxBlockRead, requiredConfirmation} = require('./config')

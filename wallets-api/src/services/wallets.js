@@ -1,7 +1,7 @@
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
 const context = require('context')
-const {maxWalletAssignRetires, network} = require('../config')
+const {maxWalletAssignRetires, network} = require('config')
 const {
   blockchainUtils: {validateAddress, isAddressEmpty},
   blockchain,
