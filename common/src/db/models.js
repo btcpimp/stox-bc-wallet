@@ -46,17 +46,14 @@ module.exports = (sequelize) => {
     }
   )
 
-  const TokensBalance = sequelize.define(
-    'tokensBalances',
-    {
-      walletId: {type: STRING(256), primaryKey: true, references: {model: 'wallets', key: 'id'}},
-      tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
-      balance: {type: AMOUNT, validate: {min: 0}, allowNull: false},
-      createdAt: {type: DATE, allowNull: false},
-      updatedAt: {type: DATE, allowNull: false},
-      pendingUpdateBalance: {type: SMALLINT, allowNull: false},
-    },
-  )
+  const TokensBalance = sequelize.define('tokensBalances', {
+    walletId: {type: STRING(256), primaryKey: true, references: {model: 'wallets', key: 'id'}},
+    tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
+    balance: {type: AMOUNT, validate: {min: 0}, allowNull: false},
+    createdAt: {type: DATE, allowNull: false},
+    updatedAt: {type: DATE, allowNull: false},
+    pendingUpdateBalance: {type: SMALLINT, allowNull: false},
+  })
   TokensBalance.belongsTo(Wallet)
   Wallet.hasMany(TokensBalance)
   TokensBalance.belongsTo(Token)

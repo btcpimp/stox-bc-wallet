@@ -1,11 +1,19 @@
+const path = require('path')
 const models = require('./db/models')
-const createDatabaseServices = require('./services/db')
-const errorHandle = require('./utils/errorHandle')
-const promise = require('./utils/promise')
+const services = require('./services')
+const utils = require('./utils')
+const context = require('./context')
+
+const contractsDir = path.resolve(__dirname, './services/blockchain/contracts')
+const initContext = (ctx) => {
+  Object.keys(ctx).forEach(prop => Object.assign(context[prop], ctx[prop]))
+}
 
 module.exports = {
+  initContext,
   models,
-  createDatabaseServices,
-  errorHandle,
-  promise,
+  contractsDir,
+  context,
+  services,
+  utils,
 }

@@ -1,8 +1,7 @@
 const {assignWith} = require('lodash')
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 
-const assignWithCustomizer = (objValue, srcValue) =>
-  (objValue === undefined ? srcValue : objValue)
+const assignWithCustomizer = (objValue, srcValue) => (objValue === undefined ? srcValue : objValue)
 
 const errSerializer = err =>
   (err instanceof Error

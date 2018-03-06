@@ -1,3 +1,5 @@
+const walletABI = require('./walletABI')
+
 module.exports = {
-  walletABI: require('./walletABI'),
+  walletABI,
 }

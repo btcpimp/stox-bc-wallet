@@ -1,6 +1,6 @@
 {
-  "name": "stox-bc-wallets-sync",
-  "version": "1.0.0",
+  "name": "stox-bc-wallet-api",
+  "version": "0.0.1",
   "engines": {
     "node": ">=8.9.2"
   },
@@ -13,9 +13,9 @@
   },
   "main": "src/index.js",
   "dependencies": {
-    "@welldone-software/node-toolbelt": "^1.2.0",
+    "@welldone-software/node-toolbelt": "^1.3.0",
     "app-module-path": "^2.2.0",
-    "lodash": "^4.17.4",
+    "sequelize": "^4.35.2",
     "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#blockchain-service",
     "web3": "^1.0.0-beta.30"
   },

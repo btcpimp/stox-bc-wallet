@@ -1,36 +1,18 @@
-const {getERC20TokenContract, web3} = require('./blockchain')
-const {
-  requiredConfirmations,
-} = require('config')
-
-const {
-  exceptions: {UnexpectedError},
-} = require('@welldone-software/node-toolbelt')
-
-const {
-  validateAddress,
-  weiToEther,
-} = require('utils/blockchainUtils')
-
-const getLastConfirmedBlock = async () => {
-  const currentBlock = await web3.eth.getBlockNumber()
-  return (currentBlock - requiredConfirmations)
-}
+const {validateAddress, weiToEther, getLastConfirmedBlock} = require('../../utils/blockchain')
+const {blockchain} = require('../../context')
+const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)
-  const tokenContract = getERC20TokenContract(tokenAddress)
+  const tokenContract = blockchain.getERC20TokenContract(tokenAddress)
   const transactions = []
   const events = await tokenContract.getPastEvents('Transfer', {fromBlock, toBlock})
 
   events.forEach((event) => {
     const transaction = {
-      // eslint-disable-next-line no-underscore-dangle
-      from: event.returnValues._from,
-      // eslint-disable-next-line no-underscore-dangle
-      to: event.returnValues._to,
-      // eslint-disable-next-line no-underscore-dangle
-      amount: weiToEther(event.returnValues._value),
+      from: event.returnValues._from, // eslint-disable-line no-underscore-dangle
+      to: event.returnValues._to, // eslint-disable-line no-underscore-dangle
+      amount: weiToEther(event.returnValues._value), // eslint-disable-line no-underscore-dangle
       logIndex: event.logIndex,
       transactionIndex: event.transactionIndex,
       blockNumber: event.blockNumber,
@@ -50,7 +32,7 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) =
 const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
   validateAddress(tokenAddress)
   validateAddress(owner)
-  const tokenContract = getERC20TokenContract(tokenAddress)
+  const tokenContract = blockchain.getERC20TokenContract(tokenAddress)
 
   const lastConfirmedBlock = await getLastConfirmedBlock()
   if (blockNumber >= lastConfirmedBlock) {

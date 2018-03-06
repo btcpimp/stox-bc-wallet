@@ -1,34 +1,37 @@
 const {times} = require('lodash')
-const {mq} = require('stox-common')
 const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-const context = require('context')
-const {createDatabaseServices} = require('stox-bc-wallet-common')
-const {walletsPoolThreshold, network} = require('config')
+// eslint-disable-next-line import/no-extraneous-dependencies
+const {services, context} = require('stox-bc-wallet-common')
+const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
 
 // todo: query to see how much pending 'CREATE_WALLET' requests exist
-const getRequestsCount = () => 500
+const getRequestsCount = () => 480
 
 const logger = baseLogger.child({name: 'walletsPool'})
 
-const issueWallet = () => mq.publish('request-reader/create-requests', {type: 'CREATE_WALLET'})
+const issueWallet = () => context.mq.publish('request-reader/create-requests', {type: 'CREATE_WALLET'})
 
-module.exports = {
-  cron: '*/30 * * * * *',
-  job: async () => {
-    const {wallets} = createDatabaseServices(context)
-    const {count} = await wallets.getUnassignedWalletsCount(network)
-    const inQueue = await getRequestsCount(network, 'CREATE_WALLET')
-    const requestsAmount = walletsPoolThreshold - count - inQueue
+const job = async () => {
+  const {count} = await services.db.wallets.getUnassignedWalletsCount()
+  const inQueue = await getRequestsCount('CREATE_WALLET')
+  const requestsAmount = walletsPoolThreshold - count - inQueue
 
-    logger.info({
+  logger.info(
+    {
       network,
       count,
       inQueue,
       requestsAmount: requestsAmount < 0 ? 0 : requestsAmount,
-    }, 'WALLETS_POOL')
+    },
+    'WALLETS_POOL'
+  )
 
-    if (requestsAmount > 0) {
-      times(requestsAmount, issueWallet)
-    }
-  },
+  if (requestsAmount > 0) {
+    times(requestsAmount, issueWallet)
+  }
+}
+
+module.exports = {
+  cron: walletsPoolCron,
+  job,
 }
