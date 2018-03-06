@@ -1,12 +1,13 @@
 {
-  "name": "wallets-issuing",
-  "version": "0.0.1",
+  "name": "stox-bc-wallets-issuing",
+  "version": "1.0.0",
   "engines": {
     "node": ">=8.9.2"
   },
   "scripts": {
     "start": "nodemon -e js . | pino",
     "serve": "node .",
+    "lint": "eslint .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "jest:integration": "jest"
   },
