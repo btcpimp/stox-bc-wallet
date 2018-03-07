@@ -1,9 +1,9 @@
 const Sequelize = require('sequelize')
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const {db, config} = require('../../context')
-const blockchain = require('../../utils/blockchain')
-const {getAccountBalanceInEther} = require('../blockchain/tokenTracker')
-const {validateAddress} = require('../../utils/blockchain')
+const {db, config} = require('../context')
+const blockchain = require('../utils/blockchain')
+const {getAccountBalanceInEther} = require('./blockchain/tokenTracker')
+const {validateAddress} = require('../utils/blockchain')
 
 const {Op} = Sequelize
 

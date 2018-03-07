@@ -1,6 +1,6 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const Sequelize = require('sequelize')
-const {db, config} = require('../../context')
+const {db, config} = require('../context')
 
 const {Op} = Sequelize
 

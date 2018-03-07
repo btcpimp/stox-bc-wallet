@@ -11,7 +11,7 @@ const logger = baseLogger.child({name: 'walletsPool'})
 const issueWallet = () => context.mq.publish('request-reader/create-requests', {type: 'CREATE_WALLET'})
 
 const job = async () => {
-  const {count} = await services.db.wallets.getUnassignedWalletsCount()
+  const {count} = await services.wallets.getUnassignedWalletsCount()
   const inQueue = await getRequestsCount('CREATE_WALLET')
   const requestsAmount = walletsPoolThreshold - count - inQueue
 

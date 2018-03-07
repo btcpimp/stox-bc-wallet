@@ -90,12 +90,12 @@ const getNextBlocksRange = async (lastReadBlock) => {
 }
 
 const job = async () => {
-  const {tokens, tokensTransfersReads, tokensTransfers, wallets, tokensBalances} = services.db
+  const {tokens, tokensTransfersReads, tokensTransfers, wallets, tokensBalances} = services
 
   const networkTokens = await tokens.getTokens(network)
 
   const getTokensTransfers = networkTokens.map(token => async () => {
-    const lastReadBlock = await services.db.tokensTransfersReads.fetchLastReadBlock(token.id)
+    const lastReadBlock = await services.tokensTransfersReads.fetchLastReadBlock(token.id)
     const {fromBlock, toBlock} = await getNextBlocksRange(lastReadBlock)
 
     if (fromBlock < toBlock) {
