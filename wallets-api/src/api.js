@@ -10,5 +10,6 @@ module.exports = {
     router.post('/assign', _(({body: {address}}) => db.wallets.assignWallet(address)))
     router.post('/create', _(({body: {address}}) => db.wallets.createWallet(address)))
     router.post('/createWallets', _(({body: {addresses}}) => db.wallets.createWallets(addresses)))
+    router.get('/wallets/blockchainBalance', _(({query: {address}}) => db.wallets.getWalletBalanceInBlockchain(address)))
   },
 }

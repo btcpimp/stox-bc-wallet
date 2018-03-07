@@ -2,6 +2,8 @@ const Sequelize = require('sequelize')
 const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const {db, config} = require('../../context')
 const blockchain = require('../../utils/blockchain')
+const {getAccountBalanceInEther} = require('../blockchain/tokenTracker')
+const {validateAddress} = require('../../utils/blockchain')
 
 const {Op} = Sequelize
 
@@ -92,9 +94,23 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
   }
 }
 
+const getWalletBalanceInBlockchain = async (walletAddress) => {
+  validateAddress(walletAddress)
+
+  const tokens = await db.tokens.findAll({
+    attributes: ['name', 'address'],
+  })
+
+  return Promise.all(tokens.map(async token => ({
+    token: token.name,
+    balance: (await getAccountBalanceInEther(token.address, walletAddress)).balance,
+  })))
+}
+
 module.exports = {
   getUnassignedWalletsCount,
   getWalletsByAddresses,
+  getWalletBalanceInBlockchain,
   assignWallet,
   createWallets,
   createWallet,
