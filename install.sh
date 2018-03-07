@@ -5,8 +5,6 @@
 echo installing packages
 npm install rimraf -g
 
-common="${PWD##*/}-common"
-
 cd "./common"
 echo "installing common/"
 if [ "$1" != "clean" ]
@@ -15,7 +13,6 @@ then
     rimraf package-lock.json
 fi
 npm install
-npm link
 cd ..
 
 for i in */
@@ -30,7 +27,6 @@ do
             rimraf package-lock.json
         fi
         npm install
-        npm link $common
         cd ..
     fi
 done

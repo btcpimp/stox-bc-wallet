@@ -1,6 +1,5 @@
 const {flatten, uniq, omit} = require('lodash')
 const {exceptions: {UnexpectedError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-// eslint-disable-next-line import/no-extraneous-dependencies
 const {services, context, utils} = require('stox-bc-wallet-common')
 const {network, tokensTransfersCron, requiredConfirmations, maxBlocksRead} = require('../config')
 
