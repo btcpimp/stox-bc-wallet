@@ -19,8 +19,5 @@ const builderFunc = (builder) => {
 }
 
 createService('wallets-sync', builderFunc)
-  .then((service) => {
-    initContext({...service.context, config})
-    return service.start()
-  })
+  .then(context => initContext({...context, config}))
   .catch(e => logger.error(e))

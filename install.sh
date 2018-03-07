@@ -17,7 +17,7 @@ cd ..
 
 for i in */
 do
-    if [ "$i" != "common/" ]
+    if [[ "$i" != "common/" && "$i" != "node_modules/" ]]
     then
         cd "./$i"
         echo "installing $i"
