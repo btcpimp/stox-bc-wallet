@@ -1,6 +1,6 @@
 {
   "name": "stox-bc-wallet-common",
-  "description" : "common database and services package for wallet manager",
+  "description": "common database and services package for wallet manager",
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {

@@ -1,5 +1,5 @@
 {
-  "name": "wallet-abi",
+  "name": "wallets-abi",
   "description": "Returns the bytecode needed to perform a specific wallet transaction.Stox wallets currently support the following APIs",
   "version": "1.0.0",
   "engines": {
