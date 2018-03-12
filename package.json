@@ -1,7 +1,7 @@
 {
   "name": "stox-bc-wallet",
   "version": "1.0.0",
-  "description": "global scripts",
+  "description": "The Wallets Manager holds the data on all Stox wallets and their balances, and serves all related wallet apis.",
   "scripts": {
     "precommit": "eslint src"
   },

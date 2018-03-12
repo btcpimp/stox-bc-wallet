@@ -1,6 +1,7 @@
 {
-  "name": "stox-bc-wallet-api",
-  "version": "0.0.1",
+  "name": "wallet-api",
+  "description": "Service for wallet related apis (getBalance, createWallet)...",
+  "version": "1.0.0",
   "engines": {
     "node": ">=8.9.2"
   },

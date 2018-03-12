@@ -1,5 +1,6 @@
 {
-  "name": "stox-bc-wallets-sync",
+  "name": "wallets-sync",
+  "description": "A service that monitor the completed requests queue, and checks for completed Wallet Issuance requests. If it finds a successful completed request, it adds the newly created wallet address to the wallets db.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9.2"

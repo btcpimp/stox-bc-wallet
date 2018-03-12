@@ -1,5 +1,6 @@
 {
-  "name": "stox-bc-wallets-issuing",
+  "name": "wallets-issuing",
+  "description": "A service that monitor the number of unassigned wallets inside the wallets db. If this number gets too low (under a yet-to-be-defined threshold), it will issue new wallet creation requests to the Request Manager’s Incoming Requests queue.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9.2"
