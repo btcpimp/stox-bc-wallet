@@ -8,11 +8,12 @@ const path = require('path')
 
 const jobs = requireAll(path.resolve(__dirname, 'jobs'))
 
-const {databaseUrl, web3Url} = config
+const {databaseUrl, web3Url, mqConnectionUrl} = config
 
 const builderFunc = (builder) => {
   builder.db(databaseUrl, models)
   builder.blockchain(web3Url, contractsDir)
+  builder.addQueues(mqConnectionUrl)
   builder.addJobs(jobs)
 }
 
