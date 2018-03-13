@@ -13,6 +13,6 @@ const builderFunc = (builder) => {
   builder.addApi(api)
 }
 
-createService('wallets-sync', builderFunc)
+createService('wallets-api', builderFunc)
   .then(context => initContext({...context, config}))
   .catch(e => logger.error(e))

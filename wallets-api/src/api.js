@@ -1,5 +1,5 @@
 const {port} = require('config')
-const {services: {wallets, tokensBalances}} = require('stox-bc-wallet-common')
+const {services: {wallets, tokensBalances, blockchain}} = require('stox-bc-wallet-common')
 
 module.exports = {
   port,
@@ -28,6 +28,21 @@ module.exports = {
     router.get(
       '/wallets/blockchainBalance',
       _(({query: {address}}) => wallets.getWalletBalanceInBlockchain(address))
+    )
+    router.get(
+      '/abi/setWithdrawalAddress',
+      _(({query: {userWithdrawalAddress}}) =>
+        blockchain.smartWallets.encodeAbiForSetWithdrawalAddress(userWithdrawalAddress))
+    )
+    router.get(
+      '/abi/withdraw',
+      _(({query: {tokenAddress, amount, feeTokenAddress, fee}}) =>
+        blockchain.smartWallets.encodeAbiForWithdraw(tokenAddress, amount, feeTokenAddress, fee))
+    )
+    router.get(
+      '/abi/transferToBackup',
+      _(({query: {tokenAddress, amount}}) =>
+        blockchain.smartWallets.encodeAbiForTransferToBackup(tokenAddress, amount))
     )
   },
 }
