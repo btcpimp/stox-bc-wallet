@@ -1,19 +1,17 @@
 const {times} = require('lodash')
 const uuid = require('uuid')
-const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-const {services, context} = require('stox-bc-wallet-common')
+const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
+const {services, context: {mq}} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('config')
 const {http} = require('stox-common')
-const clientHttp = http(requestManagerApiBaseUrl)
 
-const getPendingRequestsCount = async (type) => await clientHttp.get(`requests/${type}/count/pending`)
+const httpClient = http(requestManagerApiBaseUrl)
 
-const logger = baseLogger.child({name: 'walletsPool'})
+const getPendingRequestsCount = type => httpClient.get(`requests/${type}/count/pending`)
 
-const issueWallet = () => context.mq.publish('incomingRequests', {
+const issueWallet = () => mq.publish('incomingRequests', {
   id: uuid(),
   type: 'createWallet',
-  data: {},
 })
 
 const job = async () => {
