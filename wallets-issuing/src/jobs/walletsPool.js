@@ -20,6 +20,7 @@ const logger = baseLogger.child({name: 'walletsPool'})
 const issueWallet = () => context.mq.publish('incomingRequests', {
   id: uuid(),
   type: 'createWallet',
+  data: {},
 })
 
 const job = async () => {
