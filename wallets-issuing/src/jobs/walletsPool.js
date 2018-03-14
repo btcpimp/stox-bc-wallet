@@ -7,6 +7,12 @@ const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
 // todo: query to see how much pending 'CREATE_WALLET' requests exist
 const getPendingRequestsCount = () => 491
 
+
+// wallets-issing
+// request-reader
+// request-handler
+// request-manager-api
+
 // context.http.get(http://localhost:3003/api/v1/requests/createWallet/count)
 
 const logger = baseLogger.child({name: 'walletsPool'})
