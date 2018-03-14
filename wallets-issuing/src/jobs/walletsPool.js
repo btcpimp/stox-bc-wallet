@@ -7,6 +7,8 @@ const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
 // todo: query to see how much pending 'CREATE_WALLET' requests exist
 const getPendingRequestsCount = () => 491
 
+// context.http.get(http://localhost:3003/api/v1/requests/createWallet/count)
+
 const logger = baseLogger.child({name: 'walletsPool'})
 
 const issueWallet = () => context.mq.publish('incomingRequests', {
