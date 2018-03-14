@@ -12,6 +12,7 @@ const getPendingRequestsCount = type => httpClient.get(`requests/${type}/count/p
 const issueWallet = () => mq.publish('incomingRequests', {
   id: uuid(),
   type: 'createWallet',
+  data: {}, // required by mq on request-reader
 })
 
 const job = async () => {

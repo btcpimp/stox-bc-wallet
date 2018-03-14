@@ -44,5 +44,9 @@ module.exports = {
       _(({query: {walletAddress, tokenAddress, amount}}) =>
         blockchain.smartWallets.encodeAbiForTransferToBackup(walletAddress, tokenAddress, amount))
     )
+    router.get(
+      '/abi/createWallet',
+      _(({query: {}}) => Promise.resolve({}))
+    )
   },
 }
