@@ -8,7 +8,7 @@ const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
 const getPendingRequestsCount = () => 491
 
 
-// wallets-issing
+// wallets-issuing
 // request-reader
 // request-handler
 // request-manager-api
