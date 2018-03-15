@@ -7,17 +7,16 @@ const {http} = require('stox-common')
 
 const httpClient = http(requestManagerApiBaseUrl)
 
-const getPendingRequestsCount = type => httpClient.get(`requests/${type}/count/pending`)
+const getPendingRequestsCount = () => httpClient.get('requests/createWallet/count/pending')
 
 const issueWallet = () => mq.publish('incomingRequests', {
   id: uuid(),
   type: 'createWallet',
-  data: {}, // required by mq on request-reader
 })
 
 const job = async () => {
   const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
-  const {count: pending} = await getPendingRequestsCount('createWallet')
+  const {count: pending} = await getPendingRequestsCount()
 
   const requests = walletsPoolThreshold - unassigned - pending
 
