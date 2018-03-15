@@ -1,28 +1,29 @@
 const {times} = require('lodash')
 const uuid = require('uuid')
-const {loggers: {logger: baseLogger}} = require('@welldone-software/node-toolbelt')
-const {services, context} = require('stox-bc-wallet-common')
-const {walletsPoolThreshold, network, walletsPoolCron} = require('config')
+const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
+const {services, context: {mq}} = require('stox-bc-wallet-common')
+const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('config')
+const {http} = require('stox-common')
 
-// todo: query to see how much pending 'CREATE_WALLET' requests exist
-const getPendingRequestsCount = () => 491
+const httpClient = http(requestManagerApiBaseUrl)
 
-const logger = baseLogger.child({name: 'walletsPool'})
+const getPendingRequestsCount = () => httpClient.get('requests/createWallet/count/pending')
 
-const issueWallet = () => context.mq.publish('incomingRequests', {
+const issueWallet = () => mq.publish('incomingRequests', {
   id: uuid(),
   type: 'createWallet',
 })
 
 const job = async () => {
-  const {count} = await services.wallets.getUnassignedWalletsCount()
-  const pending = await getPendingRequestsCount('createWallet')
-  const requests = walletsPoolThreshold - count - pending
+  const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
+  const {count: pending} = await getPendingRequestsCount()
+
+  const requests = walletsPoolThreshold - unassigned - pending
 
   logger.info(
     {
       network,
-      unassigned: count,
+      unassigned,
       pending,
       requests: requests < 0 ? 0 : requests,
     },

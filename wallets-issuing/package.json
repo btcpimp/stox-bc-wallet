@@ -20,6 +20,7 @@
     "require-all": "^2.2.0",
     "stox-bc-wallet-common": "file:../common",
     "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
+    "uuid": "^3.2.1",
     "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
