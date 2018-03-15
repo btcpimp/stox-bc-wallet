@@ -48,5 +48,9 @@ module.exports = {
       '/abi/createWallet',
       _(({query: {}}) => Promise.resolve({}))
     )
+    router.get(
+      '/abi/transferPrize',
+      _(({query: {}}) => Promise.resolve({}))
+    )
   },
 }
