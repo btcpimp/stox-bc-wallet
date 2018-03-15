@@ -2,10 +2,13 @@ const {validateAddress, etherToWei} = require('../../utils/blockchain')
 const {blockchain} = require('../../context')
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
 
+const getOperatorAccount = async wallet =>
+  (await wallet.methods.wallet().call()).operatorAccount
+
 const encodeAbiForSetWithdrawalAddress = async (walletAddress, userWithdrawalAddress) => {
   validateAddress(userWithdrawalAddress)
   const wallet = blockchain.getSmartWalletContract(walletAddress)
-  const fromAccount = (await wallet.methods.wallet().call()).operatorAccount
+  const fromAccount = await getOperatorAccount(wallet)
   const encodedAbi = wallet.methods.setUserWithdrawalAccount(userWithdrawalAddress).encodeABI()
 
   return {fromAccount, encodedAbi}
@@ -25,7 +28,7 @@ const encodeAbiForWithdraw = async (walletAddress, tokenAddress, amount, feeToke
   }
 
   const wallet = blockchain.getSmartWalletContract(walletAddress)
-  const fromAccount = (await wallet.methods.wallet().call()).operatorAccount
+  const fromAccount = await getOperatorAccount(wallet)
   const encodedAbi = wallet.methods.transferToUserWithdrawalAccount(
     tokenAddress,
     etherToWei(amount),
@@ -44,7 +47,7 @@ const encodeAbiForTransferToBackup = async (walletAddress, tokenAddress, amount)
   }
 
   const wallet = blockchain.getSmartWalletContract(walletAddress)
-  const fromAccount = (await wallet.methods.wallet().call()).operatorAccount
+  const fromAccount = await getOperatorAccount(wallet)
   const encodedAbi = wallet.methods.transferToBackupAccount(tokenAddress, etherToWei(amount)).encodeABI()
 
   return {fromAccount, encodedAbi}
