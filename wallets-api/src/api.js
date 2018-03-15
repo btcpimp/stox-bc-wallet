@@ -31,18 +31,18 @@ module.exports = {
     )
     router.get(
       '/abi/setWithdrawalAddress',
-      _(({query: {userWithdrawalAddress}}) =>
-        blockchain.smartWallets.encodeAbiForSetWithdrawalAddress(userWithdrawalAddress))
+      _(({query: {walletAddress, userWithdrawalAddress}}) =>
+        blockchain.smartWallets.encodeAbiForSetWithdrawalAddress(walletAddress, userWithdrawalAddress))
     )
     router.get(
       '/abi/withdraw',
-      _(({query: {tokenAddress, amount, feeTokenAddress, fee}}) =>
-        blockchain.smartWallets.encodeAbiForWithdraw(tokenAddress, amount, feeTokenAddress, fee))
+      _(({query: {walletAddress, tokenAddress, amount, feeTokenAddress, fee}}) =>
+        blockchain.smartWallets.encodeAbiForWithdraw(walletAddress, tokenAddress, amount, feeTokenAddress, fee))
     )
     router.get(
       '/abi/transferToBackup',
-      _(({query: {tokenAddress, amount}}) =>
-        blockchain.smartWallets.encodeAbiForTransferToBackup(tokenAddress, amount))
+      _(({query: {walletAddress, tokenAddress, amount}}) =>
+        blockchain.smartWallets.encodeAbiForTransferToBackup(walletAddress, tokenAddress, amount))
     )
   },
 }
