@@ -20,6 +20,8 @@ const job = async () => {
 
   const requests = walletsPoolThreshold - unassigned - pending
 
+  // todo: get number of messages in queue and substract from requests to add
+
   logger.info(
     {
       network,
