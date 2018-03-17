@@ -18,7 +18,7 @@ const job = async () => {
   const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
   const {count: pending} = await getPendingRequestsCount()
 
-  const requests = walletsPoolThreshold - unassigned - pending
+  const requests = Number(walletsPoolThreshold) - unassigned - pending
 
   // todo: get number of messages in queue and substract from requests to add
 
@@ -28,6 +28,7 @@ const job = async () => {
       unassigned,
       pending,
       requests: requests < 0 ? 0 : requests,
+      min:  Number(walletsPoolThreshold),
     },
     'WALLETS_POOL'
   )
