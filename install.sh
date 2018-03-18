@@ -5,27 +5,18 @@
 echo installing packages
 npm install rimraf -g
 
-cd "./common"
-echo "installing common/"
-if [ "$1" != "clean" ]
-then
-    rimraf node_modules/
-    rimraf package-lock.json
-fi
-npm install
-cd ..
-
 for i in */
 do
-    if [[ "$i" != "common/" && "$i" != "node_modules/" ]]
+    if [[ "$i" != "node_modules/" ]]
     then
         cd "./$i"
-        echo "installing $i"
-        if [ "$1" != "clean" ]
+        if [ "$1" == "clean" ]
         then
+            echo "cleaning $i"
             rimraf node_modules/
             rimraf package-lock.json
         fi
+        echo "installing $i"
         npm install
         cd ..
     fi

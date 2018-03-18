@@ -1,5 +1,7 @@
-const {exceptions: {InvalidArgumentError}, loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {blockchain, config} = require('../context')
+const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
+const context = require('../context')
+
+const {blockchain, config} = context
 
 const weiToEther = wei => blockchain.web3.utils.fromWei(wei.toString(), 'ether')
 
@@ -29,7 +31,7 @@ const isListening = async () => {
   try {
     return await blockchain.web3.eth.net.isListening()
   } catch (e) {
-    logger.error(e)
+    context.logger.error(e)
     return false
   }
 }
