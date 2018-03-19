@@ -1,11 +1,12 @@
 const Sequelize = require('sequelize')
-const {loggers: {logger}, exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const {db, config} = require('../context')
+const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
+const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountBalanceInEther} = require('./blockchain/tokenTracker')
 const {validateAddress} = require('../utils/blockchain')
 
 const {Op} = Sequelize
+const {db, config} = context
 
 const getWalletsByAddresses = addresses =>
   db.sequelize.query(`select * from wallets where lower(address) similar to '%(${addresses})%'`, {
@@ -86,10 +87,10 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
 
   try {
     const wallet = await assign()
-    logger.info(wallet, 'ASSIGNED')
+    context.logger.info(wallet, 'ASSIGNED')
     return wallet
   } catch (e) {
-    logger.error(e)
+    context.logger.error(e)
     return assignWallet(withdrawAddress, ++times, max++)
   }
 }

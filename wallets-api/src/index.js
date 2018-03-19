@@ -1,18 +1,9 @@
 require('app-module-path').addPath(__dirname)
+const {createServiceFromFileStructure} = require('stox-common')
+const config = require('config')
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {createService} = require('stox-common')
-const {contractsDir, models, initContext} = require('stox-bc-wallet-common')
-const config = require('./config')
-const api = require('./api')
+const {initContext} = require('stox-bc-wallet-common')
 
-const {databaseUrl, web3Url} = config
-
-const builderFunc = (builder) => {
-  builder.db(databaseUrl, models)
-  builder.blockchain(web3Url, contractsDir)
-  builder.addApi(api)
-}
-
-createService('wallets-api', builderFunc)
+createServiceFromFileStructure(__dirname, {name: 'wallets-api'})
   .then(context => initContext({...context, config}))
   .catch(e => logger.error(e))
