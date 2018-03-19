@@ -9,7 +9,7 @@ const httpClient = http(requestManagerApiBaseUrl)
 
 const getPendingRequestsCount = () => httpClient.get('requests/createWallet/count/pending')
 
-const issueWallet = () => mq.publish('incomingRequests', {
+const issueWallet = () => mq.publish('incoming-requests', {
   id: uuid(),
   type: 'createWallet',
 })
