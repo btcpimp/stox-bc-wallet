@@ -2,6 +2,8 @@ const requireAll = require('require-all')
 const path = require('path')
 const models = require('./db/models')
 const context = require('./context')
+const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
+const {createServiceFromFileStructure} = require('stox-common')
 
 const utils = requireAll(path.resolve(__dirname, 'utils'))
 const services = requireAll({
@@ -9,6 +11,7 @@ const services = requireAll({
   filter: /(.*)\.js$/,
 })
 const contractsDir = path.resolve(__dirname, './services/blockchain/contracts')
+
 const initContext = (ctx) => {
   Object.keys(ctx).forEach((prop) => {
     if (prop in context) {
@@ -19,7 +22,18 @@ const initContext = (ctx) => {
   })
 }
 
+const start = async (dirname, config) => {
+  try {
+    const ctx = await createServiceFromFileStructure(dirname)
+    initContext({...ctx, config})
+    context.logger = ctx.logger
+  } catch (e) {
+    logger.error(e)
+  }
+}
+
 module.exports = {
+  start,
   initContext,
   models,
   contractsDir,

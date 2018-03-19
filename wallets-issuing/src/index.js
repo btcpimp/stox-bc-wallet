@@ -1,9 +1,4 @@
-require('app-module-path').addPath(__dirname)
-const {createServiceFromFileStructure} = require('stox-common')
-const config = require('config')
-const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {initContext} = require('stox-bc-wallet-common')
+require('app-module-path').addPath(__dirname) // eslint-disable-line import/no-unresolved
+const {start} = require('stox-bc-wallet-common')
 
-createServiceFromFileStructure(__dirname, {name: 'wallets-issuing'})
-  .then(context => initContext({...context, config}))
-  .catch(e => logger.error(e))
+start(__dirname, require('config'))

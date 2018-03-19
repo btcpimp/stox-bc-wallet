@@ -1,7 +1,6 @@
 const {times} = require('lodash')
 const uuid = require('uuid')
-const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
-const {services, context: {mq}} = require('stox-bc-wallet-common')
+const {services, context, context: {mq}} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('config')
 const {http} = require('stox-common')
 
@@ -22,7 +21,7 @@ const job = async () => {
 
   // todo: get number of messages in queue and substract from requests to add
 
-  logger.info(
+  context.logger.info(
     {
       network,
       unassigned,
