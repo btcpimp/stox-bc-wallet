@@ -54,7 +54,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
   }
 
   try {
-    mq.publish('wallet-transactions', message)
+    mq.publish('blockchain-token-transfers', message)
 
     const rest = omit(message, 'transactions')
     context.logger.info(

@@ -30,7 +30,7 @@ const job = async () => {
       requests: requests < 0 ? 0 : requests,
       min:  Number(walletsPoolThreshold),
     },
-    'WALLETS_POOL'
+    'WALLETS_ISSUING'
   )
 
   if (requests > 0) {
