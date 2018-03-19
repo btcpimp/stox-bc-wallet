@@ -1,6 +1,6 @@
 const {flatten, uniq, omit} = require('lodash')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const {services, context, context: {mq}, utils} = require('stox-bc-wallet-common')
+const {services, context: {mq, logger}, utils} = require('stox-bc-wallet-common')
 const {network, tokensTransfersCron, requiredConfirmations, maxBlocksRead} = require('../config')
 const {utils: {errorHandle: {logError}, promise: {promiseSerial}}} = require('stox-common')
 
@@ -57,7 +57,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
     mq.publish('blockchain-token-transfers', message)
 
     const rest = omit(message, 'transactions')
-    context.logger.info(
+    logger.info(
       {
         ...rest,
         transactions: transactions.length,
@@ -91,8 +91,6 @@ const getNextBlocksRange = async (lastReadBlock) => {
 
 const job = async () => {
   const {tokens, tokensTransfersReads, tokensTransfers, wallets, tokensBalances} = services
-  const {logger} = context
-
   const networkTokens = await tokens.getTokens(network)
 
   const getTokensTransfers = networkTokens.map(token => async () => {
