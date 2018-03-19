@@ -10,7 +10,13 @@ const services = requireAll({
 })
 const contractsDir = path.resolve(__dirname, './services/blockchain/contracts')
 const initContext = (ctx) => {
-  Object.keys(ctx).forEach(prop => Object.assign(context[prop], ctx[prop]))
+  Object.keys(ctx).forEach((prop) => {
+    if (prop in context) {
+      Object.assign(context[prop], ctx[prop])
+    } else {
+      context[prop] = ctx[prop]
+    }
+  })
 }
 
 module.exports = {
