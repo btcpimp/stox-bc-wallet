@@ -1,7 +1,7 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const {omit} = require('lodash')
-const {utils: {errorHandle: {logError}}} = require('stox-common')
+const {errors: {logError}} = require('stox-common')
 
 
 const {db, config, mq} = context

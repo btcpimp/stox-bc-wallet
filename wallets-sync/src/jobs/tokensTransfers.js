@@ -2,7 +2,8 @@ const {flatten, uniq} = require('lodash')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const {services, context, utils} = require('stox-bc-wallet-common')
 const {network, tokensTransfersCron, requiredConfirmations, maxBlocksRead} = require('../config')
-const {utils: {errorHandle: {logError}, promise: {promiseSerial}}} = require('stox-common')
+const {errors: {logError}} = require('stox-common')
+const promiseSerial = require('promise-serial')
 
 const extractAddresses = transactions =>
   uniq(flatten(transactions.map(t => [t.to.toLowerCase(), t.from.toLowerCase()]))).join('|')
