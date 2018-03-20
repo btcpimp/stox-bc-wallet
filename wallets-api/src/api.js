@@ -46,11 +46,18 @@ module.exports = {
     )
     router.get(
       '/abi/createWallet',
-      _(({query: {}}) => Promise.resolve({}))
+      _(() =>
+        blockchain.smartWallets.encodeAbiForCreateWallet())
     )
     router.get(
-      '/abi/transferPrize',
-      _(({query: {}}) => Promise.resolve({}))
+      '/abi/sendPrize',
+      _(({query: {prizeReceiverAddress, tokenAddress, amount, prizeDistributorAddress}}) =>
+        blockchain.smartWallets.encodeAbiForSendPrize(
+          prizeReceiverAddress,
+          tokenAddress,
+          amount,
+          prizeDistributorAddress,
+        ))
     )
   },
 }

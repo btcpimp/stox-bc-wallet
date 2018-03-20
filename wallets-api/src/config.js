@@ -7,4 +7,7 @@ module.exports = mapEnv({
   mqConnectionUrl: '',
   network: '',
   walletsPoolThreshold: '',
+  smartWalletLibAddress: '',
+  walletsCreatorAccount: '',
+  defaultPrizeAccount: '',
 })

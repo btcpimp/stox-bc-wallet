@@ -1,12 +1,15 @@
 const {validateAddress, etherToWei} = require('../../utils/blockchain')
-const {blockchain} = require('../../context')
+const {blockchain, config} = require('../../context')
+const solc = require('solc')
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
 
 const getOperatorAccount = async wallet =>
   (await wallet.methods.wallet().call()).operatorAccount
 
 const encodeAbiForSetWithdrawalAddress = async (walletAddress, userWithdrawalAddress) => {
+  validateAddress(walletAddress)
   validateAddress(userWithdrawalAddress)
+
   const wallet = blockchain.getSmartWalletContract(walletAddress)
   const fromAccount = await getOperatorAccount(wallet)
   const encodedAbi = wallet.methods.setUserWithdrawalAccount(userWithdrawalAddress).encodeABI()
@@ -15,6 +18,7 @@ const encodeAbiForSetWithdrawalAddress = async (walletAddress, userWithdrawalAdd
 }
 
 const encodeAbiForWithdraw = async (walletAddress, tokenAddress, amount, feeTokenAddress, fee) => {
+  validateAddress(walletAddress)
   validateAddress(tokenAddress)
 
   if (amount <= 0) {
@@ -40,6 +44,7 @@ const encodeAbiForWithdraw = async (walletAddress, tokenAddress, amount, feeToke
 }
 
 const encodeAbiForTransferToBackup = async (walletAddress, tokenAddress, amount) => {
+  validateAddress(walletAddress)
   validateAddress(tokenAddress)
 
   if (amount <= 0) {
@@ -53,8 +58,38 @@ const encodeAbiForTransferToBackup = async (walletAddress, tokenAddress, amount)
   return {fromAccount, encodedAbi}
 }
 
+const encodeAbiForCreateWallet = async () => {
+  const fromAccount = config.walletsCreatorAccount
+  const encodedAbi =
+    await solc.linkBytecode(blockchain.getSmartWalletContractBin(), {':SmartWalletLib': config.smartWalletLibAddress})
+
+  return {fromAccount, encodedAbi}
+}
+
+const encodeAbiForSendPrize = async (
+  prizeReceiverAddress,
+  tokenAddress,
+  amount,
+  prizeDistributorAddress = config.defaultPrizeAccount
+) => {
+  validateAddress(prizeReceiverAddress)
+  validateAddress(tokenAddress)
+  validateAddress(prizeDistributorAddress)
+
+  if (amount <= 0) {
+    throw new InvalidArgumentError(`Amount must be greater than 0. Amount is ${amount}`)
+  }
+
+  const token = await blockchain.getERC20TokenContract(tokenAddress)
+  const encodedAbi = token.methods.transfer(prizeReceiverAddress, etherToWei(amount)).encodeABI()
+
+  return {fromAccount: prizeDistributorAddress, encodedAbi}
+}
+
 module.exports = {
   encodeAbiForSetWithdrawalAddress,
   encodeAbiForWithdraw,
   encodeAbiForTransferToBackup,
+  encodeAbiForCreateWallet,
+  encodeAbiForSendPrize,
 }
