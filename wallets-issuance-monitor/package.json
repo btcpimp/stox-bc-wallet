@@ -1,6 +1,6 @@
 {
-  "name": "wallets-sync",
-  "description": "A service that monitor the completed requests queue, and checks for completed Wallet Issuance requests. If it finds a successful completed request, it adds the newly created wallet address to the wallets db.",
+  "name": "wallets-issuance-monitor",
+  "description": "A service that monitor the completed requests queue, and checks for completed Wallet issuance requests.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9.2"
@@ -14,14 +14,10 @@
   },
   "main": "src/index.js",
   "dependencies": {
-    "@welldone-software/node-toolbelt": "^1.2.0",
+    "@welldone-software/node-toolbelt": "^1.4.0",
     "app-module-path": "^2.2.0",
-    "lodash": "^4.17.4",
-    "promise-serial": "^0.1.5",
-    "require-all": "^2.2.0",
     "stox-bc-wallet-common": "file:../common",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
-    "web3": "^1.0.0-beta.30"
+    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev"
   },
   "devDependencies": {
     "eslint": "^4.14.0",

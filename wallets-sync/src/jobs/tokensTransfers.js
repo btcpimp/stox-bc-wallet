@@ -1,8 +1,9 @@
-const {flatten, uniq, omit} = require('lodash')
+const {flatten, uniq} = require('lodash')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
-const {services, context: {mq, logger}, utils} = require('stox-bc-wallet-common')
+const {services, context, utils} = require('stox-bc-wallet-common')
 const {network, tokensTransfersCron, requiredConfirmations, maxBlocksRead} = require('../config')
-const {utils: {errorHandle: {logError}, promise: {promiseSerial}}} = require('stox-common')
+const {errors: {logError}} = require('stox-common')
+const promiseSerial = require('promise-serial')
 
 const extractAddresses = transactions =>
   uniq(flatten(transactions.map(t => [t.to.toLowerCase(), t.from.toLowerCase()]))).join('|')
@@ -35,38 +36,6 @@ const fetchLatestTransactions = async (tokenAddress, fromBlock, toBlock) => {
     }
   } catch (e) {
     throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
-  }
-}
-
-const sendTransactionsToBackend = async (asset, address, transactions, balance, happenedAt) => {
-  const message = {
-    network,
-    address,
-    asset,
-    balance,
-    happenedAt,
-    transactions: transactions.map(({transactionHash, to, amount}) => ({
-      transactionHash,
-      amount,
-      status: 'confirmed',
-      type: to.toLowerCase() === address.toLowerCase() ? 'deposit' : 'withdraw',
-    })),
-  }
-
-  try {
-    mq.publish('blockchain-token-transfers', message)
-
-    const rest = omit(message, 'transactions')
-    logger.info(
-      {
-        ...rest,
-        transactions: transactions.length,
-        hash: transactions.map(t => t.transactionHash),
-      },
-      'SEND_TRANSACTIONS'
-    )
-  } catch (e) {
-    logError(e)
   }
 }
 
@@ -104,7 +73,7 @@ const job = async () => {
         toBlock
       )
 
-      logger.info(
+      context.logger.info(
         {
           network,
           token: token.name,
@@ -129,7 +98,7 @@ const job = async () => {
         if (walletsTransactions.length) {
           try {
             await tokensTransfers.insertTransactions(token.id, walletsTransactions, currentBlockTime, network)
-            logger.info(
+            context.logger.info(
               {
                 network,
                 token: token.name,
@@ -150,7 +119,7 @@ const job = async () => {
 
           try {
             await tokensBalances.updateBalance(token.id, wallet.id, balance)
-            logger.info(
+            context.logger.info(
               {
                 network,
                 token: token.name,
@@ -166,7 +135,13 @@ const job = async () => {
           const walletTransactions = transactions.filter(t =>
             t.to.toLowerCase() === tokenAddress.toLowerCase() || t.from.toLowerCase() === walletAddress.toLowerCase())
 
-          await sendTransactionsToBackend(token.name, walletAddress, walletTransactions, balance, currentBlockTime)
+          await tokensTransfers.sendTransactionsToBackend(
+            token.name,
+            walletAddress,
+            walletTransactions,
+            balance,
+            currentBlockTime
+          )
         })
 
         try {
@@ -177,7 +152,7 @@ const job = async () => {
       }
       await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
     } else {
-      logger.info(
+      context.logger.info(
         {
           network,
           token: token.name,
