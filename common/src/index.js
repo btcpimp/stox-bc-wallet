@@ -15,7 +15,7 @@ const contractsDir = path.resolve(__dirname, './services/blockchain/contracts')
 const start = async (dirname, config) => {
   try {
     const ctx = await createServiceFromFileStructure(dirname)
-    initContext({...ctx, config})
+    initContext({...ctx, config}, context)
     context.logger = ctx.logger
   } catch (e) {
     logger.error(e)
