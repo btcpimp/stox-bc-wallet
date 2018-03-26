@@ -86,10 +86,18 @@ const encodeAbiForSendPrize = async (
   return {fromAccount: prizeDistributorAddress, encodedAbi}
 }
 
+const getWithdrawalAddress = async (walletAddress) => {
+  validateAddress(walletAddress)
+
+  const wallet = blockchain.getSmartWalletContract(walletAddress)
+  return (await wallet.methods.wallet().call()).userWithdrawalAccount
+}
+
 module.exports = {
   encodeAbiForSetWithdrawalAddress,
   encodeAbiForWithdraw,
   encodeAbiForTransferToBackup,
   encodeAbiForCreateWallet,
   encodeAbiForSendPrize,
+  getWithdrawalAddress,
 }

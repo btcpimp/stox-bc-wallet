@@ -26,6 +26,10 @@ module.exports = {
       _(({body: {addresses}}) => wallets.createWallets(addresses))
     )
     router.get(
+      '/wallets/withdrawalAddress',
+      _(({query: {address}}) => blockchain.smartWallets.getWithdrawalAddress(address))
+    )
+    router.get(
       '/wallets/blockchainBalance',
       _(({query: {address}}) => wallets.getWalletBalanceInBlockchain(address))
     )
