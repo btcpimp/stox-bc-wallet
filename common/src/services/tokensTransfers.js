@@ -46,7 +46,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
       transactionHash,
       amount,
       status: 'confirmed',
-      type: to.toLowerCase() === address.toLowerCase() ? 'deposit' : 'withdraw',
+      type: to.toLowerCase() === address.toLowerCase() ? 'deposit' : 'withdraw-completed',
     })),
   }
 
