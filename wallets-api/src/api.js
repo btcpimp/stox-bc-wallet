@@ -1,10 +1,14 @@
 const {port} = require('config')
-const {services: {wallets, tokensBalances, blockchain}} = require('stox-bc-wallet-common')
+const {services: {wallets, tokensBalances, blockchain, tokens}} = require('stox-bc-wallet-common')
 
 module.exports = {
   port,
   version: 1,
   routes: (router, _) => {
+    router.get(
+      '/tokenAddress',
+      _(({query: {token}}) => tokens.getTokenAddress(token))
+    )
     router.get(
       '/unassigned/count',
       _(() => wallets.getUnassignedWalletsCount())
@@ -24,6 +28,11 @@ module.exports = {
     router.post(
       '/createWallets',
       _(({body: {addresses}}) => wallets.createWallets(addresses))
+    )
+    // TODO:
+    router.get(
+      '/wallets/withdrawalAddress',
+      _(({query: {depositAddress}}) => '')
     )
     router.get(
       '/wallets/withdrawalAddress',
