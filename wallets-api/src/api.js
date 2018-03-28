@@ -29,11 +29,6 @@ module.exports = {
       '/createWallets',
       _(({body: {addresses}}) => wallets.createWallets(addresses))
     )
-    // TODO:
-    router.get(
-      '/wallets/withdrawalAddress',
-      _(({query: {depositAddress}}) => '')
-    )
     router.get(
       '/wallets/withdrawalAddress',
       _(({query: {address}}) => blockchain.smartWallets.getWithdrawalAddress(address))

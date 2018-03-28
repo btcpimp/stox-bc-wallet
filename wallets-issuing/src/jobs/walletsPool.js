@@ -27,7 +27,7 @@ const job = async () => {
       unassigned,
       pending,
       requests: requests < 0 ? 0 : requests,
-      min:  Number(walletsPoolThreshold),
+      min: Number(walletsPoolThreshold),
     },
     'WALLETS_ISSUING'
   )
