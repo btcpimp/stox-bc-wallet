@@ -89,7 +89,15 @@ CREATE TABLE "tokensTransfersReads"
 
 CREATE INDEX tokensTransfersReads_updated_at ON "tokensTransfersReads" USING btree ("updatedAt");
 
+CREATE TABLE "pendingRequests"
+(
+    type CHARACTER VARYING(30) PRIMARY KEY,
+    count INTEGER NOT NULL,
+    "updatedAt" timestamp with time zone default CURRENT_DATE NOT NULL
+);
+
 INSERT INTO "tokens" ("id", "name", "address", "network") VALUES ('MAIN.0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'STX', '0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'MAIN');
+INSERT INTO "pendingRequests" ("type", "count", "updatedAt") VALUES ('createWallet', 0, NOW());
 --INSERT INTO public.wallets (id, address, network, "createdAt", "assignedAt", "setWithdrawAddressAt", "corruptedAt", version, "updatedAt") VALUES ('MAIN.0x14a54f7111f5c13fbb8b8cc99fe98a402f9a7daf', '0x14a54f7111f5c13fbb8b8cc99fe98a402f9a7daf', 'MAIN', '2018-01-31 15:34:49.475000', null, null, null, 1, '2018-02-04 15:52:29.825000');
 --INSERT INTO public.wallets (id, address, network, "createdAt", "assignedAt", "setWithdrawAddressAt", "corruptedAt", version, "updatedAt") VALUES ('MAIN.0x10141b72402ca6de7f2a69f0f53a4468c1f045ef', '0x10141b72402ca6de7f2a69f0f53a4468c1f045ef', 'MAIN', '2018-02-01 09:03:14.585000', null, null, null, 1, '2018-02-05 13:26:56.816000');
 --INSERT INTO public.wallets (id, address, network, "createdAt", "assignedAt", "setWithdrawAddressAt", "corruptedAt", version, "updatedAt") VALUES ('MAIN.0x4205534040757a83034cd38c1f5fcc04091623c6', '0x4205534040757a83034cd38c1f5fcc04091623c6', 'MAIN', '2018-02-01 09:03:09.113000', null, null, null, 1, '2018-02-01 12:48:45.913000');
