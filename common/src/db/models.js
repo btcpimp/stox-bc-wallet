@@ -95,5 +95,16 @@ module.exports = (sequelize) => {
   TokensTransfersRead.belongsTo(Token)
   Token.hasOne(TokensTransfersRead)
 
+  sequelize.define(
+    'pendingRequests',
+    {
+      type: {type: STRING(30), primaryKey: true},
+      count: {type: INTEGER, defaultValue: 0, allowNull: false},
+    },
+    {
+      createdAt: false,
+    }
+  )
+
   return sequelize
 }

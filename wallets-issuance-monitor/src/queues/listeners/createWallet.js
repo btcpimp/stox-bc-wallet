@@ -6,9 +6,10 @@ module.exports = async ({body: request}) => {
     throw new UnexpectedError('Received request with error')
   }
 
-  const {wallets, tokensBalances, tokensTransfers} = services
+  const {wallets, tokensBalances, tokensTransfers, pendingRequests} = services
   const wallet = request.transcations[0].to
   await wallets.createWallet(wallet)
+  await pendingRequests.addPendingRequests('createWallet', -1)
   const tokenBalances = (await wallets.getWalletBalanceInBlockchain(wallet))
     .filter(({balance}) => balance)
 
