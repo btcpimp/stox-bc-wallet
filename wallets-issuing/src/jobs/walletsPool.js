@@ -6,8 +6,6 @@ const {http} = require('stox-common')
 
 const httpClient = http(requestManagerApiBaseUrl)
 
-const getPendingRequestsCount = () => httpClient.get('requests/createWallet/count/pending')
-
 const issueWallet = () => mq.publish('incoming-requests', {
   id: uuid(),
   type: 'createWallet',
@@ -15,11 +13,22 @@ const issueWallet = () => mq.publish('incoming-requests', {
 
 const job = async () => {
   const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
-  const {count: pending} = await getPendingRequestsCount()
+  const {count: pending} = await services.pendingRequests.getPendingRequests('createWallet')
+
+  try {
+    const {count: rmPending} = await httpClient.get('requests/createWallet/count/pending')
+
+    if (rmPending !== pending) {
+      context.logger.warn({
+        requestMangerPendingCount: rmPending,
+        bcWalletPendingCount: pending,
+      }, 'Request-manager create wallet pending requests count, not consistent with bc-wallet')
+    }
+  } catch (e) {
+    context.logger.warn(e)
+  }
 
   const requests = Number(walletsPoolThreshold) - unassigned - pending
-
-  // todo: get number of messages in queue and substract from requests to add
 
   context.logger.info(
     {
@@ -34,6 +43,7 @@ const job = async () => {
 
   if (requests > 0) {
     times(requests, issueWallet)
+    await services.pendingRequests.addPendingRequests('createWallet', requests)
   }
 }
 
