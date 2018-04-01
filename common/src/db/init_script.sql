@@ -3,6 +3,7 @@
 --DROP TABLE "tokensBalances";
 --DROP TABLE "wallets";
 --DROP TABLE "tokens";
+--DROP TABLE "pendingRequests";
 
 --tokens
 CREATE TABLE "tokens"
