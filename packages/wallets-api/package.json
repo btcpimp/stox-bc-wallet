@@ -1,6 +1,6 @@
 {
-  "name": "wallets-issuing",
-  "description": "A service that monitor the number of unassigned wallets inside the wallets db. If this number gets too low (under a yet-to-be-defined threshold), it will issue new wallet creation requests to the Request Manager’s Incoming Requests queue.",
+  "name": "wallet-api",
+  "description": "Service for wallet related apis (getBalance, createWallet)...",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9.2"
@@ -8,19 +8,17 @@
   "scripts": {
     "start": "nodemon -e js . | pino",
     "serve": "node .",
-    "lint": "eslint -c ../.eslintrc.yml .",
+    "lint": "eslint -c ../../.eslintrc.yml .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "jest:integration": "jest"
   },
   "main": "src/index.js",
   "dependencies": {
-    "@welldone-software/node-toolbelt": "^1.2.0",
+    "@welldone-software/node-toolbelt": "^1.3.0",
     "app-module-path": "^2.2.0",
-    "lodash": "^4.17.4",
-    "require-all": "^2.2.0",
-    "stox-bc-wallet-common": "file:../common",
+    "sequelize": "^4.35.2",
+    "stox-bc-wallet-common": "^1.0.0",
     "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
-    "uuid": "^3.2.1",
     "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
@@ -28,7 +26,8 @@
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.7.0",
     "jest": "^21.2.1",
-    "nodemon": "^1.14.7",
+    "nodemon": "^1.17.2",
+    "pino": "^4.15.4",
     "prettier": "^1.7.4",
     "prettier-eslint": "^8.7.0",
     "prettier-eslint-cli": "^4.7.0"

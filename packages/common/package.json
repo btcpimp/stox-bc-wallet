@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint -c ../.eslintrc.yml .",
+    "lint": "eslint -c ../../.eslintrc.yml .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "eslint": "^4.9.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.7.0",
+    "pino": "^4.15.4",
     "prettier": "^1.7.4",
     "prettier-eslint": "^8.2.1",
     "prettier-eslint-cli": "^4.4.0"
