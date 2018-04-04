@@ -10,4 +10,7 @@ module.exports = mapEnv({
   smartWalletLibAddress: '',
   walletsCreatorAccount: '',
   defaultPrizeAccount: '',
+  smartWalletsOperatorAccount: '',
+  smartWalletsBackupAccount: '',
+  smartWalletsFeesAccount: '',
 })

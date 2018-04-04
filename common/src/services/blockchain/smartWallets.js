@@ -60,8 +60,14 @@ const encodeAbiForTransferToBackup = async (walletAddress, tokenAddress, amount)
 
 const encodeAbiForCreateWallet = async () => {
   const fromAccount = config.walletsCreatorAccount
-  const encodedAbi =
+  const bytecode =
     await solc.linkBytecode(blockchain.getSmartWalletContractBin(), {':SmartWalletLib': config.smartWalletLibAddress})
+  const encodedAbi = blockchain.getSmartWalletContract()
+    .deploy({
+      data: bytecode,
+      arguments: [config.smartWalletsBackupAccount, config.smartWalletsOperatorAccount, config.smartWalletsFeesAccount],
+    })
+    .encodeABI()
 
   return {fromAccount, encodedAbi}
 }
