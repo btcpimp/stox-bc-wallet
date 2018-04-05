@@ -1,42 +1,41 @@
 # Wallets Manager
 
 ## Description
-
 The Wallets Manager holds the data on all Stox wallets and their balances, and serves all related wallet apis.
 
-## Services
-**wallets-abi**
 
-Returns the bytecode needed to perform a specific wallet transaction.Stox wallets currently support the following APIs
+## Getting Started
 
-**wallets-api**
+```npm run setup```
 
-Service for wallet related apis (getBalance, createWallet)...
+Installs all of the packages dependencies and links any cross-dependencies.
 
-**wallets-issuing**
+```npm run setup:clean```
 
-A service that monitor the number of unassigned wallets inside the wallets db. If this number gets too low (under a yet-to-be-defined threshold), it will issue new wallet creation requests to the Request Manager’s Incoming Requests queue.
+Remove the node_modules directory from all packages and run setup
 
-**Wallets Issuance Monitor**
+```$ npm run lint```
 
-A service that monitor the completed requests queue, and checks for completed Wallet Issuance requests. If it finds a successful completed request, it adds the newly created wallet address to the wallets db.
+run lint for all packages
 
+`$ ./common.sh link`
 
-## Docker containers
-**Postgress database**
+link stox-common package to all services
 
-`$ docker run --name stox-bc-wallet-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=stoxbcwallet -d -p 5433:5432 postgres`
+## Containers
 
-**Active MQ**
+### Postgress
+```
+docker build -f db.Dockerfile -t stox-bc-wallet-postgres .
+docker run --name stox-bc-wallet-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=stoxbcwallet -d -p 5433:5432 stox-bc-wallet-postgres
+```
 
-`$ docker run -p 61613:61613 -p 8161:8161 -d --name="activemq" rmohr/activemq`
+### Active MQ
+```
+$ docker run -p 61613:61613 -p 8161:8161 -d --name="activemq" rmohr/activemq
+```
+[Apache ActiveMQ Console](http://localhost:8161)
 
-## install
+## Docs
+[Blockchain Writer Architecture](https://docs.google.com/document/d/1eXrxDFgjDl-2No22om8vesqGhU7iGtw8iDSuN3VoHJ4/edit#heading=h.jsy3plhn9pv8)
 
-`$ ./install.sh`
-
-run npm install in all packages
-
-`$ ./install.sh clean`
-
-delete node_modules and package_lock.json before installing

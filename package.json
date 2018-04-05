@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "lint": "eslint . --ignore-path .gitignore --cache",
+    "setup": "lerna bootstrap --hoist",
+    "setup:clean": "lerna clean --yes && npm run setup"
+  }
+}
