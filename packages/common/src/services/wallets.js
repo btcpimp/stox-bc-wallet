@@ -87,7 +87,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
 
   try {
     const wallet = await assign()
-    context.logger.info(wallet, 'ASSIGNED')
+    logger.info({wallet: wallet.dataValues}, 'ASSIGNED')
     return wallet
   } catch (e) {
     context.logger.error(e)
