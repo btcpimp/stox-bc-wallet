@@ -1,13 +1,4 @@
 {
-  "devDependencies": {
-    "lerna": "^2.9.1",
-    "eslint": "^4.9.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.7.0",
-    "prettier": "^1.7.4",
-    "prettier-eslint": "^8.2.1",
-    "prettier-eslint-cli": "^4.4.0"
-  },
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore --cache",
     "setup": "lerna bootstrap --hoist",

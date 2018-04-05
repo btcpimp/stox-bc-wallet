@@ -14,22 +14,26 @@
   },
   "main": "src/index.js",
   "dependencies": {
-    "@welldone-software/node-toolbelt": "^1.2.0",
+    "@welldone-software/node-toolbelt": "^1.4.0",
     "app-module-path": "^2.2.0",
     "lodash": "^4.17.5",
     "require-all": "^2.2.0",
     "stox-bc-wallet-common": "^1.0.0",
     "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
     "uuid": "^3.2.1",
-    "web3": "^1.0.0-beta.30"
+    "web3": "^1.0.0-beta.33"
   },
   "devDependencies": {
-    "eslint": "^4.9.0",
+    "@pact-foundation/pact": "^5.9.0",
+    "chai": "^4.1.2",
+    "chai-jest-diff": "^1.0.2",
+    "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.7.0",
-    "jest": "^21.2.1",
-    "nodemon": "^1.14.7",
-    "pino": "^4.15.4",
+    "eslint-plugin-import": "^2.9.0",
+    "jest": "^22.4.3",
+    "jest-cli": "^22.4.3",
+    "nodemon": "^1.12.1",
+    "pino": "^4.15.3",
     "prettier": "^1.7.4",
     "prettier-eslint": "^8.2.1",
     "prettier-eslint-cli": "^4.4.0"
