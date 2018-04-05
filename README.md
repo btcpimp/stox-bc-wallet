@@ -39,3 +39,6 @@ $ docker run -p 61613:61613 -p 8161:8161 -d --name="activemq" rmohr/activemq
 ## Docs
 [Blockchain Writer Architecture](https://docs.google.com/document/d/1eXrxDFgjDl-2No22om8vesqGhU7iGtw8iDSuN3VoHJ4/edit#heading=h.jsy3plhn9pv8)
 
+
+Don't forget the api/v1 prefix. for Instance:
+`http://localhost:3001/api/v1/unassigned/count`

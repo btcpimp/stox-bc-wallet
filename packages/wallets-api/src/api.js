@@ -1,5 +1,5 @@
 const {port} = require('config')
-const {services: {wallets, tokensBalances, blockchain, tokens}} = require('stox-bc-wallet-common')
+const {services: {wallets, tokensBalances, blockchain, tokens, accounts}} = require('stox-bc-wallet-common')
 
 module.exports = {
   port,
@@ -8,6 +8,10 @@ module.exports = {
     router.get(
       '/tokenAddress',
       _(({query: {token}}) => tokens.getTokenAddress(token))
+    )
+    router.get(
+      '/getAccountBalanceInEther',
+      _(({query: {accountAddress}}) => accounts.getAccountBalanceInEther(accountAddress))
     )
     router.get(
       '/unassigned/count',
