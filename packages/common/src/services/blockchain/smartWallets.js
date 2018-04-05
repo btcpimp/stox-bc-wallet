@@ -4,7 +4,7 @@ const solc = require('solc')
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
 
 const getOperatorAccount = async wallet =>
-  (await wallet.methods.wallet().call()).operatorAccount
+(await wallet.methods.wallet().call()).operatorAccount
 
 const encodeAbiForSetWithdrawalAddress = async (walletAddress, userWithdrawalAddress) => {
   validateAddress(walletAddress)
@@ -60,8 +60,14 @@ const encodeAbiForTransferToBackup = async (walletAddress, tokenAddress, amount)
 
 const encodeAbiForCreateWallet = async () => {
   const fromAccount = config.walletsCreatorAccount
-  const encodedAbi =
+  const bytecode =
     await solc.linkBytecode(blockchain.getSmartWalletContractBin(), {':SmartWalletLib': config.smartWalletLibAddress})
+  const encodedAbi = blockchain.getSmartWalletContract()
+    .deploy({
+      data: bytecode,
+      arguments: [config.smartWalletsBackupAccount, config.smartWalletsOperatorAccount, config.smartWalletsFeesAccount],
+    })
+    .encodeABI()
 
   return {fromAccount, encodedAbi}
 }
