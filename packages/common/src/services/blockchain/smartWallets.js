@@ -3,8 +3,7 @@ const {blockchain, config} = require('../../context')
 const solc = require('solc')
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
 
-const getOperatorAccount = async wallet =>
-(await wallet.methods.wallet().call()).operatorAccount
+const getOperatorAccount = async wallet => (await wallet.methods.wallet().call()).operatorAccount
 
 const encodeAbiForSetWithdrawalAddress = async (walletAddress, userWithdrawalAddress) => {
   validateAddress(walletAddress)
