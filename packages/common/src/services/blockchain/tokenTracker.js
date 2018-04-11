@@ -36,8 +36,10 @@ const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
 
   const lastConfirmedBlock = await getLastConfirmedBlock()
   if (blockNumber >= lastConfirmedBlock) {
-    throw new UnexpectedError(`Ethereum node is behind database last confirmed block. db block is ${blockNumber}.
-     node block is ${lastConfirmedBlock}.`)
+    throw new UnexpectedError(
+      'Ethereum node is behind database last confirmed block',
+      {blockNumber, lastConfirmedBlock}
+    )
   }
 
   blockNumber = lastConfirmedBlock
