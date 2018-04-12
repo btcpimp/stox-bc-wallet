@@ -70,6 +70,8 @@ const createWallets = async (addresses) => {
       )))
 
     await transaction.commit()
+
+    context.logger.info({addresses}, 'CREATED_NEW_WALLETS')
   } catch (e) {
     await transaction.rollback()
   }
