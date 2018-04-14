@@ -51,9 +51,9 @@ const createTest = async ({
   }
 }
 
-describe('request-handler integration with database', () => {
+describe('wallet pool tests', () => {
   beforeAll(async (done) => {
-    const ctx = await createService(uuid(), builder => builder.db(databaseUrl, models))
+    const ctx = await createService('wallet-issuing-tests', builder => builder.db(databaseUrl, models))
     initContext({...ctx, config}, context)
     context.logger = logger
     context.mq.publish = jest.fn()
