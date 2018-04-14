@@ -58,7 +58,7 @@ describe('wallet pool tests', () => {
     context.logger = logger
     context.mq.publish = jest.fn()
     await provider.setup()
-    done()
+    setTimeout(() => done(), 3000)
   })
 
   afterEach(async (done) => {

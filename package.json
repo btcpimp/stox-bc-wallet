@@ -1,9 +1,13 @@
 {
+  "name"	 : "wallet-manager",
+  "config" : { "service" : "wallets-issuing" },
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore --cache",
     "setup": "lerna bootstrap --hoist",
     "setup:clean": "lerna clean --yes && npm run setup",
     "containers:up": "docker-compose -f docker/docker-compose.yml up -d",
-    "containers:build": "docker-compose -f docker/docker-compose.yml build"
+    "containers:build": "export SSH_PRIVATE_KEY=\"$(cat ./id_rsa)\" && docker-compose -f docker/docker-compose.yml build",
+    "test": "cross-env SERVICE_NAME=$npm_package_config_service docker-compose -f docker/docker-compose.test.yml up --abort-on-container-exit && npm run test:clean",
+    "test:clean": "cross-env SERVICE_NAME=$npm_package_config_service docker-compose -f docker/docker-compose.test.yml down"
   }
 }

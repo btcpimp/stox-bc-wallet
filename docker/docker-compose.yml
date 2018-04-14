@@ -1,6 +1,12 @@
 version: '3.3'
 services:
-
+    wallet-manager:
+        build:
+            context: ../
+            dockerfile: ./docker/Dockerfile
+            args:
+             SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+        image: wallet-manager
     wallet-db:
         build:
             context: ../
@@ -11,10 +17,10 @@ services:
         environment:
             POSTGRES_PASSWORD: secret
             POSTGRES_USER: postgres
-            POSTGRES_DB: stoxbcrm
+            POSTGRES_DB: stoxbcwallet
 
     wallet-activemq:
         image: rmohr/activemq:5.14.5
-        container_name: wallet-activemq
+        container_name: activemq-wallet
         ports:
             - 61614:61613

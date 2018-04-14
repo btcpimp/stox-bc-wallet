@@ -20,7 +20,7 @@
     "lodash": "^4.17.5",
     "require-all": "^2.2.0",
     "stox-bc-wallet-common": "^1.0.0",
-    "stox-common": "git+https://bitbucket.org/stx_site/stox-common.git#dev",
+    "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
     "uuid": "^3.2.1",
     "urijs": "^1.19.1",
     "web3": "^1.0.0-beta.33"
