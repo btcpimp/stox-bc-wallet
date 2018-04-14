@@ -2,6 +2,8 @@
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore --cache",
     "setup": "lerna bootstrap --hoist",
-    "setup:clean": "lerna clean --yes && npm run setup"
+    "setup:clean": "lerna clean --yes && npm run setup",
+    "containers:up": "docker-compose -f docker/docker-compose.yml up -d",
+    "containers:build": "docker-compose -f docker/docker-compose.yml build"
   }
 }

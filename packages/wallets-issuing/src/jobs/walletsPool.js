@@ -1,7 +1,7 @@
 const {times} = require('lodash')
 const uuid = require('uuid')
 const {services, context, context: {mq}} = require('stox-bc-wallet-common')
-const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('config')
+const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('../config')
 const {http} = require('stox-common')
 
 const httpClient = http(requestManagerApiBaseUrl)
