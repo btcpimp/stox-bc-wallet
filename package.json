@@ -1,6 +1,5 @@
 {
   "name"	 : "wallet-manager",
-  "config" : { "service" : "wallets-issuing" },
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore --cache",
     "setup": "lerna clean --yes && lerna bootstrap --hoist",
