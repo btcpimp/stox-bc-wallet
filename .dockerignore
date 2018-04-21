@@ -13,3 +13,4 @@ id_rsa
 packages/*/node_modules
 packages/*/package-lock.json
 package-lock.json
+.env

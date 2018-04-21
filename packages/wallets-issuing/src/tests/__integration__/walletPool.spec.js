@@ -58,7 +58,7 @@ describe('wallet pool tests', () => {
     context.logger = logger
     context.mq.publish = jest.fn()
     await provider.setup()
-    setTimeout(() => done(), 3000)
+    done()
   })
 
   afterEach(async (done) => {
@@ -71,6 +71,7 @@ describe('wallet pool tests', () => {
 
   afterAll(async (done) => {
     await provider.finalize()
+    await context.db.sequelize.close()
     done()
   })
 

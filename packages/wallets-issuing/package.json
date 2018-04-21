@@ -10,7 +10,7 @@
     "serve": "node .",
     "lint": "eslint -c ../../.eslintrc.yml .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
-    "test": "jest src/tests/__tests__/* --verbose --testEnvironment node --runInBand"
+    "test:integration": "env-cmd ./.env.test jest src/tests/__integration__/* --rootDir=. --config=../jest/jest.json -i"
   },
   "main": "src/index.js",
   "dependencies": {
