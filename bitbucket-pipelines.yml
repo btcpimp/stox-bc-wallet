@@ -1,0 +1,18 @@
+image: docker:stable
+
+options:
+  docker: true
+
+pipelines:
+  branches:
+    test_container:
+      - step:
+          caches:
+            - node
+          script:
+            - apk update && apk add bash
+            - export IMAGE_NAME=wallet-manager:$BITBUCKET_BUILD_NUMBER
+            - ./scripts/setup.sh
+            - ./scripts/build.sh
+            - ./scripts/test.sh
+            - ./scripts/deploy.sh

@@ -33,19 +33,16 @@ To monitor activemq: [Apache ActiveMQ Console](http://localhost:8161)
 
 
 ## Test
-To run all unit test locally run
+To run all unit
 
 ```
-npm run test 
+lerna run test 
 ```
 
 To run all integration tests in one container, first build the base image and then run:
 ```
-npm run test:compose
+npm run test:local
 ```
-
-## Docs
-[Blockchain Writer Architecture](https://docs.google.com/document/d/1eXrxDFgjDl-2No22om8vesqGhU7iGtw8iDSuN3VoHJ4/edit#heading=h.jsy3plhn9pv8)
 
 ## Docs
 [Blockchain Writer Architecture](https://docs.google.com/document/d/1eXrxDFgjDl-2No22om8vesqGhU7iGtw8iDSuN3VoHJ4/edit#heading=h.jsy3plhn9pv8)

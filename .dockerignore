@@ -1,16 +1,13 @@
 node_modules
-
+packages/*/node_modules
+packages/*/package-lock.json
+package-lock.json
 .idea
 .vscode
 
-.gitignore
 
 .editorconfig
 
 Dockerfile
-
-id_rsa
-packages/*/node_modules
-packages/*/package-lock.json
-package-lock.json
 .env
+id_rsa
