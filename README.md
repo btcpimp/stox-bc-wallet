@@ -4,37 +4,43 @@
 The Wallets Manager holds the data on all Stox wallets and their balances, and serves all related wallet apis.
 
 
-## Getting Started
-
-```npm run setup```
-
-Installs all of the packages dependencies and links any cross-dependencies.
-
-```npm run setup:clean```
-
-Remove the node_modules directory from all packages and run setup
-
-```$ npm run lint```
-
-run lint for all packages
-
-`$ ./common.sh link`
-
-link stox-common package to all services
-
-## Containers
-
-### Postgress
+## Setup
+install global packages
 ```
-docker build -f db.Dockerfile -t stox-bc-wallet-postgres .
-docker run --name stox-bc-wallet-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=stoxbcwallet -d -p 5433:5432 stox-bc-wallet-postgres
+npm install lerna rimraf cross-env env-cmd -g
+```
+Installs all of the packages dependencies and links any cross-dependencies
+```
+npm run setup
 ```
 
-### Active MQ
+##Build
+To build a sub-system base image, you will need an id_rsa located at the root of the repository
 ```
-$ docker run -p 61613:61613 -p 8161:8161 -d --name="activemq" rmohr/activemq
+npm run build
 ```
-[Apache ActiveMQ Console](http://localhost:8161)
+
+##Run
+To run a docker container for a service:
+```
+docker run -d --name <service-name> wallet-manager npm start --prefix=packages/<service-name>
+```
+To run service containers:
+```
+npm run containers
+```
+To monitor activemq: [Apache ActiveMQ Console](http://localhost:8161)
+
+## Test
+To run all unit test
+```
+npm run test 
+```
+
+To run all integration tests in one container, first build the base image and then run:
+```
+npm run test:local
+```
 
 ## Docs
 [Blockchain Writer Architecture](https://docs.google.com/document/d/1eXrxDFgjDl-2No22om8vesqGhU7iGtw8iDSuN3VoHJ4/edit#heading=h.jsy3plhn9pv8)

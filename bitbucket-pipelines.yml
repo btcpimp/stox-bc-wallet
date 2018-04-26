@@ -1,0 +1,19 @@
+image: docker:stable
+
+options:
+  docker: true
+
+pipelines:
+  branches:
+    unit_tests:
+      - step:
+          caches:
+            - node
+          script:
+            - apk update && apk add bash
+            - export IMAGE_NAME=$DOCKER_REGISTRY:$BITBUCKET_BUILD_NUMBER
+            - echo $IMAGE_NAME
+            - ./scripts/setup.sh
+            - ./scripts/build.sh
+            - ./scripts/test.sh
+            - ./scripts/deploy.sh
