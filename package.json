@@ -1,7 +1,8 @@
 {
   "name"	 : "wallet-manager",
   "scripts": {
-    "lint": "eslint . --ignore-path .gitignore --cache",
+    "lint": "eslint . --ignore-path .eslintignore --cache",
+    "link": "./scripts/common.sh link",
     "setup": "lerna clean --yes && lerna bootstrap --hoist",
     "containers": "docker-compose -f docker/docker-compose.yml up -d",
     "build": "docker build -f ./docker/Dockerfile -t wallet-manager --build-arg SSH_PRIVATE_KEY=\"$(cat ./id_rsa)\" .",

@@ -23,7 +23,7 @@ npm run build
 ##Run
 To run a docker container for a service:
 ```
-docker run -it -d --name <service-name> wallet-manager npm start --prefix=packages/<service-name>
+docker run -d --name <service-name> wallet-manager npm start --prefix=packages/<service-name>
 ```
 To run service containers:
 ```
@@ -31,12 +31,10 @@ npm run containers
 ```
 To monitor activemq: [Apache ActiveMQ Console](http://localhost:8161)
 
-
 ## Test
-To run all unit
-
+To run all unit test
 ```
-lerna run test 
+npm run test 
 ```
 
 To run all integration tests in one container, first build the base image and then run:

@@ -5,13 +5,14 @@ options:
 
 pipelines:
   branches:
-    test_container:
+    dev:
       - step:
           caches:
             - node
           script:
             - apk update && apk add bash
-            - export IMAGE_NAME=wallet-manager:$BITBUCKET_BUILD_NUMBER
+            - export IMAGE_NAME=$DOCKER_REGISTRY:$BITBUCKET_BUILD_NUMBER
+            - echo $IMAGE_NAME
             - ./scripts/setup.sh
             - ./scripts/build.sh
             - ./scripts/test.sh
