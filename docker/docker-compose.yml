@@ -1,7 +1,7 @@
 version: '3.3'
 services:
 
-    wallet-db:
+    wallet-manager-db:
         build:
             context: ../
             dockerfile: ./docker/db.Dockerfile
@@ -13,8 +13,8 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_DB: stoxbcwallet
 
-    wallet-activemq:
+    activemq:
         image: rmohr/activemq:5.14.5
-        container_name: activemq-wallet
+        container_name: stox-activemq
         ports:
-            - 61614:61613
+            - 61613:61613
