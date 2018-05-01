@@ -7,6 +7,7 @@
     "containers": "docker-compose -f docker/docker-compose.yml up -d",
     "test:local": "cross-env IMAGE_NAME=wallet-manager npm run test",
     "test": "docker-compose -f docker/docker-compose.test.yml up --abort-on-container-exit && npm run test:clean",
-    "test:clean": "docker-compose -f docker/docker-compose.test.yml down"
+    "test:clean": "docker-compose -f docker/docker-compose.test.yml down",
+    "build": "docker build -f ./docker/Dockerfile -t wallet-manager --build-arg SSH_PRIVATE_KEY=\"$(cat ./id_rsa)\" ."
   }
 }
