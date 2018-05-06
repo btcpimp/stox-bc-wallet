@@ -6,7 +6,9 @@ const {
 module.exports = async ({body: completedRequest}) => {
   await pendingRequests.addPendingRequests('createWallet', -1)
 
-  const wallet = JSON.parse(completedRequest.transactions[0].receipt).contractAddress
+  const wallet =
+    completedRequest.transactions[0].receipt ? JSON.parse(completedRequest.transactions[0].receipt).contractAddress :
+      undefined
   if (wallet) {
     await wallets.createWallet(wallet)
     const tokenBalances = (await wallets.getWalletBalanceInBlockchain(wallet)).filter(({balance}) => balance)
