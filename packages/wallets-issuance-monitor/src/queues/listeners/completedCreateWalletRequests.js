@@ -6,9 +6,9 @@ const {
 module.exports = async ({body: completedRequest}) => {
   await pendingRequests.addPendingRequests('createWallet', -1)
 
-  const transaction = completedRequest.transactions[0]
+  const completedTransaction = completedRequest.transactions[0]
   const wallet =
-    transaction && transaction.receipt ? transaction.receipt.contractAddress :
+    completedTransaction && completedTransaction.receipt ? completedTransaction.receipt.contractAddress :
       undefined
   if (wallet) {
     await wallets.createWallet(wallet)
