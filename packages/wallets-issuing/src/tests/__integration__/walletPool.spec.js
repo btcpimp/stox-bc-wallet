@@ -75,18 +75,18 @@ describe('wallet pool tests', () => {
     done()
   })
 
-  it(
-    'should add pending request to db to meet ' +
-      'the required thresh hold and send request on queue to replenish wallets ',
-    async () => {
-      const pendingCount = Math.round(walletThreshHoldNumber / 2)
-      await createTest({
-        initialNumberOfPendingRequests: pendingCount,
-        expectedNumberOfCallsToQueue: walletThreshHoldNumber - pendingCount,
-        expectedNumberOfPendingRequests: walletThreshHoldNumber,
-      })
-    }
-  )
+  // it(
+  //   'should add pending request to db to meet ' +
+  //     'the required thresh hold and send request on queue to replenish wallets ',
+  //   async () => {
+  //     const pendingCount = Math.round(walletThreshHoldNumber / 2)
+  //     await createTest({
+  //       initialNumberOfPendingRequests: pendingCount,
+  //       expectedNumberOfCallsToQueue: walletThreshHoldNumber - pendingCount,
+  //       expectedNumberOfPendingRequests: walletThreshHoldNumber,
+  //     })
+  //   }
+  // )
 
   it(
     'should not send any wallet request and not' +
