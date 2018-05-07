@@ -26,7 +26,7 @@
       "environment": [
         {
           "name": "DATABASE_URL",
-          "value": "postgres://devbcwalllet:xzsCow4nVDxAVi9LiaUXk8JPicDNZ4@stg-stox.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
+          "value": "postgres://stgbcwalllet:xzsCow4nVDxAVi9LiaUXk8JPicDNZ4@stg-stox.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
         },
         {
           "name": "MQ_CONNECTION_URL",

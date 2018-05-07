@@ -65,7 +65,7 @@
       "dockerLabels": {
         "SUB-SYSTEM": "wallet-manager",
         "Environment": "dev",
-        "SERVICE": "wallets-issuing-dev"
+        "SERVICE": "wallets-issuing"
       }
     }
   ]
