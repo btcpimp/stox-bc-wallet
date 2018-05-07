@@ -1,0 +1,98 @@
+{
+  "family": "stg-wallets-api",
+  "volumes": [],
+  "networkMode": "awsvpc",
+  "memory": "512",
+  "cpu": "256",
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "containerDefinitions": [
+    {
+      "name": "stg-wallets-api",
+      "image": "",
+      "memoryReservation": 300,
+      "cpu": 256,
+      "essential": true,
+      "portMappings": [
+        {
+          "hostPort": 3001,
+          "protocol": "tcp",
+          "containerPort": 3001
+        }
+      ],
+      "command": [
+        "npm",
+        "run",
+        "serve",
+        "--prefix",
+        "packages/wallets-api"
+      ],
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgres://devbcwalllet:xzsCow4nVDxAVi9LiaUXk8JPicDNZ4@stg-stox.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
+        },
+        {
+          "name": "DEFAULT_PRIZE_ACCOUNT",
+          "value": ""
+        },
+        {
+          "name": "MAX_WALLET_ASSIGN_RETIRES",
+          "value": "5"
+        },
+        {
+          "name": "MQ_CONNECTION_URL",
+          "value": "stg-activemq.stox-stg:61613"
+        },
+        {
+          "name": "NETWORK",
+          "value": "MAIN"
+        },
+        {
+          "name": "PORT",
+          "value": "3001"
+        },
+        {
+          "name": "SMART_WALLET_LIB_ADDRESS",
+          "value": "0xc8b55c7ad00fb9b933b0a016c6cebceea0293bb9"
+        },
+        {
+          "name": "SMART_WALLETS_BACKUP_ACCOUNT",
+          "value": "0xc1CBAbc64e52b19103F5eCE37B8bA0A52173682B"
+        },
+        {
+          "name": "SMART_WALLETS_FEES_ACCOUNT",
+          "value": "0xFf0C115EBAD999de26E68221082Dba0b6dbD6d7e"
+        },
+        {
+          "name": "SMART_WALLETS_OPERATOR_ACCOUNT",
+          "value": "0x4dD05Ff4fdeb68D3205e309F6FbbD257292cE8E7"
+        },
+        {
+          "name": "WALLETS_CREATOR_ACCOUNT",
+          "value": "0xB642F8e816f64CF7b022d7521be162cBB7193dd5"
+        },
+        {
+          "name": "WEB_3_URL",
+          "value": "http://10.240.2.224:8545/api/v1/"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "stg-wallet-manager",
+          "awslogs-region": "eu-west-1",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "wallets-api"
+        }
+      },
+      "dockerLabels": {
+        "SUB-SYSTEM": "wallet-manager",
+        "Environment": "stg",
+        "SERVICE": "wallets-api"
+      }
+    }
+  ]
+}
