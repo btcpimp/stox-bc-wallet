@@ -32,7 +32,7 @@
       "environment": [
         {
           "name": "DATABASE_URL",
-          "value": "postgres://stgbcwalllet:xzsCow4nVDxAVi9LiaUXk8JPicDNZ4@stg-wallets-manager.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
+          "value": "postgres://stgbcwalllet:S2rAQ3ZRsdWnGzLpjvesBZTJjVenvZ@stg-wallets-manager.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
         },
         {
           "name": "DEFAULT_PRIZE_ACCOUNT",
@@ -60,15 +60,15 @@
         },
         {
           "name": "SMART_WALLETS_BACKUP_ACCOUNT",
-          "value": "0xc1CBAbc64e52b19103F5eCE37B8bA0A52173682B"
+          "value": "0xd5DceaC7F442067eAB507badBc553A0a392da1dB"
         },
         {
           "name": "SMART_WALLETS_FEES_ACCOUNT",
-          "value": "0xFf0C115EBAD999de26E68221082Dba0b6dbD6d7e"
+          "value": "0xCa40d7FA65CA277991075bB63fa6a812f12c010f"
         },
         {
           "name": "SMART_WALLETS_OPERATOR_ACCOUNT",
-          "value": "0x4dD05Ff4fdeb68D3205e309F6FbbD257292cE8E7"
+          "value": "0xa28EE03590c8Ff8a65bd7D9180B8eD869a147dC2"
         },
         {
           "name": "WALLETS_CREATOR_ACCOUNT",
