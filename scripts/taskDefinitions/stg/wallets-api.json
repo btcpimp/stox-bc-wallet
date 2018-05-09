@@ -32,7 +32,7 @@
       "environment": [
         {
           "name": "DATABASE_URL",
-          "value": "postgres://stgbcwalllet:xzsCow4nVDxAVi9LiaUXk8JPicDNZ4@stg-stox.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
+          "value": "postgres://stgbcwalllet:xzsCow4nVDxAVi9LiaUXk8JPicDNZ4@stg-wallets-manager.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
         },
         {
           "name": "DEFAULT_PRIZE_ACCOUNT",
@@ -76,7 +76,7 @@
         },
         {
           "name": "WEB_3_URL",
-          "value": "http://10.240.2.224:8545/api/v1/"
+          "value": "http://bc-proxy-api.stox-stg/api/v1/"
         }
       ],
       "logConfiguration": {
@@ -84,7 +84,6 @@
         "options": {
           "awslogs-group": "stg-wallet-manager",
           "awslogs-region": "eu-west-1",
-          "awslogs-create-group": "true",
           "awslogs-stream-prefix": "wallets-api"
         }
       },
