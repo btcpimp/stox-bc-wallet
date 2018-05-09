@@ -4,8 +4,8 @@ options:
     docker: true
 
 pipelines:
-    branches:
-        feature/*:
+    custom:
+        test:
             - step:
                 deployment: test
                 caches:
@@ -41,7 +41,7 @@ pipelines:
                     # register ecs tasks
                     - node scripts/createTaskDefinition.js $IMAGE_NAME dev
 
-        release/*:
+        staging:
             - step:
                 deployment: staging
                 caches:
@@ -73,7 +73,7 @@ pipelines:
                     # register ecs tasks
                     - node scripts/createTaskDefinition.js $IMAGE_NAME stg
 
-        master:
+        production:
             - step:
                 deployment: production
                 caches:
