@@ -38,13 +38,13 @@
         },
         {
           "name": "WEB_3_URL",
-          "value": "http://bc-proxy-api.stox-stg/api/v1/"
+          "value": "http://stg-bc-proxy-api.stox-stg/api/v1/"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "stg-wallet-manager",
+          "awslogs-group": "stg-wallets-manager-logs",
           "awslogs-region": "eu-west-1",
           "awslogs-stream-prefix": "wallets-issuance-monitor"
         }
