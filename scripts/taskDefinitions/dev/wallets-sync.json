@@ -29,16 +29,15 @@
           "value": "dev"
         },
         {
-          "name": "AWS_DEFAULT_REGION",
+          "name": "AWS_REGION",
           "value": "eu-west-1"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "dev-wallet-manager",
+          "awslogs-group": "dev-wallets-manager-logs",
           "awslogs-region": "eu-west-1",
-          "awslogs-create-group": "true",
           "awslogs-stream-prefix": "wallets-sync"
         }
       },
