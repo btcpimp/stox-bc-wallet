@@ -25,12 +25,32 @@
       ],
       "environment": [
         {
-          "name": "NODE_ENV",
-          "value": "stg"
+          "name": "DATABASE_URL",
+          "value": "postgres://stgbcwalllet:S2rAQ3ZRsdWnGzLpjvesBZTJjVenvZ@stg-wallets-manager.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
         },
         {
-          "name": "AWS_DEFAULT_REGION",
-          "value": "eu-west-1"
+          "name": "MQ_CONNECTION_URL",
+          "value": "stg-activemq.stox-stg:61613"
+        },
+        {
+          "name": "NETWORK",
+          "value": "MAIN"
+        },
+        {
+          "name": "REQUEST_MANAGER_API_BASE_URL",
+          "value": "http://stg-request-manager-api.stox-stg:3009/api/v1/"
+        },
+        {
+          "name": "WALLETS_POOL_CRON",
+          "value": "*/30 * * * * *"
+        },
+        {
+          "name": "WALLETS_POOL_THRESHOLD",
+          "value": "10"
+        },
+        {
+          "name": "WEB_3_URL",
+          "value": "http://stg-bc-proxy-api.stox-stg:8545/api/v1/"
         }
       ],
       "logConfiguration": {
