@@ -1,6 +1,7 @@
 image: docker:stable
 
 options:
+    max-time: 15
     docker: true
 
 pipelines:

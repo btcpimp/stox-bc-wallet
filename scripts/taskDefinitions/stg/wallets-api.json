@@ -31,52 +31,12 @@
       ],
       "environment": [
         {
-          "name": "DATABASE_URL",
-          "value": "postgres://stgbcwalllet:S2rAQ3ZRsdWnGzLpjvesBZTJjVenvZ@stg-wallets-manager.cychkzdvrrri.eu-west-1.rds.amazonaws.com:5432/stoxbc"
+          "name": "NODE_ENV",
+          "value": "stg"
         },
         {
-          "name": "DEFAULT_PRIZE_ACCOUNT",
-          "value": ""
-        },
-        {
-          "name": "MAX_WALLET_ASSIGN_RETIRES",
-          "value": "5"
-        },
-        {
-          "name": "MQ_CONNECTION_URL",
-          "value": "stg-activemq.stox-stg:61613"
-        },
-        {
-          "name": "NETWORK",
-          "value": "MAIN"
-        },
-        {
-          "name": "PORT",
-          "value": "3001"
-        },
-        {
-          "name": "SMART_WALLET_LIB_ADDRESS",
-          "value": "0xc8b55c7ad00fb9b933b0a016c6cebceea0293bb9"
-        },
-        {
-          "name": "SMART_WALLETS_BACKUP_ACCOUNT",
-          "value": "0x1Cd8519B515807956DD42BbEe05BB807bFb4Af87"
-        },
-        {
-          "name": "SMART_WALLETS_FEES_ACCOUNT",
-          "value": "0x05C1C64b0d19Ba38690668FF8f3Ba1B934d707d5"
-        },
-        {
-          "name": "SMART_WALLETS_OPERATOR_ACCOUNT",
-          "value": "0x93450575F31eCa528BC74bAeba59A6950BF28Aa9"
-        },
-        {
-          "name": "WALLETS_CREATOR_ACCOUNT",
-          "value": "0x0fA4BE05d6C7accdeB1e59F355315Ec61C9A6dBB"
-        },
-        {
-          "name": "WEB_3_URL",
-          "value": "http://stg-bc-proxy-api.stox-stg:8545/api/v1/"
+          "name": "AWS_DEFAULT_REGION",
+          "value": "eu-west-1"
         }
       ],
       "logConfiguration": {
