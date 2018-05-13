@@ -38,10 +38,10 @@ readdirSync(tasksPath).forEach(async (d) => {
     const {revision} = jsonResult.taskDefinition
     const updateService = `aws ecs update-service --cluster stox-${env} --service ${family}`
 
-    const res1 = await executeCommand(`${updateService} --desired-count 0`)
-    console.log(res1)
-    const res2 = await executeCommand(`${updateService} --desired-count 1 --task-definition ${family}:${revision}`)
-    console.log(res2)
+    // const res1 = await executeCommand(`${updateService} --desired-count 0`)
+    // console.log(res1)
+    // const res2 = await executeCommand(`${updateService} --desired-count 1 --task-definition ${family}:${revision}`)
+    // console.log(res2)
   } catch (e) {
     console.error(e)
   }
