@@ -1,5 +1,5 @@
 {
-  "name": "wallet-api",
+  "name": "wallets-api",
   "description": "Service for wallet related apis (getBalance, createWallet)...",
   "version": "1.0.0",
   "engines": {
