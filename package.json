@@ -1,5 +1,5 @@
 {
-  "name"	 : "wallet-manager",
+  "name"	 : "wallets-manager",
   "scripts": {
     "lint": "eslint . --ignore-path .eslintignore --cache",
     "link": "./scripts/common.sh link",
