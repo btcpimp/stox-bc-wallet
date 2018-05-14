@@ -1,5 +1,5 @@
 {
-  "family": "dev-wallets-issuing",
+  "family": "prod-wallets-sync",
   "volumes": [],
   "networkMode": "awsvpc",
   "memory": "512",
@@ -10,7 +10,7 @@
   ],
   "containerDefinitions": [
     {
-      "name": "dev-wallets-issuing",
+      "name": "prod-wallets-sync",
       "image": "",
       "memoryReservation": 300,
       "cpu": 256,
@@ -21,12 +21,12 @@
         "run",
         "serve",
         "--prefix",
-        "packages/wallets-issuing"
+        "packages/wallets-sync"
       ],
       "environment": [
         {
           "name": "NODE_ENV",
-          "value": "dev"
+          "value": "prod"
         },
         {
           "name": "AWS_REGION",
@@ -36,15 +36,15 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "dev-wallets-manager-logs",
+          "awslogs-group": "prod-wallets-manager-logs",
           "awslogs-region": "eu-west-1",
-          "awslogs-stream-prefix": "wallets-issuing"
+          "awslogs-stream-prefix": "wallets-sync"
         }
       },
       "dockerLabels": {
         "SUB-SYSTEM": "wallet-manager",
-        "Environment": "dev",
-        "SERVICE": "wallets-issuing"
+        "Environment": "prod",
+        "SERVICE": "wallets-sync"
       }
     }
   ]
