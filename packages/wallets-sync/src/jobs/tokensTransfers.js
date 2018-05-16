@@ -133,7 +133,7 @@ const job = async () => {
           }
 
           const walletTransactions = transactions.filter(t =>
-            t.to.toLowerCase() === tokenAddress.toLowerCase() || t.from.toLowerCase() === walletAddress.toLowerCase())
+            t.to.toLowerCase() === walletAddress.toLowerCase() || t.from.toLowerCase() === walletAddress.toLowerCase())
 
           await tokensTransfers.sendTransactionsToBackend(
             token.name,
