@@ -1,10 +1,11 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const {omit} = require('lodash')
-const {errors: {logError}} = require('stox-common')
+const {http, errors: {logError}} = require('stox-common')
 
 
-const {db, config, mq} = context
+const {db, config/*, mq*/} = context
+const clientHttp = http(config.backendBaseUrl)
 
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   const transaction = await db.sequelize.transaction()
@@ -51,7 +52,9 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
   }
 
   try {
-    mq.publish('blockchain-token-transfers', message)
+    // Removed until stox-server will support queues
+    // mq.publish('blockchain-token-transfers', message)
+    clientHttp.post('/wallet/transaction', message)
 
     const rest = omit(message, 'transactions')
     context.logger.info(

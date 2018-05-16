@@ -8,4 +8,5 @@ module.exports = mapEnv({
   maxBlocksRead: 0,
   network: '',
   tokensTransfersCron: '',
+  backendBaseUrl: '',
 })
