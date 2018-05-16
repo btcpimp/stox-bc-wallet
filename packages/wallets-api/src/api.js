@@ -14,23 +14,23 @@ module.exports = {
       _(({query: {accountAddress}}) => accounts.getAccountBalanceInEther(accountAddress))
     )
     router.get(
-      'wallets/unassigned/count',
+      '/wallets/unassigned/count',
       _(() => wallets.getUnassignedWalletsCount())
     )
     router.get(
-      'wallets/balance',
+      '/wallets/balance',
       _(({query: {address}}) => tokensBalances.getBalance(address))
     )
     router.post(
-      'wallets/assign',
+      '/wallets/assign',
       _(({body: {address}}) => wallets.assignWallet(address))
     )
     router.post(
-      'wallets/create',
+      '/wallets/create',
       _(({body: {address}}) => wallets.createWallet(address))
     )
     router.post(
-      'wallets/createWallets',
+      '/wallets/createWallets',
       _(({body: {addresses}}) => wallets.createWallets(addresses))
     )
     router.get(
