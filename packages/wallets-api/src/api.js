@@ -23,7 +23,7 @@ module.exports = {
     )
     router.post(
       '/wallets/assign',
-      _(({body: {address}}) => wallets.assignWallet(address))
+      _(({body: {withdrawAddress}}) => wallets.assignWallet(withdrawAddress))
     )
     router.post(
       '/wallets/create',
