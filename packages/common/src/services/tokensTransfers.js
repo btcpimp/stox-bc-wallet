@@ -3,9 +3,7 @@ const context = require('../context')
 const {omit} = require('lodash')
 const {http, errors: {logError}} = require('stox-common')
 
-
 const {db, config, mq} = context
-const clientHttp = http(config.backendBaseUrl)
 
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   const transaction = await db.sequelize.transaction()
@@ -55,7 +53,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
     // Removed until stox-server will support queues
     // mq.publish('blockchain-token-transfers', message)
     context.logger.info({backendBaseUrl: config.backendBaseUrl})
-    await clientHttp.post('/wallet/transaction', message)
+    await http(config.backendBaseUrl).get('/wallet/transaction')
 
     const rest = omit(message, 'transactions')
     context.logger.info(
