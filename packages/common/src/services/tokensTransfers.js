@@ -53,7 +53,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
     // Removed until stox-server will support queues
     // mq.publish('blockchain-token-transfers', message)
     context.logger.info({backendBaseUrl: config.backendBaseUrl})
-    await http(config.backendBaseUrl).get('/wallet/transaction')
+    await http(config.backendBaseUrl).post('/wallet/transaction')
 
     const rest = omit(message, 'transactions')
     context.logger.info(
