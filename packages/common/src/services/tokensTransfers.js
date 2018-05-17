@@ -4,7 +4,7 @@ const {omit} = require('lodash')
 const {http, errors: {logError}} = require('stox-common')
 
 
-const {db, config/*, mq*/} = context
+const {db, config, mq} = context
 const clientHttp = http(config.backendBaseUrl)
 
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
@@ -54,6 +54,7 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
   try {
     // Removed until stox-server will support queues
     // mq.publish('blockchain-token-transfers', message)
+    context.logger.info({backendBaseUrl: config.backendBaseUrl})
     await clientHttp.post('/wallet/transaction', message)
 
     const rest = omit(message, 'transactions')
