@@ -8,17 +8,19 @@
   "scripts": {
     "start": "nodemon -e js . | pino",
     "serve": "node .",
+    "serve:trace": "node --stack_trace_limit=100 -r trace -r clarify .",
     "lint": "eslint -c ../../.eslintrc.yml .",
-    "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
-    "jest:integration": "jest"
+    "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src"
   },
   "main": "src/index.js",
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.4.0",
     "app-module-path": "^2.2.0",
+    "clarify": "^2.1.0",
     "sequelize": "^4.35.2",
-    "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
     "stox-bc-wallet-common": "^1.0.0",
+    "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
+    "trace": "^3.1.0",
     "web3": "^1.0.0-beta.33"
   },
   "devDependencies": {

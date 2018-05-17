@@ -9,11 +9,13 @@
   },
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.4.0",
+    "clarify": "^2.1.0",
     "lodash": "^4.17.5",
     "require-all": "^2.2.0",
     "sequelize": "^4.35.2",
     "solc": "^0.4.21",
     "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
+    "trace": "^3.1.0",
     "web3": "^1.0.0-beta.33"
   },
   "devDependencies": {

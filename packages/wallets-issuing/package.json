@@ -8,21 +8,24 @@
   "scripts": {
     "start": "nodemon -e js . | pino",
     "serve": "node .",
+    "serve:trace": "node --stack_trace_limit=100 -r trace -r clarify .",
     "lint": "eslint -c ../../.eslintrc.yml .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "test:integration": "env-cmd ./.env.test jest src/tests/__integration__/* --rootDir=. --config=../jest/jest.json -i"
   },
   "main": "src/index.js",
   "dependencies": {
-    "@welldone-software/node-toolbelt": "^1.4.0",
     "@pact-foundation/pact": "^5.9.0",
+    "@welldone-software/node-toolbelt": "^1.4.0",
     "app-module-path": "^2.2.0",
+    "clarify": "^2.1.0",
     "lodash": "^4.17.5",
     "require-all": "^2.2.0",
     "stox-bc-wallet-common": "^1.0.0",
     "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
-    "uuid": "^3.2.1",
+    "trace": "^3.1.0",
     "urijs": "^1.19.1",
+    "uuid": "^3.2.1",
     "web3": "^1.0.0-beta.33"
   },
   "devDependencies": {
