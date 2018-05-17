@@ -151,14 +151,14 @@ const job = async () => {
         }
       }
       await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
-    } else {
+    } else if (fromBlock > toBlock) {
       context.logger.info(
         {
           network,
           token: token.name,
           lastReadBlock,
           fromBlock,
-          lastConfirmedBlock: toBlock,
+          toBlock,
           requiredConfirmations,
         },
         'NOT_ENOUGH_CONFIRMATIONS'
