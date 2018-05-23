@@ -9,4 +9,5 @@ module.exports = mapEnv({
   network: '',
   tokensTransfersCron: '',
   backendBaseUrl: '',
+  requestManagerApiBaseUrl: '',
 })
