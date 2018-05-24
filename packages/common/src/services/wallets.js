@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize')
-const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
+const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountBalanceInEther} = require('./blockchain/tokenTracker')
@@ -27,10 +27,10 @@ const getUnassignedWalletsCount = async () => {
   })
   return {count}
 }
-const validateWalletIsUnassigned = async (wallet) => {
+const validateWalletIsUnassignedOnBlockchain = async (wallet) => {
   const isWalletUnssignedOnBlockchain = isAddressEmpty(await getWithdrawalAddress(wallet.address))
   if (!isWalletUnssignedOnBlockchain) {
-    throw new Error(`wallet: ${wallet.address} is already assigned on blockchain`)
+    throw new InvalidStateError(`wallet: ${wallet.address} is already assigned on blockchain`)
   }
 }
 
@@ -62,7 +62,7 @@ const setWalletAsAssigned = async (wallet) => {
   }
 }
 
-const sendAssignRequest = async (wallet, withdrawAddress) => {
+const sendAssignRequest = (wallet, withdrawAddress) => {
   mq.publish('incoming-requests', {
     id: uuid(),
     data: {walletAddress: wallet.address, userWithdrawalAddress: withdrawAddress},
@@ -106,7 +106,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
   try {
     const wallet = await getUnassignedWallet()
     await setWalletAsAssigned(wallet)
-    await validateWalletIsUnassigned(wallet)
+    await validateWalletIsUnassignedOnBlockchain(wallet)
     sendAssignRequest(wallet, withdrawAddress)
     context.logger.info({wallet: wallet.dataValues}, 'ASSIGNED')
     return wallet
