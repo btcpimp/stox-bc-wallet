@@ -5,7 +5,7 @@ const {
 module.exports = async ({body: completedRequest}) => {
   if (!completedRequest.error) {
     const wallet = await wallets.getWalletByAddress(completedRequest.data.walletAddress)
-    await wallets.setWithdrawAddressAt(wallet)
+    await wallets.updateWallet(wallet, {setWithdrawAddressAt: Date.now()})
   }
 
 }

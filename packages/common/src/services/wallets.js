@@ -53,27 +53,7 @@ const getUnassignedWallet = async () => {
   return wallet
 }
 
-const setWithdrawAddressAt = async (wallet) => {
-  const transaction = await db.sequelize.transaction()
-  try {
-    await wallet.updateAttributes({setWithdrawAddressAt: Date.now()}, {transaction})
-    await transaction.commit()
-  } catch (e) {
-    transaction.rollback()
-    throw e
-  }
-}
-
-const setWalletAsAssigned = async (wallet) => {
-  const transaction = await db.sequelize.transaction()
-  try {
-    await wallet.updateAttributes({assignedAt: new Date()}, {transaction})
-    await transaction.commit()
-  } catch (e) {
-    transaction.rollback()
-    throw e
-  }
-}
+const updateWallet = async (wallet, attributes) => wallet.updateAttributes(attributes)
 
 const sendAssignRequest = (wallet, withdrawAddress) => {
   mq.publish('incoming-requests', {
@@ -118,7 +98,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
 
   try {
     const wallet = await getUnassignedWallet()
-    await setWalletAsAssigned(wallet)
+    await updateWallet(wallet, {assignedAt: Date.now()})
     await validateWalletIsUnassignedOnBlockchain(wallet)
     sendAssignRequest(wallet, withdrawAddress)
     context.logger.info({wallet: wallet.dataValues}, 'ASSIGNED')
@@ -150,5 +130,5 @@ module.exports = {
   assignWallet,
   createWallets,
   createWallet,
-  setWithdrawAddressAt,
+  updateWallet,
 }
