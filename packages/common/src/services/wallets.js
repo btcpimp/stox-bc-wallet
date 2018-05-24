@@ -15,6 +15,8 @@ const getWalletsByAddresses = addresses =>
     type: Sequelize.QueryTypes.SELECT,
   })
 
+const getWalletByAddress = address =>  db.wallets.findOne({where: {address: address}})
+
 const getUnassignedWalletsCount = async () => {
   const count = await db.wallets.count({
     where: {
@@ -49,6 +51,17 @@ const getUnassignedWallet = async () => {
     throw new UnexpectedError('no unassigned wallets')
   }
   return wallet
+}
+
+const setWithdrawAddressAt = async (wallet) => {
+  const transaction = await db.sequelize.transaction()
+  try {
+    await wallet.updateAttributes({setWithdrawAddressAt: Date.now()}, {transaction})
+    await transaction.commit()
+  } catch (e) {
+    transaction.rollback()
+    throw e
+  }
 }
 
 const setWalletAsAssigned = async (wallet) => {
@@ -132,8 +145,10 @@ const getWalletBalanceInBlockchain = async (walletAddress) => {
 module.exports = {
   getUnassignedWalletsCount,
   getWalletsByAddresses,
+  getWalletByAddress,
   getWalletBalanceInBlockchain,
   assignWallet,
   createWallets,
   createWallet,
+  setWithdrawAddressAt,
 }
