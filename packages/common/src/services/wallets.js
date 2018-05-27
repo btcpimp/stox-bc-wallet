@@ -1,17 +1,21 @@
 const Sequelize = require('sequelize')
-const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
+const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountBalanceInEther} = require('./blockchain/tokenTracker')
-const {validateAddress} = require('../utils/blockchain')
+const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
+const uuid = require('uuid')
+const {getWithdrawalAddress} = require('./blockchain/smartWallets')
 
 const {Op} = Sequelize
-const {db, config} = context
+const {db, mq, config} = context
 
 const getWalletsByAddresses = addresses =>
   db.sequelize.query(`select * from wallets where lower(address) similar to '%(${addresses})%'`, {
     type: Sequelize.QueryTypes.SELECT,
   })
+
+const getWalletByAddress = address =>  db.wallets.findOne({where: {address: address}})
 
 const getUnassignedWalletsCount = async () => {
   const count = await db.wallets.count({
@@ -25,33 +29,38 @@ const getUnassignedWalletsCount = async () => {
   })
   return {count}
 }
-
-const assign = async () => {
-  const transaction = await db.sequelize.transaction()
-  try {
-    const wallet = await db.wallets.findOne({
-      where: {
-        [Op.and]: [
-          {assignedAt: {[Op.eq]: null}},
-          {corruptedAt: {[Op.eq]: null}},
-          {network: {[Op.eq]: config.network}},
-        ],
-      },
-      transaction,
-    })
-
-    if (!wallet) {
-      throw new UnexpectedError('no unassigned wallets')
-    }
-
-    await wallet.updateAttributes({assignedAt: new Date()}, {transaction})
-    await transaction.commit()
-
-    return wallet
-  } catch (e) {
-    transaction.rollback()
-    throw e
+const validateWalletIsUnassignedOnBlockchain = async (wallet) => {
+  const isWalletUnssignedOnBlockchain = isAddressEmpty(await getWithdrawalAddress(wallet.address))
+  if (!isWalletUnssignedOnBlockchain) {
+    throw new InvalidStateError(`wallet: ${wallet.address} is already assigned on blockchain`)
   }
+}
+
+const getUnassignedWallet = async () => {
+  const wallet = await db.wallets.findOne({
+    where: {
+      [Op.and]: [
+        {assignedAt: {[Op.eq]: null}},
+        {corruptedAt: {[Op.eq]: null}},
+        {network: {[Op.eq]: config.network}},
+      ],
+    },
+  })
+
+  if (!wallet) {
+    throw new UnexpectedError('no unassigned wallets')
+  }
+  return wallet
+}
+
+const updateWallet = async (wallet, attributes) => wallet.updateAttributes(attributes)
+
+const sendAssignRequest = (wallet, withdrawAddress) => {
+  mq.publish('incoming-requests', {
+    id: uuid(),
+    data: {walletAddress: wallet.address, userWithdrawalAddress: withdrawAddress},
+    type: 'setWithdrawalAddress',
+  })
 }
 
 const createWallets = async (addresses) => {
@@ -88,7 +97,10 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
   }
 
   try {
-    const wallet = await assign()
+    const wallet = await getUnassignedWallet()
+    await updateWallet(wallet, {assignedAt: Date.now()})
+    await validateWalletIsUnassignedOnBlockchain(wallet)
+    sendAssignRequest(wallet, withdrawAddress)
     context.logger.info({wallet: wallet.dataValues}, 'ASSIGNED')
     return wallet
   } catch (e) {
@@ -113,8 +125,10 @@ const getWalletBalanceInBlockchain = async (walletAddress) => {
 module.exports = {
   getUnassignedWalletsCount,
   getWalletsByAddresses,
+  getWalletByAddress,
   getWalletBalanceInBlockchain,
   assignWallet,
   createWallets,
   createWallet,
+  updateWallet,
 }
