@@ -1,0 +1,51 @@
+{
+  "family": "dev-wallets-set-withdrawal-monitor",
+  "volumes": [],
+  "networkMode": "awsvpc",
+  "memory": "512",
+  "cpu": "256",
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "containerDefinitions": [
+    {
+      "name": "dev-wallets-set-withdrawal-monitor",
+      "image": "",
+      "memoryReservation": 300,
+      "cpu": 256,
+      "essential": true,
+      "portMappings": [],
+      "command": [
+        "npm",
+        "run",
+        "serve:trace",
+        "--prefix",
+        "packages/wallets-set-withdrawal-monitor"
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "dev"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-west-1"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "dev-wallets-manager-logs",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "wallets-set-withdrawal-monitor"
+        }
+      },
+      "dockerLabels": {
+        "SUB-SYSTEM": "wallet-manager",
+        "Environment": "dev",
+        "SERVICE": "wallets-set-withdrawal-monitor"
+      }
+    }
+  ]
+}
