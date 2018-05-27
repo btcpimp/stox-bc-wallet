@@ -1,5 +1,5 @@
 {
-  "name": "wallet-set-withdrawal-monitor",
+  "name": "wallets-set-withdrawal-monitor",
   "description": "A service that monitor the completed requests queue, and checks for completed set withdrawal requests.",
   "version": "1.0.0",
   "engines": {
