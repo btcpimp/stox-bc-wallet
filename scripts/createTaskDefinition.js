@@ -38,7 +38,7 @@ readdirSync(tasksPath).forEach(async (d) => {
     const {revision} = jsonResult.taskDefinition
 
     const updateService = `aws ecs update-service --cluster stox-${env} --service ${family}`
-    const getRunningTask = `aws ecs list-tasks --cluster stox-${env} --desired-status RUNNING --service-name ${family}`
+    const getRunningTasks = `aws ecs list-tasks --cluster stox-${env} --desired-status RUNNING --service-name ${family}`
 
     // const res1 = await executeCommand(`${updateService} --desired-count 0 --task-definition ${family}:${revision}`)
     // console.log(res1)
@@ -48,9 +48,10 @@ readdirSync(tasksPath).forEach(async (d) => {
     console.log(res1)
 
     if (env !== 'prod') {
-      const taskArns = await executeCommand(`${getRunningTask}`)
-      console.log(taskArns)
+      const runningTasks = await executeCommand(`${getRunningTasks}`)
+      console.log(runningTasks)
 
+      const {taskArns} = JSON.parse(runningTasks)
       await taskArns.forEach(async (taskArn) => {
         const stopTask = `aws ecs stop-task --cluster stox-${env} --task ${taskArn} --reason build-pipeline-restart`
         const res2 = await executeCommand(`${stopTask}`)
