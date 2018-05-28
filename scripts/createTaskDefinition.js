@@ -48,7 +48,7 @@ readdirSync(tasksPath).forEach(async (d) => {
     console.log(res1)
 
     if (env !== 'prod') {
-      const {taskArns} = await executeCommand(`${getRunningTask}`)
+      const taskArns = await executeCommand(`${getRunningTask}`)
       console.log(taskArns)
 
       await taskArns.forEach(async (taskArn) => {
