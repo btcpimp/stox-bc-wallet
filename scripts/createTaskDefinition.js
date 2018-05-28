@@ -37,7 +37,7 @@ readdirSync(tasksPath).forEach(async (d) => {
 
     const {revision} = jsonResult.taskDefinition
     const updateService = `aws ecs update-service --cluster stox-${env} --service ${family}`
-    const stopTask = `aws ecs stop-task --task ${family} --reason build-pipeline`
+    const stopTask = `aws ecs stop-task --cluster stox-${env} --task ${family} --reason build-pipeline`
 
     // const res1 = await executeCommand(`${updateService} --desired-count 0 --task-definition ${family}:${revision}`)
     // console.log(res1)
