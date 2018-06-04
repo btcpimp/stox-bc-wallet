@@ -9,7 +9,8 @@ const requestByTransactionHash = async (transactionHash) => {
   try {
     context.logger.info(
       {
-      url: config.requestManagerApiBaseUrl
+        url: config.requestManagerApiBaseUrl,
+        to: `/requestsByTransactionHash/${transactionHash}`
       },
       'requestManagerApiBaseUrl'
     )
@@ -77,7 +78,15 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
     try {
       // Removed until stox-server will support queues
       // mq.publish('blockchain-token-transfers', message)
-      await http(config.backendBaseUrl).post('/wallet/transaction', message)
+      context.logger.info(
+        {
+          url: config.backendBaseUrl,
+          to: '/wallet/transaction',
+          message,
+        },
+        'backendBaseUrl'
+      )
+      await http(config.backendBaseUrl).post('/wallet/transaction/', message)
 
       const rest = omit(message, 'transactions')
       context.logger.info(
