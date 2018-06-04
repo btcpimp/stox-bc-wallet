@@ -7,7 +7,13 @@ const {db, config, mq} = context
 
 const requestByTransactionHash = async (transactionHash) => {
   try {
-    return http(config.requestManagerApiBaseUrl).get(`/requestsByTransactionHash/${transactionHash}`)
+    context.logger.info(
+      {
+      url: config.requestManagerApiBaseUrl
+      },
+      'requestManagerApiBaseUrl'
+    )
+    return await http(config.requestManagerApiBaseUrl).get(`/requestsByTransactionHash/${transactionHash}`)
   }catch(e){
     //todo: handle case when the api is down
     throw e
