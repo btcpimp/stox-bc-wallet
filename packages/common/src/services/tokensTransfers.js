@@ -7,17 +7,14 @@ const {db, config, mq} = context
 
 const requestByTransactionHash = async (transactionHash) => {
   try {
-    context.logger.info(
-      {
-        url: config.requestManagerApiBaseUrl,
-        to: `/requestsByTransactionHash/${transactionHash}`
-      },
-      'requestManagerApiBaseUrl'
-    )
     return await http(config.requestManagerApiBaseUrl).get(`/requestsByTransactionHash/${transactionHash}`)
   }catch(e){
-    //todo: handle case when the api is down
-    throw e
+    if (e.code === 404){
+      return null
+    }else {
+      // handle e.code === 502 with retry
+      throw e
+    }
   }
 
 }
@@ -78,14 +75,6 @@ const sendTransactionsToBackend = async (asset, address, transactions, balance, 
     try {
       // Removed until stox-server will support queues
       // mq.publish('blockchain-token-transfers', message)
-      context.logger.info(
-        {
-          url: config.backendBaseUrl,
-          to: '/wallet/transaction',
-          message,
-        },
-        'backendBaseUrl'
-      )
       await http(config.backendBaseUrl).post('/wallet/transaction/', message)
 
       const rest = omit(message, 'transactions')
