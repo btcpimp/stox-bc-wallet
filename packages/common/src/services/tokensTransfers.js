@@ -12,7 +12,7 @@ const requestByTransactionHash = async (transactionHash) => {
     if (e.code === 404){
       return null
     }else {
-      // handle e.code === 502 with retry
+      // TODO: handle e.code === 502 with retry
       throw e
     }
   }
