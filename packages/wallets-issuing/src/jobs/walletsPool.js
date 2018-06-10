@@ -6,11 +6,15 @@ const {http} = require('stox-common')
 
 const httpClient = http(requestManagerApiBaseUrl)
 
-const issueWallet = () =>
+const issueWallet = () =>{
+  const id = uuid()
   mq.publish('incoming-requests', {
-    id: uuid(),
+    id,
     type: 'createWallet',
   })
+  return id
+}
+
 
 const warnIfNotEnoughInRequestManager = async (pending) => {
   try {
@@ -32,11 +36,11 @@ const warnIfNotEnoughInRequestManager = async (pending) => {
 
 const job = async () => {
   const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
-  const {count: pending} = await services.pendingRequests.getPendingRequests('createWallet')
+  const pending = await services.pendingRequests.getCountByType('createWallet')
   const requests = Number(walletsPoolThreshold) - unassigned - pending
-  if (requests > 0) {
-    times(requests, issueWallet)
-    await services.pendingRequests.addPendingRequests('createWallet', requests)
+  for(let i = 0; i < requests; i++) {
+    const requestId = issueWallet()
+    await services.pendingRequests.addPendingRequests('createWallet', requestId)
   }
 
   await warnIfNotEnoughInRequestManager(pending)
