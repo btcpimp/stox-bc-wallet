@@ -7,7 +7,7 @@ const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
 const uuid = require('uuid')
 const {getWithdrawalAddress} = require('./blockchain/smartWallets')
 
-const {Op} = Sequelize
+const {Op, fn, col, where} = Sequelize
 const {db, mq, config} = context
 
 const getWalletsByAddresses = addresses =>
@@ -15,7 +15,8 @@ const getWalletsByAddresses = addresses =>
     type: Sequelize.QueryTypes.SELECT,
   })
 
-const getWalletByAddress = address =>  db.wallets.findOne({where: {address: address}})
+const getWalletByAddress = address =>
+  db.wallets.findOne({where: where(fn('lower', col('address')), fn('lower', address))})
 
 const getUnassignedWalletsCount = async () => {
   const count = await db.wallets.count({
