@@ -6,9 +6,9 @@
     "node": ">=8.9.2"
   },
   "scripts": {
-    "start": "nodemon -e js . | pino",
+    "start": "nodemon $NODE_DEBUG_OPTION -e js . | pino",
     "serve": "node .",
-    "serve:trace": "node --stack_trace_limit=100 -r trace -r clarify .",
+    "serve:trace": "node --stack_trace_limit=50 -r trace -r clarify .",
     "lint": "eslint -c ../../.eslintrc.yml .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
     "test:integration": "env-cmd ./.env.test jest src/tests/__integration__/* --rootDir=. --config=../jest/jest.json -i"
