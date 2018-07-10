@@ -18,7 +18,7 @@ module.exports = async ({body: completedRequest}) => {
       if (balance > 0) {
         await tokensBalances.updateBalance(token, wallet, balance)
         const transaction = {amount: balance, to: wallet}
-        await tokensTransfers.sendTransactionsToBackend(token, wallet, [transaction], balance, new Date())
+        tokensTransfers.sendTransactionsToBackend(token, wallet, [transaction], balance, new Date())
       }
     }))
   } else {
