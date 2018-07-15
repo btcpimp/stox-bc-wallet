@@ -1,23 +1,10 @@
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const {omit} = require('lodash')
-const {http, errors: {logError}} = require('stox-common')
+const {errors: {logError}} = require('stox-common')
 
 const {db, config, mq} = context
 
-const requestByTransactionHash = async (transactionHash) => {
-  try {
-    return await http(config.requestManagerApiBaseUrl).get(`/requestsByTransactionHash/${transactionHash}`)
-  }catch(e){
-    if (e.code === 404){
-      return null
-    }else {
-      // TODO: handle e.code === 502 with retry
-      throw e
-    }
-  }
-
-}
 const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   const transaction = await db.sequelize.transaction()
 
@@ -47,50 +34,38 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   }
 }
 
-const sendTransactionsToBackend = async (asset, address, transactions, balance, happenedAt) => {
-  const transactionsWithRequest = transactions.map(async ({transactionHash, from, to, amount}) => {
-    const request = await requestByTransactionHash(transactionHash)
-    const requestId = request ? request.id : null
-    const type = request ? request.type : 'deposit'
-    return {
+const sendTransactionsToBackend = (asset, address, transactions, balance, happenedAt) => {
+  const message = {
+    network: config.network,
+    address,
+    asset,
+    balance,
+    happenedAt,
+    transactions: transactions.map(({from, transactionHash, to, amount}) => ({
       from,
       to,
       transactionHash,
       amount,
-      requestId,
-      type,
       status: 'confirmed',
-    }
-  })
-  Promise.all(transactionsWithRequest).then(async transactions => {
-    const message = {
-      network: config.network,
-      address,
-      asset,
-      balance,
-      happenedAt,
-      transactions,
-    }
+    })),
+  }
 
-    try {
-      // Removed until stox-server will support queues
-      // mq.publish('blockchain-token-transfers', message)
-      await http(config.backendBaseUrl).post('/wallet/transaction/', message)
-
-      const rest = omit(message, 'transactions')
-      context.logger.info(
-        {
-          ...rest,
-          transactions: transactions.length,
-          hash: transactions.map(t => t.transactionHash),
-        },
-        'SEND_TRANSACTIONS'
-      )
-    } catch (e) {
-      logError(e)
-    }
-  })
-
+  try {
+    mq.publish('uncompleted-blockchain-token-transfers', message)
+    const rest = omit(message, 'transactions')
+    context.logger.info(
+      {
+        ...rest,
+        transactions: transactions.length,
+        hash: transactions.map(t => t.transactionHash),
+      },
+      'SEND_TRANSACTIONS'
+    )
+  } catch (e) {
+    logError(e)
+  }
 }
+
+
 
 module.exports = {insertTransactions, sendTransactionsToBackend}
