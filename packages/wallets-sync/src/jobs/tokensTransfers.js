@@ -115,6 +115,7 @@ const job = async () => {
         const funcs = withdrawWallets.map(wallet => async () => {
           const tokenAddress = token.address
           const walletAddress = wallet.address
+          const feesAccountAddress = await services.blockchain.smartWallets.getFeesAccountAddress(walletAddress)
           const balance = await getBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
 
           try {
@@ -138,6 +139,7 @@ const job = async () => {
           tokensTransfers.sendTransactionsToBackend(
             token.name,
             walletAddress,
+            feesAccountAddress,
             walletTransactions,
             balance,
             currentBlockTime

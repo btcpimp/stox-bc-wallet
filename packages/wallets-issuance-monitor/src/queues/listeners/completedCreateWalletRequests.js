@@ -1,6 +1,6 @@
 const {
   context,
-  services: {wallets, tokensBalances, tokensTransfers, pendingRequests},
+  services: {wallets, tokensBalances, tokensTransfers, pendingRequests, blockchain},
 } = require('stox-bc-wallet-common')
 
 module.exports = async ({body: completedRequest}) => {
@@ -16,9 +16,10 @@ module.exports = async ({body: completedRequest}) => {
 
     await Promise.all(tokenBalances.map(async ({token, balance}) => {
       if (balance > 0) {
+        const feesAccountAddress = await blockchain.smartWallets.getFeesAccountAddress(wallet)
         await tokensBalances.updateBalance(token, wallet, balance)
         const transaction = {amount: balance, to: wallet}
-        tokensTransfers.sendTransactionsToBackend(token, wallet, [transaction], balance, new Date())
+        tokensTransfers.sendTransactionsToBackend(token, wallet, feesAccountAddress, [transaction], balance, new Date())
       }
     }))
   } else {

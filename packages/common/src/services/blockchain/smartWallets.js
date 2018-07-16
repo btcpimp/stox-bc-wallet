@@ -98,6 +98,13 @@ const getWithdrawalAddress = async (walletAddress) => {
   return (await wallet.methods.wallet().call()).userWithdrawalAccount
 }
 
+const getFeesAccountAddress = async (walletAddress) => {
+  validateAddress(walletAddress)
+
+  const wallet = blockchain.getSmartWalletContract(walletAddress)
+  return (await wallet.methods.wallet().call()).feesAccount
+}
+
 module.exports = {
   encodeAbiForSetWithdrawalAddress,
   encodeAbiForWithdraw,
@@ -105,4 +112,5 @@ module.exports = {
   encodeAbiForCreateWallet,
   encodeAbiForSendPrize,
   getWithdrawalAddress,
+  getFeesAccountAddress,
 }

@@ -34,10 +34,11 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   }
 }
 
-const sendTransactionsToBackend = (asset, address, transactions, balance, happenedAt) => {
+const sendTransactionsToBackend = (asset, walletAddress, feesAccountAddress, transactions, balance, happenedAt) => {
   const message = {
     network: config.network,
-    address,
+    walletAddress,
+    feesAccountAddress,
     asset,
     balance,
     happenedAt,
