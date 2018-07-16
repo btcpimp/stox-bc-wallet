@@ -2,6 +2,7 @@ const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbel
 const context = require('../context')
 const {omit} = require('lodash')
 const {errors: {logError}} = require('stox-common')
+const {getAccountAddresses} = require('./blockchain/smartWallets')
 
 const {db, config, mq} = context
 
@@ -34,11 +35,14 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
   }
 }
 
-const sendTransactionsToBackend = (asset, walletAddress, feesAccountAddress, transactions, balance, happenedAt) => {
+const sendTransactionsToBackend = async (asset, walletAddress, transactions, balance, happenedAt) => {
+  try {
+  const {feesAccount, userWithdrawalAccount} = await getAccountAddresses(walletAddress)
   const message = {
     network: config.network,
     walletAddress,
-    feesAccountAddress,
+    feesAccount,
+    userWithdrawalAccount,
     asset,
     balance,
     happenedAt,
@@ -50,8 +54,6 @@ const sendTransactionsToBackend = (asset, walletAddress, feesAccountAddress, tra
       status: 'confirmed',
     })),
   }
-
-  try {
     mq.publish('uncompleted-blockchain-token-transfers', message)
     const rest = omit(message, 'transactions')
     context.logger.info(
