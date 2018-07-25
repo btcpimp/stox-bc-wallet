@@ -71,5 +71,15 @@ module.exports = {
           prizeDistributorAddress,
         ))
     )
+    router.get(
+      '/abi/sendPrizeExternal',
+      _(({query: {userStoxWalletAddress, tokenAddress, amount, prizeDistributorAddress}}) =>
+        blockchain.smartWallets.encodeAbiForSendPrizeExternal(
+          userStoxWalletAddress,
+          tokenAddress,
+          amount,
+          prizeDistributorAddress,
+        ))
+    )
   },
 }

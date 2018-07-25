@@ -71,6 +71,20 @@ const encodeAbiForCreateWallet = async () => {
   return {fromAccount, encodedAbi}
 }
 
+const encodeAbiForSendPrizeExternal = async (
+  userStoxWalletAddress,
+  tokenAddress,
+  amount,
+  prizeDistributorAddress = config.defaultPrizeAccount
+) => {
+  const prizeReceiverAddress = await getWithdrawalAddress(userStoxWalletAddress)
+  return encodeAbiForSendPrize(
+    prizeReceiverAddress,
+    tokenAddress,
+    amount,
+    prizeDistributorAddress,)
+}
+
 const encodeAbiForSendPrize = async (
   prizeReceiverAddress,
   tokenAddress,
@@ -111,6 +125,7 @@ module.exports = {
   encodeAbiForTransferToBackup,
   encodeAbiForCreateWallet,
   encodeAbiForSendPrize,
+  encodeAbiForSendPrizeExternal,
   getWithdrawalAddress,
   getAccountAddresses,
 }
