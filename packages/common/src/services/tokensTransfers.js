@@ -37,23 +37,23 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
 
 const sendTransactionsToBackend = async (asset, walletAddress, transactions, balance, happenedAt) => {
   try {
-  const {feesAccount, userWithdrawalAccount} = await getAccountAddresses(walletAddress)
-  const message = {
-    network: config.network,
-    walletAddress,
-    feesAccount,
-    userWithdrawalAccount,
-    asset,
-    balance,
-    happenedAt,
-    transactions: transactions.map(({from, transactionHash, to, amount}) => ({
-      from,
-      to,
-      transactionHash,
-      amount,
-      status: 'confirmed',
-    })),
-  }
+    const {feesAccount, userWithdrawalAccount} = await getAccountAddresses(walletAddress)
+    const message = {
+      network: config.network,
+      walletAddress,
+      feesAccount,
+      userWithdrawalAccount,
+      asset,
+      balance,
+      happenedAt,
+      transactions: transactions.map(({from, transactionHash, to, amount}) => ({
+        from,
+        to,
+        transactionHash,
+        amount,
+        status: 'confirmed',
+      })),
+    }
     mq.publish('uncompleted-blockchain-token-transfers', message)
     const rest = omit(message, 'transactions')
     context.logger.info(
@@ -68,7 +68,6 @@ const sendTransactionsToBackend = async (asset, walletAddress, transactions, bal
     logError(e)
   }
 }
-
 
 
 module.exports = {insertTransactions, sendTransactionsToBackend}

@@ -2,7 +2,7 @@ const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
-const {getAccountBalanceInEther} = require('./blockchain/tokenTracker')
+const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
 const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
 const uuid = require('uuid')
 const {getWithdrawalAddress} = require('./blockchain/smartWallets')
@@ -119,7 +119,7 @@ const getWalletBalanceInBlockchain = async (walletAddress) => {
 
   return Promise.all(tokens.map(async token => ({
     token: token.name,
-    balance: (await getAccountBalanceInEther(token.address, walletAddress)).balance,
+    balance: (await getAccountTokenBalance(walletAddress, token.address)).balance,
   })))
 }
 

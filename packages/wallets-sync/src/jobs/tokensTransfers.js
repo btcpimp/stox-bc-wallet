@@ -8,12 +8,11 @@ const promiseSerial = require('promise-serial')
 const extractAddresses = transactions =>
   uniq(flatten(transactions.map(t => [t.to.toLowerCase(), t.from.toLowerCase()]))).join('|')
 
-const getBalanceInEther = async (tokenAddress, walletAddress, lastReadBlock) => {
+const getBalanceInEther = async (tokenAddress, walletAddress) => {
   try {
-    const {balance} = await services.blockchain.tokenTracker.getAccountBalanceInEther(
-      tokenAddress,
+    const {balance} = await services.blockchain.tokenTracker.getAccountTokenBalance(
       walletAddress,
-      lastReadBlock
+      tokenAddress
     )
     return balance
   } catch (e) {
@@ -115,7 +114,7 @@ const job = async () => {
         const funcs = withdrawWallets.map(wallet => async () => {
           const tokenAddress = token.address
           const walletAddress = wallet.address
-          const balance = await getBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
+          const balance = await getBalanceInEther(tokenAddress, walletAddress)
           try {
             await tokensBalances.updateBalance(token.id, wallet.id, balance)
             context.logger.info(
