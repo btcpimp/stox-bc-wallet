@@ -72,9 +72,9 @@ module.exports = {
         ))
     )
     router.get(
-      '/abi/sendPrizeExternal',
+      '/abi/sendExternalPrize',
       _(({query: {userStoxWalletAddress, tokenAddress, amount, prizeDistributorAddress}}) =>
-        smartWallets.encodeAbiForSendPrizeExternal(
+        smartWallets.encodeAbiForSendExternalPrize(
           userStoxWalletAddress,
           tokenAddress,
           amount,

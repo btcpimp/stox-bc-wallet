@@ -107,7 +107,7 @@ const getAccountAddresses = (walletAddress) => {
   return wallet.methods.wallet().call()
 }
 
-const encodeAbiForSendPrizeExternal = async (
+const encodeAbiForSendExternalPrize = async (
   userStoxWalletAddress,
   tokenAddress,
   amount,
@@ -128,7 +128,7 @@ module.exports = {
   encodeAbiForTransferToBackup,
   encodeAbiForCreateWallet,
   encodeAbiForSendPrize,
-  encodeAbiForSendPrizeExternal,
+  encodeAbiForSendExternalPrize,
   getWithdrawalAddress,
   getAccountAddresses,
 }
