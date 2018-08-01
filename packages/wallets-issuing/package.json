@@ -1,0 +1,46 @@
+{
+  "name": "wallets-issuing",
+  "description": "A service that monitor the number of unassigned wallets inside the wallets db. If this number gets too low (under a yet-to-be-defined threshold), it will issue new wallet creation requests to the Request Manager’s Incoming Requests queue.",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=8.9.2"
+  },
+  "scripts": {
+    "start": "nodemon $NODE_DEBUG_OPTION -e js . | pino",
+    "serve": "node .",
+    "serve:trace": "node --stack_trace_limit=25 -r trace -r clarify .",
+    "lint": "eslint -c ../../.eslintrc.yml .",
+    "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src",
+    "test:integration": "env-cmd ./.env.test jest src/tests/__integration__/* --rootDir=. --config=../jest/jest.json -i"
+  },
+  "main": "src/index.js",
+  "dependencies": {
+    "@pact-foundation/pact": "^5.9.0",
+    "@welldone-software/node-toolbelt": "^1.4.0",
+    "app-module-path": "^2.2.0",
+    "clarify": "^2.1.0",
+    "lodash": "^4.17.5",
+    "require-all": "^2.2.0",
+    "stox-bc-wallet-common": "^1.0.0",
+    "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
+    "trace": "^3.1.0",
+    "urijs": "^1.19.1",
+    "uuid": "^3.2.1",
+    "web3": "^1.0.0-beta.33"
+  },
+  "devDependencies": {
+    "@pact-foundation/pact": "^5.9.0",
+    "chai": "^4.1.2",
+    "chai-jest-diff": "^1.0.2",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.9.0",
+    "jest": "^22.4.3",
+    "jest-cli": "^22.4.3",
+    "nodemon": "^1.12.1",
+    "pino": "^4.15.3",
+    "prettier": "^1.7.4",
+    "prettier-eslint": "^8.2.1",
+    "prettier-eslint-cli": "^4.4.0"
+  }
+}

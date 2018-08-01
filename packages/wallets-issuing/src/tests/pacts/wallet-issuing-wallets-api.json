@@ -1,0 +1,34 @@
+{
+  "consumer": {
+    "name": "wallet-issuing"
+  },
+  "provider": {
+    "name": "wallets-api"
+  },
+  "interactions": [
+    {
+      "description": "a request for getting pending wallet requests",
+      "request": {
+        "method": "GET",
+        "path": "/api/v1/requests/createWallet/count/pending",
+        "headers": {
+          "Accept": "application/json, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "count": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
