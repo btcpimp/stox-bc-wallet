@@ -23,7 +23,6 @@ const tokenWeiToDecimals = async ({amount: amountWei, decimals, tokenAddress}) =
   return Big(amountWei).div(Big(10 ** decimals)).toFixed()
 }
 
-
 const secondsToDate = date => new Date(date * 1000)
 
 const validateAddress = (address) => {

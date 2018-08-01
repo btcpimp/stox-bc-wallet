@@ -1,6 +1,8 @@
 const {port} = require('config')
-const {services: {
-  wallets, tokensBalances, blockchain: {smartWallets, tokenTracker}, tokens},
+const {
+  services: {
+    accounts, wallets, tokensBalances, blockchain: {smartWallets, tokenTracker}, tokens
+  },
 } = require('stox-bc-wallet-common')
 
 module.exports = {
@@ -10,10 +12,6 @@ module.exports = {
     router.get(
       '/tokenAddress',
       _(({query: {token}}) => tokens.getTokenAddress(token))
-    )
-    router.get(
-      '/getAccountTokenBalance',
-      _(({query: {accountAddress, tokenAddress}}) => tokenTracker.getAccountTokenBalance(accountAddress, tokenAddress))
     )
     router.get(
       '/wallets/unassigned/count',
@@ -74,14 +72,24 @@ module.exports = {
         ))
     )
     router.get(
-      '/abi/sendPrizeExternal',
+      '/abi/sendExternalPrize',
       _(({query: {userStoxWalletAddress, tokenAddress, amount, prizeDistributorAddress}}) =>
-        smartWallets.encodeAbiForSendPrizeExternal(
+        smartWallets.encodeAbiForSendExternalPrize(
           userStoxWalletAddress,
           tokenAddress,
           amount,
           prizeDistributorAddress,
         ))
+    )
+    router.post(
+      '/estimateTokenTransfer',
+      _(({body: {tokenAddresses, from, priority}}) =>
+        tokenTracker.estimateTokenTransfer({tokenAddresses, from, priority}))
+    )
+    router.post(
+      '/accountBalance',
+      _(({body: {accountAddress, tokenAddresses}}) =>
+        accounts.getAccountBalance({accountAddress, tokenAddresses}))
     )
   },
 }

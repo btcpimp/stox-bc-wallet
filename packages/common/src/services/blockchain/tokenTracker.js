@@ -1,6 +1,9 @@
 /* eslint-disable no-underscore-dangle */
 const {validateAddress, getDecimalsByToken, tokenWeiToDecimals} = require('../../utils/blockchain')
-const {blockchain} = require('../../context')
+const {blockchain, config} = require('../../context')
+const {encodeAbiForSendPrize} = require('./smartWallets')
+const {Big} = require('big.js')
+const {http} = require('stox-common')
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)
@@ -31,7 +34,35 @@ const getAccountTokenBalance = async (accountAddress, tokenAddress) => {
   return {balance}
 }
 
+const estimateTokenTransfer = async ({tokenAddresses = [], from, priority}) => {
+  const {price} = await http(config.requestManagerApiBaseUrl).get('gasPriceByPriority', {priority})
+  const priceInEther = blockchain.web3.utils.fromWei(price, 'Ether')
+  const toAddress = '0x0000000000000000000000000000000000000001'
+  const value = '1'
+
+  const estimatedEtherGas = await blockchain.web3.eth.estimateGas({
+    to: toAddress,
+    from,
+    value,
+  })
+  const etherCost = Big(estimatedEtherGas).times(priceInEther)
+
+  const tokensCosts = await Promise.all(tokenAddresses.map(async (tokenAddress) => {
+    const {encodedAbi} =
+      await encodeAbiForSendPrize(toAddress, tokenAddress, value, from)
+    const estimatedGas = await blockchain.web3.eth.estimateGas({
+      to: tokenAddress,
+      from,
+      data: encodedAbi,
+    })
+    const estimatedCost = Big(estimatedGas).times(priceInEther)
+    return {tokenAddress, estimatedCost}
+  }))
+  return {etherCost, tokensCosts}
+}
+
 module.exports = {
   getLatestTransferTransactions,
   getAccountTokenBalance,
+  estimateTokenTransfer,
 }
