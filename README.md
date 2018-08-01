@@ -39,6 +39,3 @@ To run all integration tests in one container, first build the base image and th
 ```
 npm run test:local
 ```
-
-## Docs
-[Blockchain Writer Architecture](https://docs.google.com/document/d/1eXrxDFgjDl-2No22om8vesqGhU7iGtw8iDSuN3VoHJ4/edit#heading=h.jsy3plhn9pv8)
