@@ -45,7 +45,7 @@ const estimateTokenTransfer = async ({tokenAddresses = [], from, priority}) => {
     from,
     value,
   })
-  const etherCost = Big(estimatedEtherGas).times(priceInEther)
+  const estimatedEtherCost = Big(estimatedEtherGas).times(priceInEther)
 
   const tokensCosts = await Promise.all(tokenAddresses.map(async (tokenAddress) => {
     const {encodedAbi} =
@@ -58,7 +58,7 @@ const estimateTokenTransfer = async ({tokenAddresses = [], from, priority}) => {
     const estimatedCost = Big(estimatedGas).times(priceInEther)
     return {tokenAddress, estimatedCost}
   }))
-  return {etherCost, tokensCosts}
+  return {estimatedEtherCost, tokensCosts}
 }
 
 module.exports = {
