@@ -1,4 +1,4 @@
-const {validateAddress, tokenDecimalsToWei} = require('../../utils/blockchain')
+const {validateAddress, tokenDecimalsToWei, isAddressEmpty} = require('../../utils/blockchain')
 const {blockchain, config} = require('../../context')
 const solc = require('solc')
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
@@ -122,7 +122,10 @@ const encodeAbiForSendExternalPrize = async (
   )
 }
 
+const isWalletAssignedOnBlockchain = async address => !(isAddressEmpty(await getWithdrawalAddress(address)))
+
 module.exports = {
+  isWalletAssignedOnBlockchain,
   encodeAbiForSetWithdrawalAddress,
   encodeAbiForWithdraw,
   encodeAbiForTransferToBackup,

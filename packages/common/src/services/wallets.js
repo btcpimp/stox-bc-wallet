@@ -3,9 +3,8 @@ const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-so
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
-const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
 const uuid = require('uuid')
-const {getWithdrawalAddress} = require('./blockchain/smartWallets')
+const {isWalletAssignedOnBlockchain} = require('./blockchain/smartWallets')
 
 const {Op, fn, col, where} = Sequelize
 const {db, mq, config} = context
@@ -31,8 +30,7 @@ const getUnassignedWalletsCount = async () => {
   return {count}
 }
 const validateWalletIsUnassignedOnBlockchain = async (wallet) => {
-  const isWalletUnssignedOnBlockchain = isAddressEmpty(await getWithdrawalAddress(wallet.address))
-  if (!isWalletUnssignedOnBlockchain) {
+  if (await isWalletAssignedOnBlockchain(wallet.address)) {
     throw new InvalidStateError(`wallet: ${wallet.address} is already assigned on blockchain`)
   }
 }
@@ -111,7 +109,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
 }
 
 const getWalletBalanceInBlockchain = async (walletAddress) => {
-  validateAddress(walletAddress)
+  blockchain.validateAddress(walletAddress)
 
   const tokens = await db.tokens.findAll({
     attributes: ['name', 'address'],
