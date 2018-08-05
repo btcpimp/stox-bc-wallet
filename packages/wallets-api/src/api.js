@@ -1,7 +1,7 @@
 const {port} = require('config')
 const {
   services: {
-    accounts, wallets, tokensBalances, blockchain: {smartWallets, tokenTracker}, tokens
+    accounts, wallets, tokensBalances, blockchain: {smartWallets, tokenTracker}, tokens,
   },
 } = require('stox-bc-wallet-common')
 
@@ -90,6 +90,10 @@ module.exports = {
       '/accountBalance',
       _(({body: {accountAddress, tokenAddresses}}) =>
         accounts.getAccountBalance({accountAddress, tokenAddresses}))
+    )
+    router.get(
+      '/wallets/isWalletAssigned',
+      _(({query: {walletAddress}}) => smartWallets.isWalletAssignedOnBlockchain(walletAddress))
     )
   },
 }

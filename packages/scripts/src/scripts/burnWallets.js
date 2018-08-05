@@ -3,8 +3,7 @@ const {http, errors: {logError}} = require('stox-common')
 const {loggers: {logger}} = require('@welldone-software/node-toolbelt')
 const {
   context: {db, mq, config},
-  services: {blockchain: {smartWallets: {getWithdrawalAddress}}},
-  utils: {blockchain: {isAddressEmpty}},
+  services: {blockchain: {smartWallets: {isWalletAssignedOnBlockchain}}},
 } = require('stox-bc-wallet-common')
 const moment = require('moment')
 const uuid = require('uuid')
@@ -40,8 +39,7 @@ const burnWallets = async () => {
 
   promiseSerial(walletsToBurn.map(wallet => async () => {
     try {
-      const isWalletUnassignedOnBlockchain = isAddressEmpty(await getWithdrawalAddress(wallet.address))
-      if (!isWalletUnassignedOnBlockchain) {
+      if (await isWalletAssignedOnBlockchain(wallet.address)) {
         await wallet.update({setWithdrawAddressAt: new Date()})
         countMarkAsBurn += 1
         logger.info({countMarkAsBurn, address: wallet.address}, 'walletMarkedAsBurned')
