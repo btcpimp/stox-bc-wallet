@@ -22,7 +22,7 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
           currentBlockTime,
           fromAddress: from,
           toAddress: to,
-          amount: Number(amount),
+          amount,
           rawData: event,
         },
         {transaction}
