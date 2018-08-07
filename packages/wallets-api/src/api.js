@@ -48,8 +48,8 @@ module.exports = {
     )
     router.get(
       '/abi/withdraw',
-      _(({query: {walletAddress, tokenAddress, amount, feeTokenAddress, fee}}) =>
-        smartWallets.encodeAbiForWithdraw(walletAddress, tokenAddress, amount, feeTokenAddress, fee))
+      _(({query: {walletAddress, tokenAddress, amount}}) =>
+        smartWallets.encodeAbiForWithdraw(walletAddress, tokenAddress, amount))
     )
     router.get(
       '/abi/transferToBackup',

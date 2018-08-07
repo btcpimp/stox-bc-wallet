@@ -4,6 +4,9 @@ module.exports = mapEnv({
   web3Url: '',
   databaseUrl: '',
   mqConnectionUrl: '',
+  requiredConfirmations: 0,
+  maxBlocksRead: 0,
   network: '',
-  currentWalletVersion: '',
+  selfWithdrawCron: '',
+  withdrawalConfigurationAddress: '',
 })

@@ -5,6 +5,7 @@ const blockchain = require('../utils/blockchain')
 const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
 const uuid = require('uuid')
 const {isWalletAssignedOnBlockchain} = require('./blockchain/smartWallets')
+const {errors: {logError}} = require('stox-common')
 
 const {Op, fn, col, where} = Sequelize
 const {db, mq, config} = context
@@ -72,7 +73,7 @@ const createWallets = async (addresses) => {
           id: `${network}.${address}`,
           address,
           network,
-          version: 1,
+          version: 2,
         },
         {transaction}
       )))
@@ -81,6 +82,7 @@ const createWallets = async (addresses) => {
 
     context.logger.info({addresses}, 'CREATED_NEW_WALLETS')
   } catch (e) {
+    logError(e)
     await transaction.rollback()
   }
 }

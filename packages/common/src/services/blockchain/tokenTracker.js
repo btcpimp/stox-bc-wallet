@@ -23,7 +23,6 @@ const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) =
   })))
 }
 
-
 const getAccountTokenBalance = async (accountAddress, tokenAddress) => {
   validateAddress(tokenAddress)
   validateAddress(accountAddress)
@@ -48,8 +47,7 @@ const estimateTokenTransfer = async ({tokenAddresses = [], from, priority}) => {
   const estimatedEtherCost = Big(estimatedEtherGas).times(priceInEther)
 
   const tokensCosts = await Promise.all(tokenAddresses.map(async (tokenAddress) => {
-    const {encodedAbi} =
-      await encodeAbiForSendPrize(toAddress, tokenAddress, value, from)
+    const {encodedAbi} = await encodeAbiForSendPrize(toAddress, tokenAddress, value, from)
     const estimatedGas = await blockchain.web3.eth.estimateGas({
       to: tokenAddress,
       from,
