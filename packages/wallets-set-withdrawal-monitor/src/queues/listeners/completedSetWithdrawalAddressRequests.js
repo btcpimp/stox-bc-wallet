@@ -9,7 +9,7 @@ module.exports = async ({body: completedRequest}) => {
     if (completedRequest.error) {
       throw completedRequest.error
     }
-    await pendingRequests.destroyPendingRequest(completedRequest.id, dbTransaction)
+    await pendingRequests.finishPendingRequest(completedRequest.id, dbTransaction)
     const wallet = await wallets.getWalletByAddress(completedRequest.data.walletAddress)
     await wallet.updateAttributes({setWithdrawAddressAt: new Date()}, dbTransaction)
     context.mq.publish('bc-assigned-wallets', {

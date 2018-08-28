@@ -3,7 +3,7 @@ const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-so
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
-const {addPendingRequests} = require('./pendingRequests')
+const {addPendingRequest} = require('./pendingRequests')
 const uuid = require('uuid')
 const {isWalletAssignedOnBlockchain} = require('./blockchain/smartWallets')
 const {errors: {logError}} = require('stox-common')
@@ -62,7 +62,7 @@ const sendSetWithdrawalAddressRequest = async (depositAddress, withdrawAddress) 
     data: {walletAddress: depositAddress, userWithdrawalAddress: withdrawAddress},
     type: 'setWithdrawalAddress',
   })
-  await addPendingRequests('setWithdrawalAddress', id)
+  addPendingRequest('setWithdrawalAddress', id)
   return id
 }
 
@@ -105,7 +105,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
     await validateWalletIsUnassignedOnBlockchain(wallet)
     const isUpdated = await db.wallets.update({assignedAt: new Date()}, {where: {id: wallet.id, assignedAt: null}})
     if (!isUpdated[0]) {
-      throw new UnexpectedError(`address ${wallet.address} is already assign`)
+      throw new UnexpectedError(`address ${wallet.address}  is already assigned on blockchain`)
     }
     const requestId = await sendSetWithdrawalAddressRequest(wallet.address, withdrawAddress)
     context.logger.info({wallet: wallet.dataValues, requestId}, 'ASSIGNED')

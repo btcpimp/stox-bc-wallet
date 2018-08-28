@@ -6,7 +6,7 @@ const {
 module.exports = async ({body: completedRequest}) => {
   const dbTransaction = await context.db.sequelize.transaction()
   try {
-    await pendingRequests.destroyPendingRequest(completedRequest.id, dbTransaction)
+    await pendingRequests.finishPendingRequest(completedRequest.id, dbTransaction)
     const completedTransaction = completedRequest.transactions[0]
     const wallet =
       completedTransaction && completedTransaction.receipt ? completedTransaction.receipt.contractAddress : undefined

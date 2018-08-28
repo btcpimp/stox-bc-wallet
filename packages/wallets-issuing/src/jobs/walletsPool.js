@@ -40,7 +40,7 @@ const job = async () => {
   const requests = Number(walletsPoolThreshold) - unassigned - pending
   for(let i = 0; i < requests; i++) {
     const requestId = issueWallet()
-    await services.pendingRequests.addPendingRequests('createWallet', requestId)
+    await services.pendingRequests.addPendingRequest('createWallet', requestId)
   }
 
   await warnIfNotEnoughInRequestManager(pending)
