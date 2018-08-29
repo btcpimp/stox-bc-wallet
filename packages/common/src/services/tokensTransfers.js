@@ -2,7 +2,7 @@ const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbel
 const context = require('../context')
 const {omit} = require('lodash')
 const {errors: {logError}} = require('stox-common')
-const {getAccountAddresses} = require('./blockchain/smartWallets')
+const {getWalletProperties} = require('./blockchain/smartWallets')
 
 const {db, config, mq} = context
 
@@ -37,7 +37,7 @@ const insertTransactions = async (tokenId, transactions, currentBlockTime) => {
 
 const sendTransactionsToBackend = async (asset, walletAddress, transactions, balance, happenedAt) => {
   try {
-    const {feesAccount, userWithdrawalAccount} = await getAccountAddresses(walletAddress)
+    const {feesAccount, userWithdrawalAccount} = await getWalletProperties(walletAddress)
     const message = {
       network: config.network,
       walletAddress,

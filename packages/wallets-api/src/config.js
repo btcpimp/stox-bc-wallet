@@ -14,5 +14,7 @@ module.exports = mapEnv({
   smartWalletsBackupAccount: '',
   smartWalletsFeesAccount: '',
   requestManagerApiBaseUrl: '',
-
+  currentWalletVersion: '',
+  feeTokenAddress: '',
+  fee: '',
 })
