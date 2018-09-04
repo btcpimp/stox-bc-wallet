@@ -1,11 +1,27 @@
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
+const {Big} = require('big.js')
 
 const {blockchain, config} = context
 
-const weiToEther = wei => blockchain.web3.utils.fromWei(wei.toString(), 'ether')
+const getDecimalsByToken = async (tokenAddress) => {
+  const token = blockchain.getERC20TokenContract(tokenAddress)
+  return token.methods.decimals().call()
+}
 
-const etherToWei = ether => blockchain.web3.utils.toWei(ether.toString(), 'ether')
+const tokenDecimalsToWei = async ({amount: amountDecimals, decimals, tokenAddress}) => {
+  if (!decimals) {
+    decimals = await getDecimalsByToken(tokenAddress)
+  }
+  return Big(amountDecimals).times(Big(10 ** decimals)).toFixed()
+}
+
+const tokenWeiToDecimals = async ({amount: amountWei, decimals, tokenAddress}) => {
+  if (!decimals) {
+    decimals = await getDecimalsByToken(tokenAddress)
+  }
+  return Big(amountWei).div(Big(10 ** decimals)).toFixed()
+}
 
 const secondsToDate = date => new Date(date * 1000)
 
@@ -37,8 +53,9 @@ const isListening = async () => {
 }
 
 module.exports = {
-  weiToEther,
-  etherToWei,
+  tokenDecimalsToWei,
+  tokenWeiToDecimals,
+  getDecimalsByToken,
   validateAddress,
   isAddressEmpty,
   isListening,

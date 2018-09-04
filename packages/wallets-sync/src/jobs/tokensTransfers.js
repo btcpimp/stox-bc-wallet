@@ -1,19 +1,18 @@
 const {flatten, uniq} = require('lodash')
 const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
 const {services, context, utils} = require('stox-bc-wallet-common')
-const {network, tokensTransfersCron, requiredConfirmations, maxBlocksRead} = require('../config')
+const {network, tokensTransfersCron} = require('../config')
 const {errors: {logError}} = require('stox-common')
 const promiseSerial = require('promise-serial')
 
 const extractAddresses = transactions =>
   uniq(flatten(transactions.map(t => [t.to.toLowerCase(), t.from.toLowerCase()]))).join('|')
 
-const getBalanceInEther = async (tokenAddress, walletAddress, lastReadBlock) => {
+const getAccountTokenBalance = async (tokenAddress, walletAddress) => {
   try {
-    const {balance} = await services.blockchain.tokenTracker.getAccountBalanceInEther(
-      tokenAddress,
+    const {balance} = await services.blockchain.tokenTracker.getAccountTokenBalance(
       walletAddress,
-      lastReadBlock
+      tokenAddress
     )
     return balance
   } catch (e) {
@@ -39,33 +38,12 @@ const fetchLatestTransactions = async (tokenAddress, fromBlock, toBlock) => {
   }
 }
 
-const getNextBlocksRange = async (lastReadBlock) => {
-  try {
-    let fromBlock = lastReadBlock !== 0 ? lastReadBlock + 1 : 0
-    const toBlock = await utils.blockchain.getLastConfirmedBlock()
-
-    if (toBlock - fromBlock > maxBlocksRead) {
-      fromBlock = toBlock - maxBlocksRead
-      fromBlock = fromBlock < 0 ? (fromBlock = 0) : fromBlock
-    }
-
-    return {
-      fromBlock,
-      toBlock,
-    }
-  } catch (e) {
-    throw new UnexpectedError(`blockchain read failed, ${e.message}`, e)
-  }
-}
-
 const job = async () => {
-  const {tokens, tokensTransfersReads, tokensTransfers, wallets, tokensBalances} = services
+  const {tokens, contractsTrackingData, tokensTransfers, wallets, tokensBalances} = services
   const networkTokens = await tokens.getTokens(network)
 
   const getTokensTransfers = networkTokens.map(token => async () => {
-    const lastReadBlock = await services.tokensTransfersReads.fetchLastReadBlock(token.id)
-    const {fromBlock, toBlock} = await getNextBlocksRange(lastReadBlock)
-
+    const {fromBlock, toBlock} = await contractsTrackingData.getNextBlocksRange(token.id)
     if (fromBlock < toBlock) {
       const {transactions, currentBlockTime, currentBlock} = await fetchLatestTransactions(
         token.address,
@@ -115,7 +93,7 @@ const job = async () => {
         const funcs = withdrawWallets.map(wallet => async () => {
           const tokenAddress = token.address
           const walletAddress = wallet.address
-          const balance = await getBalanceInEther(tokenAddress, walletAddress, lastReadBlock)
+          const balance = await getAccountTokenBalance(tokenAddress, walletAddress)
           try {
             await tokensBalances.updateBalance(token.id, wallet.id, balance)
             context.logger.info(
@@ -149,7 +127,7 @@ const job = async () => {
           logError(e)
         }
       }
-      await tokensTransfersReads.updateLastReadBlock(token.id, toBlock)
+      await contractsTrackingData.updateLastReadBlock(token.id, toBlock)
     }
   })
 

@@ -1,7 +1,14 @@
-const {validateAddress, etherToWei} = require('../../utils/blockchain')
+const {validateAddress, tokenDecimalsToWei, isAddressEmpty} = require('../../utils/blockchain')
 const {blockchain, config} = require('../../context')
 const solc = require('solc')
 const {exceptions: {InvalidArgumentError}} = require('@welldone-software/node-toolbelt')
+
+const getSmartWalletContract = async (walletAddress) => {
+  const version = walletAddress ?
+    (await require('../wallets').getWalletByAddress(walletAddress)).version :
+    config.currentWalletVersion
+  return blockchain[`getSmartWalletV${version}Contract`](walletAddress)
+}
 
 const getOperatorAccount = async wallet => (await wallet.methods.wallet().call()).operatorAccount
 
@@ -9,14 +16,15 @@ const encodeAbiForSetWithdrawalAddress = async (walletAddress, userWithdrawalAdd
   validateAddress(walletAddress)
   validateAddress(userWithdrawalAddress)
 
-  const wallet = blockchain.getSmartWalletContract(walletAddress)
+  const wallet = await getSmartWalletContract(walletAddress)
   const fromAccount = await getOperatorAccount(wallet)
   const encodedAbi = wallet.methods.setUserWithdrawalAccount(userWithdrawalAddress).encodeABI()
 
   return {fromAccount, encodedAbi}
 }
 
-const encodeAbiForWithdraw = async (walletAddress, tokenAddress, amount, feeTokenAddress, fee) => {
+const encodeAbiForWithdraw = async (walletAddress, tokenAddress, amount) => {
+  const {feeTokenAddress, fee} = config
   validateAddress(walletAddress)
   validateAddress(tokenAddress)
 
@@ -30,13 +38,13 @@ const encodeAbiForWithdraw = async (walletAddress, tokenAddress, amount, feeToke
     validateAddress(feeTokenAddress)
   }
 
-  const wallet = blockchain.getSmartWalletContract(walletAddress)
+  const wallet = await getSmartWalletContract(walletAddress)
   const fromAccount = await getOperatorAccount(wallet)
   const encodedAbi = wallet.methods.transferToUserWithdrawalAccount(
     tokenAddress,
-    etherToWei(amount),
+    await tokenDecimalsToWei({amount, tokenAddress}),
     feeTokenAddress,
-    etherToWei(fee)
+    await tokenDecimalsToWei({amount: fee, tokenAddress: feeTokenAddress})
   ).encodeABI()
 
   return {fromAccount, encodedAbi}
@@ -50,9 +58,10 @@ const encodeAbiForTransferToBackup = async (walletAddress, tokenAddress, amount)
     throw new InvalidArgumentError(`Amount must be greater than 0. Amount is ${amount}`)
   }
 
-  const wallet = blockchain.getSmartWalletContract(walletAddress)
+  const wallet = await getSmartWalletContract(walletAddress)
   const fromAccount = await getOperatorAccount(wallet)
-  const encodedAbi = wallet.methods.transferToBackupAccount(tokenAddress, etherToWei(amount)).encodeABI()
+  const amountInWei = await tokenDecimalsToWei({amount, tokenAddress})
+  const encodedAbi = wallet.methods.transferToBackupAccount(tokenAddress, amountInWei).encodeABI()
 
   return {fromAccount, encodedAbi}
 }
@@ -61,10 +70,10 @@ const encodeAbiForCreateWallet = async () => {
   const fromAccount = config.walletsCreatorAccount
   const bytecode =
     await solc.linkBytecode(blockchain.getSmartWalletContractBin(), {':SmartWalletLib': config.smartWalletLibAddress})
-  const encodedAbi = blockchain.getSmartWalletContract()
+  const encodedAbi = (await getSmartWalletContract())
     .deploy({
       data: bytecode,
-      arguments: [config.smartWalletsBackupAccount, config.smartWalletsOperatorAccount, config.smartWalletsFeesAccount],
+      arguments: [config.smartWalletsOperatorAccount, config.smartWalletsFeesAccount],
     })
     .encodeABI()
 
@@ -85,32 +94,51 @@ const encodeAbiForSendPrize = async (
     throw new InvalidArgumentError(`Amount must be greater than 0. Amount is ${amount}`)
   }
 
-  const token = await blockchain.getERC20TokenContract(tokenAddress)
-  const encodedAbi = token.methods.transfer(prizeReceiverAddress, etherToWei(amount)).encodeABI()
+  const token = blockchain.getERC20TokenContract(tokenAddress)
+  const amountInWei = await tokenDecimalsToWei({amount, tokenAddress})
+  const encodedAbi = token.methods.transfer(prizeReceiverAddress, amountInWei).encodeABI()
 
   return {fromAccount: prizeDistributorAddress, encodedAbi}
 }
 
-const getWithdrawalAddress = async (walletAddress) => {
+const getWalletProperties = async (walletAddress) => {
   validateAddress(walletAddress)
 
-  const wallet = blockchain.getSmartWalletContract(walletAddress)
-  return (await wallet.methods.wallet().call()).userWithdrawalAccount
-}
-
-const getAccountAddresses = walletAddress => {
-  validateAddress(walletAddress)
-
-  const wallet = blockchain.getSmartWalletContract(walletAddress)
+  const wallet = await getSmartWalletContract(walletAddress)
   return wallet.methods.wallet().call()
 }
 
+
+const getWithdrawalAddress = async (walletAddress) => {
+  const {userWithdrawalAccount} = await getWalletProperties(walletAddress)
+  return userWithdrawalAccount
+}
+
+const encodeAbiForSendExternalPrize = async (
+  userStoxWalletAddress,
+  tokenAddress,
+  amount,
+  prizeDistributorAddress = config.defaultPrizeAccount
+) => {
+  const prizeReceiverAddress = await getWithdrawalAddress(userStoxWalletAddress)
+  return encodeAbiForSendPrize(
+    prizeReceiverAddress,
+    tokenAddress,
+    amount,
+    prizeDistributorAddress
+  )
+}
+
+const isWalletAssignedOnBlockchain = async address => !(isAddressEmpty(await getWithdrawalAddress(address)))
+
 module.exports = {
+  isWalletAssignedOnBlockchain,
   encodeAbiForSetWithdrawalAddress,
   encodeAbiForWithdraw,
   encodeAbiForTransferToBackup,
   encodeAbiForCreateWallet,
   encodeAbiForSendPrize,
+  encodeAbiForSendExternalPrize,
   getWithdrawalAddress,
-  getAccountAddresses,
+  getWalletProperties,
 }

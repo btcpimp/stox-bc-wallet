@@ -1,56 +1,67 @@
-const {validateAddress, weiToEther, getLastConfirmedBlock} = require('../../utils/blockchain')
-const {blockchain} = require('../../context')
-const {exceptions: {UnexpectedError}} = require('@welldone-software/node-toolbelt')
+/* eslint-disable no-underscore-dangle */
+const {validateAddress, getDecimalsByToken, tokenWeiToDecimals} = require('../../utils/blockchain')
+const {blockchain, config} = require('../../context')
+const {encodeAbiForSendPrize} = require('./smartWallets')
+const {Big} = require('big.js')
+const {http} = require('stox-common')
 
 const getLatestTransferTransactions = async (tokenAddress, fromBlock, toBlock) => {
   validateAddress(tokenAddress)
   const tokenContract = blockchain.getERC20TokenContract(tokenAddress)
-  const transactions = []
   const events = await tokenContract.getPastEvents('Transfer', {fromBlock, toBlock})
+  const decimals = await getDecimalsByToken(tokenAddress)
 
-  events.forEach((event) => {
-    const transaction = {
-      from: event.returnValues._from, // eslint-disable-line no-underscore-dangle
-      to: event.returnValues._to, // eslint-disable-line no-underscore-dangle
-      amount: weiToEther(event.returnValues._value), // eslint-disable-line no-underscore-dangle
-      logIndex: event.logIndex,
-      transactionIndex: event.transactionIndex,
-      blockNumber: event.blockNumber,
-      transactionHash: event.transactionHash,
-      event,
-    }
-
-    transactions.push(transaction)
-    // if (weiToEther(event.returnValues._value) > 50000) {
-    //   transactions.push(transaction)
-    // }
-  })
-
-  return transactions
+  return Promise.all(events.map(async event => ({
+    from: event.returnValues._from,
+    to: event.returnValues._to,
+    amount: await tokenWeiToDecimals({amount: event.returnValues._value, decimals}),
+    logIndex: event.logIndex,
+    transactionIndex: event.transactionIndex,
+    blockNumber: event.blockNumber,
+    transactionHash: event.transactionHash,
+    event,
+  })))
 }
 
-const getAccountBalance = async (tokenAddress, owner, blockNumber) => {
+const getAccountTokenBalance = async (accountAddress, tokenAddress) => {
   validateAddress(tokenAddress)
-  validateAddress(owner)
+  validateAddress(accountAddress)
+
   const tokenContract = blockchain.getERC20TokenContract(tokenAddress)
-
-  const lastConfirmedBlock = await getLastConfirmedBlock()
-  if (blockNumber >= lastConfirmedBlock) {
-    throw new UnexpectedError(
-      'Ethereum node is behind database last confirmed block',
-      {blockNumber, lastConfirmedBlock}
-    )
-  }
-
-  blockNumber = lastConfirmedBlock
-  return tokenContract.methods.balanceOf(owner).call(undefined, blockNumber)
+  const accountBalance = await tokenContract.methods.balanceOf(accountAddress).call()
+  const balance = await tokenWeiToDecimals({amount: accountBalance, tokenAddress})
+  return {balance}
 }
 
-const getAccountBalanceInEther = async (tokenAddress, owner, blockNumber) => ({
-  balance: Number(weiToEther(await getAccountBalance(tokenAddress, owner, blockNumber))),
-})
+const estimateTokenTransfer = async ({tokenAddresses = [], from, priority}) => {
+  const {price} = await http(config.requestManagerApiBaseUrl).get('gasPriceByPriority', {priority})
+  const priceInEther = blockchain.web3.utils.fromWei(price, 'Ether')
+  const toAddress = '0x0000000000000000000000000000000000000001'
+  const value = '1'
+
+  const estimatedEtherGas = await blockchain.web3.eth.estimateGas({
+    to: toAddress,
+    from,
+    value,
+  })
+  const estimatedEtherCost = Big(estimatedEtherGas).times(priceInEther)
+
+  const tokensCosts = await Promise.all(tokenAddresses.map(async (tokenAddress) => {
+    const amount = await tokenWeiToDecimals({amount: 1, tokenAddress})
+    const {encodedAbi} = await encodeAbiForSendPrize(toAddress, tokenAddress, amount, from)
+    const estimatedGas = await blockchain.web3.eth.estimateGas({
+      to: tokenAddress,
+      from,
+      data: encodedAbi,
+    })
+    const estimatedCost = Big(estimatedGas).times(priceInEther)
+    return {tokenAddress, estimatedCost}
+  }))
+  return {estimatedEtherCost, tokensCosts}
+}
 
 module.exports = {
   getLatestTransferTransactions,
-  getAccountBalanceInEther,
+  getAccountTokenBalance,
+  estimateTokenTransfer,
 }

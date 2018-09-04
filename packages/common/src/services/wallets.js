@@ -2,10 +2,10 @@ const Sequelize = require('sequelize')
 const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-software/node-toolbelt')
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
-const {getAccountBalanceInEther} = require('./blockchain/tokenTracker')
-const {validateAddress, isAddressEmpty} = require('../utils/blockchain')
+const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
 const uuid = require('uuid')
-const {getWithdrawalAddress} = require('./blockchain/smartWallets')
+const {isWalletAssignedOnBlockchain} = require('./blockchain/smartWallets')
+const {errors: {logError}} = require('stox-common')
 
 const {Op, fn, col, where} = Sequelize
 const {db, mq, config} = context
@@ -31,8 +31,7 @@ const getUnassignedWalletsCount = async () => {
   return {count}
 }
 const validateWalletIsUnassignedOnBlockchain = async (wallet) => {
-  const isWalletUnssignedOnBlockchain = isAddressEmpty(await getWithdrawalAddress(wallet.address))
-  if (!isWalletUnssignedOnBlockchain) {
+  if (await isWalletAssignedOnBlockchain(wallet.address)) {
     throw new InvalidStateError(`wallet: ${wallet.address} is already assigned on blockchain`)
   }
 }
@@ -74,7 +73,7 @@ const createWallets = async (addresses) => {
           id: `${network}.${address}`,
           address,
           network,
-          version: 1,
+          version: 2,
         },
         {transaction}
       )))
@@ -83,6 +82,7 @@ const createWallets = async (addresses) => {
 
     context.logger.info({addresses}, 'CREATED_NEW_WALLETS')
   } catch (e) {
+    logError(e)
     await transaction.rollback()
   }
 }
@@ -111,7 +111,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
 }
 
 const getWalletBalanceInBlockchain = async (walletAddress) => {
-  validateAddress(walletAddress)
+  blockchain.validateAddress(walletAddress)
 
   const tokens = await db.tokens.findAll({
     attributes: ['name', 'address'],
@@ -119,7 +119,7 @@ const getWalletBalanceInBlockchain = async (walletAddress) => {
 
   return Promise.all(tokens.map(async token => ({
     token: token.name,
-    balance: (await getAccountBalanceInEther(token.address, walletAddress)).balance,
+    balance: (await getAccountTokenBalance(walletAddress, token.address)).balance,
   })))
 }
 

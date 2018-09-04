@@ -1,23 +1,28 @@
 {
-  "name": "stox-bc-wallet-common",
-  "description": "common database and services package for wallet manager",
+  "name": "user-withdraw-requested",
+  "description": "Service for listening to user withrawal requests from smart wallets contract, and reporting to stox-server",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "engines": {
+    "node": ">=8.9.2"
+  },
   "scripts": {
+    "start": "nodemon $NODE_DEBUG_OPTION -e js . | pino",
+    "serve": "node .",
+    "serve:trace": "node --stack_trace_limit=25 -r trace -r clarify .",
     "lint": "eslint -c ../../.eslintrc.yml .",
     "lint:fix": "prettier-eslint --write \"src/**/*.js\" && eslint src"
   },
+  "main": "src/index.js",
   "dependencies": {
     "@welldone-software/node-toolbelt": "^1.4.0",
+    "app-module-path": "^2.2.0",
     "clarify": "^2.1.0",
     "lodash": "^4.17.5",
+    "promise-serial": "^0.1.5",
     "require-all": "^2.2.0",
-    "sequelize": "^4.35.2",
-    "solc": "^0.4.21",
-    "uuid": "^3.2.1",
+    "stox-bc-wallet-common": "1.0.0",
     "stox-common": "git@bitbucket.org:stx_site/stox-common.git#dev",
     "trace": "^3.1.0",
-    "big.js": "^5.0.3",
     "web3": "^1.0.0-beta.33"
   },
   "devDependencies": {
