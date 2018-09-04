@@ -16,6 +16,14 @@ const getLatestSelfWithdrawRequests = async (fromBlock, toBlock) => {
   return events
 }
 
+const getWalletFromDb = async (address) => {
+  try {
+    return await wallets.getWalletByAddress(address)
+  } catch (e) {
+    return false
+  }
+}
+
 const job = async () => {
   const {fromBlock, toBlock} = await contractsTrackingData.getNextBlocksRange(withdrawalConfigurationId)
   if (fromBlock < toBlock) {
@@ -24,14 +32,14 @@ const job = async () => {
     try {
       if (withdrawRequests.length) {
         await promiseSerial(withdrawRequests.map(({returnValues: {_smartWallet}}) => async () => {
+          const wallet = await getWalletFromDb(_smartWallet)
+          if (!wallet) {
+            context.logger.error(`wallet not found ${_smartWallet}`)
+            return
+          }
           const {withdrawAllowedAt} = await smartWallets.getWalletProperties(_smartWallet)
           if (withdrawAllowedAt) {
             const selfWithdrawAllowedAt = new Date(withdrawAllowedAt * 1000)
-            const wallet = await wallets.getWalletByAddress(_smartWallet)
-            if (!wallet) {
-              context.logger.error(`wallet not found ${_smartWallet}`)
-              return
-            }
             await wallet.updateAttributes(
               {selfWithdrawRequestedAt: Date.now(), selfWithdrawAllowedAt},
               {transaction: dbTransaction}
