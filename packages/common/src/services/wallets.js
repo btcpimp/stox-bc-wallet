@@ -57,12 +57,12 @@ const getUnassignedWallet = async () => {
 
 const sendSetWithdrawalAddressRequest = async (depositAddress, withdrawAddress) => {
   const id = uuid()
+  await addPendingRequest('setWithdrawalAddress', id)
   mq.publish('incoming-requests', {
     id,
     data: {walletAddress: depositAddress, userWithdrawalAddress: withdrawAddress},
     type: 'setWithdrawalAddress',
   })
-  addPendingRequest('setWithdrawalAddress', id)
   return id
 }
 

@@ -100,10 +100,8 @@ module.exports = (sequelize) => {
     {
       requestId: {type: UUID, primaryKey: true, allowNull: false},
       type: {type: STRING(30), allowNull: false},
-      sentAt: {type: DATE, defaultValue: new Date()},
     },
     {
-      createdAt: false,
       updatedAt: false,
     }
   )
