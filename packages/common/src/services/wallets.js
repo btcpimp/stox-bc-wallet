@@ -3,6 +3,7 @@ const {exceptions: {UnexpectedError, InvalidStateError}} = require('@welldone-so
 const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
+const {addPendingRequest} = require('./pendingRequests')
 const uuid = require('uuid')
 const {isWalletAssignedOnBlockchain} = require('./blockchain/smartWallets')
 const {errors: {logError}} = require('stox-common')
@@ -32,6 +33,7 @@ const getUnassignedWalletsCount = async () => {
 }
 const validateWalletIsUnassignedOnBlockchain = async (wallet) => {
   if (await isWalletAssignedOnBlockchain(wallet.address)) {
+    await wallet.updateAttributes({corruptedAt: new Date()})
     throw new InvalidStateError(`wallet: ${wallet.address} is already assigned on blockchain`)
   }
 }
@@ -53,41 +55,42 @@ const getUnassignedWallet = async () => {
   return wallet
 }
 
-const updateWallet = async (wallet, attributes) => wallet.updateAttributes(attributes)
-
-const sendAssignRequest = (wallet, withdrawAddress) => {
+const sendSetWithdrawalAddressRequest = async (depositAddress, withdrawAddress) => {
+  const id = uuid()
+  await addPendingRequest('setWithdrawalAddress', id)
   mq.publish('incoming-requests', {
-    id: uuid(),
-    data: {walletAddress: wallet.address, userWithdrawalAddress: withdrawAddress},
+    id,
+    data: {walletAddress: depositAddress, userWithdrawalAddress: withdrawAddress},
     type: 'setWithdrawalAddress',
   })
+  return id
+}
+
+const createWallet = async (address, dbTransaction) => {
+  const {network} = config
+  db.wallets.create(
+    {
+      id: `${network}.${address}`,
+      address,
+      network,
+      version: 2,
+    },
+    {transaction: dbTransaction}
+  )
+  context.logger.info({address}, 'CREATED_NEW_WALLET')
 }
 
 const createWallets = async (addresses) => {
-  const transaction = await db.sequelize.transaction()
-  const {network} = config
+  const dbTransaction = await db.sequelize.transaction()
   try {
-    await Promise.all(addresses.map(address =>
-      db.wallets.create(
-        {
-          id: `${network}.${address}`,
-          address,
-          network,
-          version: 2,
-        },
-        {transaction}
-      )))
-
-    await transaction.commit()
-
-    context.logger.info({addresses}, 'CREATED_NEW_WALLETS')
+    await Promise.all(addresses.map(address => createWallet(address, dbTransaction)))
+    await dbTransaction.commit()
   } catch (e) {
+    context.logger.error({addresses}, 'ERROR_CREATE_WALLETS')
     logError(e)
-    await transaction.rollback()
+    await dbTransaction.rollback()
   }
 }
-
-const createWallet = async address => createWallets([address])
 
 const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
   const {maxWalletAssignRetires} = config
@@ -99,10 +102,13 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
 
   try {
     const wallet = await getUnassignedWallet()
-    await updateWallet(wallet, {assignedAt: Date.now()})
     await validateWalletIsUnassignedOnBlockchain(wallet)
-    sendAssignRequest(wallet, withdrawAddress)
-    context.logger.info({wallet: wallet.dataValues}, 'ASSIGNED')
+    const isUpdated = await db.wallets.update({assignedAt: new Date()}, {where: {id: wallet.id, assignedAt: null}})
+    if (!isUpdated[0]) {
+      throw new UnexpectedError(`address ${wallet.address}  is already assigned on blockchain`)
+    }
+    const requestId = await sendSetWithdrawalAddressRequest(wallet.address, withdrawAddress)
+    context.logger.info({wallet: wallet.dataValues, requestId}, 'ASSIGNED')
     return wallet
   } catch (e) {
     context.logger.error(e)
@@ -131,5 +137,4 @@ module.exports = {
   assignWallet,
   createWallets,
   createWallet,
-  updateWallet,
 }

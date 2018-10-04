@@ -1,16 +1,17 @@
-const {times} = require('lodash')
 const uuid = require('uuid')
 const {services, context, context: {mq}} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('../config')
-const {http} = require('stox-common')
+const {http, errors: {logError}} = require('stox-common')
 
 const httpClient = http(requestManagerApiBaseUrl)
 
-const issueWallet = () =>
+const issueWallet = (id) => {
   mq.publish('incoming-requests', {
-    id: uuid(),
+    id,
     type: 'createWallet',
   })
+}
+
 
 const warnIfNotEnoughInRequestManager = async (pending) => {
   try {
@@ -32,13 +33,20 @@ const warnIfNotEnoughInRequestManager = async (pending) => {
 
 const job = async () => {
   const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
-  const {count: pending} = await services.pendingRequests.getPendingRequests('createWallet')
+  const pending = await services.pendingRequests.getCountByType('createWallet')
   const requests = Number(walletsPoolThreshold) - unassigned - pending
-  if (requests > 0) {
-    times(requests, issueWallet)
-    await services.pendingRequests.addPendingRequests('createWallet', requests)
+  const dbTransaction = await context.db.sequelize.transaction()
+  try {
+    for (let i = 0; i < requests; i++) {
+      const requestId = uuid()
+      await services.pendingRequests.addPendingRequest('createWallet', requestId, dbTransaction)
+      issueWallet(requestId)
+    }
+    await dbTransaction.commit()
+  } catch (e) {
+    logError(e, 'ERROR_CREATE_WALLETS')
+    await dbTransaction.rollback()
   }
-
   await warnIfNotEnoughInRequestManager(pending)
 
   context.logger.info(
