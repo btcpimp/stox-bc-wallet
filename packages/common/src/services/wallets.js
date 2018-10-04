@@ -97,7 +97,7 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
   blockchain.validateAddress(withdrawAddress)
 
   if (times >= maxWalletAssignRetires || times >= max) {
-    throw new Error('too many tries')
+    throw new Error('no wallets available')
   }
 
   try {
