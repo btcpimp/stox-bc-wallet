@@ -1,6 +1,6 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL, SMALLINT, INTEGER, BIGINT, JSON} = DataTypes
+const {STRING, DATE, DECIMAL, SMALLINT, INTEGER, BIGINT, JSON, UUID} = DataTypes
 const AMOUNT = DECIMAL(36, 18)
 const ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)
@@ -98,11 +98,11 @@ module.exports = (sequelize) => {
   sequelize.define(
     'pendingRequests',
     {
-      type: {type: STRING(30), primaryKey: true},
-      count: {type: INTEGER, defaultValue: 0, allowNull: false},
+      requestId: {type: UUID, primaryKey: true, allowNull: false},
+      type: {type: STRING(30), allowNull: false},
     },
     {
-      createdAt: false,
+      updatedAt: false,
     }
   )
 

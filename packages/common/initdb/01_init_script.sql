@@ -98,4 +98,3 @@ CREATE TABLE "pendingRequests"
 );
 
 INSERT INTO "tokens" ("id", "name", "address", "network") VALUES ('MAIN.0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'STX', '0x006bea43baa3f7a6f765f14f10a1a1b08334ef45', 'MAIN');
-INSERT INTO "pendingRequests" ("type", "count", "updatedAt") VALUES ('createWallet', 0, NOW());
