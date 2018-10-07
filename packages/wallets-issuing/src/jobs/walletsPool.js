@@ -17,7 +17,7 @@ const warnIfNotEnoughInRequestManager = async (pending) => {
   try {
     const {count: rmPending} = await httpClient.get('requests/createWallet/count/pending')
 
-    if (rmPending !== pending) {
+    if (Math.abs(rmPending - pending) > 20) {
       context.logger.warn(
         {
           requestMangerPendingCount: rmPending,
@@ -35,17 +35,14 @@ const job = async () => {
   const {count: unassigned} = await services.wallets.getUnassignedWalletsCount()
   const pending = await services.pendingRequests.getCountByType('createWallet')
   const requests = Number(walletsPoolThreshold) - unassigned - pending
-  const dbTransaction = await context.db.sequelize.transaction()
   try {
     for (let i = 0; i < requests; i++) {
       const requestId = uuid()
-      await services.pendingRequests.addPendingRequest('createWallet', requestId, dbTransaction)
+      await services.pendingRequests.addPendingRequest('createWallet', requestId)
       issueWallet(requestId)
     }
-    await dbTransaction.commit()
   } catch (e) {
     logError(e, 'ERROR_CREATE_WALLETS')
-    await dbTransaction.rollback()
   }
   await warnIfNotEnoughInRequestManager(pending)
 
