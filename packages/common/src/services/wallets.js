@@ -66,7 +66,7 @@ const sendSetWithdrawalAddressRequest = async (depositAddress, withdrawAddress) 
   return id
 }
 
-const createWallet = async (address, dbTransaction) => {
+const createWallet = async (address) => {
   const {network} = config
   db.wallets.create(
     {
@@ -75,20 +75,16 @@ const createWallet = async (address, dbTransaction) => {
       network,
       version: 2,
     },
-    {transaction: dbTransaction}
   )
   context.logger.info({address}, 'CREATED_NEW_WALLET')
 }
 
 const createWallets = async (addresses) => {
-  const dbTransaction = await db.sequelize.transaction()
   try {
-    await Promise.all(addresses.map(address => createWallet(address, dbTransaction)))
-    await dbTransaction.commit()
+    await Promise.all(addresses.map(address => createWallet(address)))
   } catch (e) {
     context.logger.error({addresses}, 'ERROR_CREATE_WALLETS')
     logError(e)
-    await dbTransaction.rollback()
   }
 }
 
