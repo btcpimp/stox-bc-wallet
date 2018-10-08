@@ -1,4 +1,3 @@
-const uuid = require('uuid')
 const {services, context, context: {mq}} = require('stox-bc-wallet-common')
 const {walletsPoolThreshold, network, walletsPoolCron, requestManagerApiBaseUrl} = require('../config')
 const {http, errors: {logError}} = require('stox-common')
@@ -37,8 +36,7 @@ const job = async () => {
   const requests = Number(walletsPoolThreshold) - unassigned - pending
   try {
     for (let i = 0; i < requests; i++) {
-      const requestId = uuid()
-      await services.pendingRequests.addPendingRequest('createWallet', requestId)
+      const requestId = await services.pendingRequests.addPendingRequest('createWallet')
       issueWallet(requestId)
     }
   } catch (e) {

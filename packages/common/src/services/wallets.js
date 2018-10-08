@@ -4,7 +4,6 @@ const context = require('../context')
 const blockchain = require('../utils/blockchain')
 const {getAccountTokenBalance} = require('./blockchain/tokenTracker')
 const {addPendingRequest} = require('./pendingRequests')
-const uuid = require('uuid')
 const {isWalletAssignedOnBlockchain} = require('./blockchain/smartWallets')
 const {errors: {logError}} = require('stox-common')
 
@@ -55,15 +54,12 @@ const getUnassignedWallet = async () => {
   return wallet
 }
 
-const sendSetWithdrawalAddressRequest = async (depositAddress, withdrawAddress) => {
-  const id = uuid()
-  await addPendingRequest('setWithdrawalAddress', id)
+const sendSetWithdrawalAddressRequest = (id, depositAddress, withdrawAddress) => {
   mq.publish('incoming-requests', {
     id,
     data: {walletAddress: depositAddress, userWithdrawalAddress: withdrawAddress},
     type: 'setWithdrawalAddress',
   })
-  return id
 }
 
 const createWallet = async (address) => {
@@ -103,7 +99,8 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
     if (!isUpdated[0]) {
       throw new UnexpectedError(`address ${wallet.address}  is already assigned on blockchain`)
     }
-    const requestId = await sendSetWithdrawalAddressRequest(wallet.address, withdrawAddress)
+    const requestId = await addPendingRequest('setWithdrawalAddress')
+    await sendSetWithdrawalAddressRequest(requestId, wallet.address, withdrawAddress)
     context.logger.info({wallet: wallet.dataValues, requestId}, 'ASSIGNED')
     return wallet
   } catch (e) {
