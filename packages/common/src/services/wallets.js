@@ -64,14 +64,12 @@ const sendSetWithdrawalAddressRequest = (id, depositAddress, withdrawAddress) =>
 
 const createWallet = async (address) => {
   const {network} = config
-  db.wallets.create(
-    {
-      id: `${network}.${address}`,
-      address,
-      network,
-      version: 2,
-    },
-  )
+  db.wallets.create({
+    id: `${network}.${address}`,
+    address,
+    network,
+    version: 2,
+  })
   context.logger.info({address}, 'CREATED_NEW_WALLET')
 }
 
