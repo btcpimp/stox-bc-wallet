@@ -1,10 +1,16 @@
 const {db} = require('../context')
+const context = require('../context')
 const {errors: {logError}} = require('stox-common')
+const uuid = require('uuid')
 
 const getCountByType = async type => db.pendingRequests.count({where: {type}})
 
-const addPendingRequest = async (type, requestId) =>
-  db.pendingRequests.create({type, requestId})
+const addPendingRequest = async (type) => {
+  const requestId = uuid()
+  const request = await db.pendingRequests.create({type, requestId})
+  context.logger.info({newDbRequest: request.dataValues}, 'NEW_PENDING_REQUEST_RECORD')
+  return requestId
+}
 
 const finishPendingRequest = async (requestId) => {
   const destroyedCount = await db.pendingRequests.destroy({where: {requestId}})
