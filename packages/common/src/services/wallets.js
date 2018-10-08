@@ -64,14 +64,12 @@ const sendSetWithdrawalAddressRequest = (id, depositAddress, withdrawAddress) =>
 
 const createWallet = async (address) => {
   const {network} = config
-  db.wallets.create(
-    {
-      id: `${network}.${address}`,
-      address,
-      network,
-      version: 2,
-    },
-  )
+  db.wallets.create({
+    id: `${network}.${address}`,
+    address,
+    network,
+    version: 2,
+  })
   context.logger.info({address}, 'CREATED_NEW_WALLET')
 }
 
@@ -99,8 +97,6 @@ const assignWallet = async (withdrawAddress, times = 1, max = 10) => {
     if (!isUpdated[0]) {
       throw new UnexpectedError(`address ${wallet.address}  is already assigned on blockchain`)
     }
-    context.logger.info({wallet: wallet.dataValues}, 'debug_before_adding_to_db')
-
     const requestId = await addPendingRequest('setWithdrawalAddress')
     await sendSetWithdrawalAddressRequest(requestId, wallet.address, withdrawAddress)
     context.logger.info({wallet: wallet.dataValues, requestId}, 'ASSIGNED')
