@@ -68,8 +68,3 @@ typings/
 id_rsa
 package-lock.json
 *.package-lock.json
-
-# ignore pipeline and deployment scripts
-
-/bitbucket-pipelines.yml
-/scripts

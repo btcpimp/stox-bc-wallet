@@ -1,0 +1,57 @@
+{
+  "family": "dev-wallets-api",
+  "volumes": [],
+  "networkMode": "awsvpc",
+  "memory": "512",
+  "cpu": "256",
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "containerDefinitions": [
+    {
+      "name": "dev-wallets-api",
+      "image": "",
+      "memoryReservation": 512,
+      "cpu": 256,
+      "essential": true,
+      "portMappings": [
+        {
+          "hostPort": 3001,
+          "protocol": "tcp",
+          "containerPort": 3001
+        }
+      ],
+      "command": [
+        "npm",
+        "run",
+        "serve",
+        "--prefix",
+        "packages/wallets-api"
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "dev"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-west-1"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "dev-wallets-manager-logs",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "wallets-api"
+        }
+      },
+      "dockerLabels": {
+        "SUB-SYSTEM": "wallet-manager",
+        "Environment": "dev",
+        "SERVICE": "wallets-api"
+      }
+    }
+  ]
+}
