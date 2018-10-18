@@ -1,17 +1,16 @@
 {
-  "family": "dev-wallets-set-withdrawal-monitor",
+  "family": "stg-user-withdraw-requested",
   "volumes": [],
   "networkMode": "awsvpc",
   "memory": "512",
   "cpu": "256",
   "placementConstraints": [],
-  "taskRoleArn": "arn:aws:iam::213027447169:role/ECS_DEV_Allow_SSM_Access",
   "requiresCompatibilities": [
     "EC2"
   ],
   "containerDefinitions": [
     {
-      "name": "dev-wallets-set-withdrawal-monitor",
+      "name": "stg-user-withdraw-requested",
       "image": "",
       "memoryReservation": 512,
       "cpu": 256,
@@ -22,12 +21,12 @@
         "run",
         "serve",
         "--prefix",
-        "packages/wallets-set-withdrawal-monitor"
+        "packages/user-withdraw-requested"
       ],
       "environment": [
         {
           "name": "NODE_ENV",
-          "value": "dev"
+          "value": "stg"
         },
         {
           "name": "AWS_REGION",
@@ -37,15 +36,15 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "dev-wallets-manager-logs",
+          "awslogs-group": "stg-wallets-manager-logs",
           "awslogs-region": "eu-west-1",
-          "awslogs-stream-prefix": "wallets-set-withdrawal-monitor"
+          "awslogs-stream-prefix": "user-withdraw-requested"
         }
       },
       "dockerLabels": {
         "SUB-SYSTEM": "wallet-manager",
-        "Environment": "dev",
-        "SERVICE": "wallets-set-withdrawal-monitor"
+        "Environment": "stg",
+        "SERVICE": "user-withdraw-requested"
       }
     }
   ]

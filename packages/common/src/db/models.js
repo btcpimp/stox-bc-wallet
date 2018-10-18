@@ -1,6 +1,6 @@
 const {DataTypes} = require('sequelize')
 
-const {STRING, DATE, DECIMAL, SMALLINT, INTEGER, BIGINT, JSON} = DataTypes
+const {STRING, DATE, DECIMAL, SMALLINT, INTEGER, BIGINT, JSON, UUID} = DataTypes
 const AMOUNT = DECIMAL(36, 18)
 const ADDRESS = STRING(42)
 const TRANSACTION_HASH = STRING(66)
@@ -33,6 +33,8 @@ module.exports = (sequelize) => {
       corruptedAt: {type: DATE},
       version: {type: SMALLINT, allowNull: false},
       updatedAt: {type: DATE, allowNull: false},
+      selfWithdrawRequestedAt: {type: DATE},
+      selfWithdrawAllowedAt: {type: DATE},
     },
     {
       indexes: [
@@ -81,10 +83,10 @@ module.exports = (sequelize) => {
   TokenTransfer.belongsTo(Token)
   Token.hasMany(TokenTransfer)
 
-  const TokensTransfersRead = sequelize.define(
-    'tokensTransfersReads',
+  sequelize.define(
+    'contractsTrackingData',
     {
-      tokenId: {type: STRING(256), primaryKey: true, references: {model: 'tokens', key: 'id'}},
+      contractId: {type: STRING(256), primaryKey: true},
       lastReadBlockNumber: {type: BIGINT, defaultValue: 0, allowNull: false},
     },
     {
@@ -92,17 +94,15 @@ module.exports = (sequelize) => {
       updatedAt: false,
     }
   )
-  TokensTransfersRead.belongsTo(Token)
-  Token.hasOne(TokensTransfersRead)
 
   sequelize.define(
     'pendingRequests',
     {
-      type: {type: STRING(30), primaryKey: true},
-      count: {type: INTEGER, defaultValue: 0, allowNull: false},
+      requestId: {type: UUID, primaryKey: true, allowNull: false},
+      type: {type: STRING(30), allowNull: false},
     },
     {
-      createdAt: false,
+      updatedAt: false,
     }
   )
 

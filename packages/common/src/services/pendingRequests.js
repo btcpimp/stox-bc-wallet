@@ -1,19 +1,20 @@
 const {db} = require('../context')
-const {exceptions: {NotFoundError}} = require('@welldone-software/node-toolbelt')
+const {errors: {logError}} = require('stox-common')
+const uuid = require('uuid')
 
-const getPendingRequests = async (type) => {
-  const pendingRequests = await db.pendingRequests.findOne({where: {type}})
-  if (!pendingRequests) {
-    throw new NotFoundError('pending requests not found', {type})
+const getCountByType = async type => db.pendingRequests.count({where: {type}})
+
+const addPendingRequest = async (type) => {
+  const requestId = uuid()
+  await db.pendingRequests.create({type, requestId})
+  return requestId
+}
+
+const finishPendingRequest = async (requestId) => {
+  const destroyedCount = await db.pendingRequests.destroy({where: {requestId}})
+  if (!destroyedCount) {
+    logError({requestId}, 'PENDING_REQUEST_NOT_FOUND')
   }
-  return pendingRequests
 }
 
-const addPendingRequests = async (type, count) => {
-  const pendingRequests = await getPendingRequests(type)
-  const newCount = pendingRequests.count + count
-  await pendingRequests.updateAttributes({count: newCount})
-  return newCount
-}
-
-module.exports = {getPendingRequests, addPendingRequests}
+module.exports = {getCountByType, addPendingRequest, finishPendingRequest}

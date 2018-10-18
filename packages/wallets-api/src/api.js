@@ -1,5 +1,9 @@
 const {port} = require('config')
-const {services: {wallets, tokensBalances, blockchain, tokens, accounts}} = require('stox-bc-wallet-common')
+const {
+  services: {
+    accounts, wallets, tokensBalances, blockchain: {smartWallets, tokenTracker}, tokens,
+  },
+} = require('stox-bc-wallet-common')
 
 module.exports = {
   port,
@@ -8,10 +12,6 @@ module.exports = {
     router.get(
       '/tokenAddress',
       _(({query: {token}}) => tokens.getTokenAddress(token))
-    )
-    router.get(
-      '/getAccountBalanceInEther',
-      _(({query: {accountAddress}}) => accounts.getAccountBalanceInEther(accountAddress))
     )
     router.get(
       '/wallets/unassigned/count',
@@ -35,7 +35,7 @@ module.exports = {
     )
     router.get(
       '/wallets/withdrawalAddress',
-      _(({query: {address}}) => blockchain.smartWallets.getWithdrawalAddress(address))
+      _(({query: {address}}) => smartWallets.getWithdrawalAddress(address))
     )
     router.get(
       '/wallets/blockchainBalance',
@@ -44,32 +44,56 @@ module.exports = {
     router.get(
       '/abi/setWithdrawalAddress',
       _(({query: {walletAddress, userWithdrawalAddress}}) =>
-        blockchain.smartWallets.encodeAbiForSetWithdrawalAddress(walletAddress, userWithdrawalAddress))
+        smartWallets.encodeAbiForSetWithdrawalAddress(walletAddress, userWithdrawalAddress))
     )
     router.get(
       '/abi/withdraw',
-      _(({query: {walletAddress, tokenAddress, amount, feeTokenAddress, fee}}) =>
-        blockchain.smartWallets.encodeAbiForWithdraw(walletAddress, tokenAddress, amount, feeTokenAddress, fee))
+      _(({query: {walletAddress, tokenAddress, amount}}) =>
+        smartWallets.encodeAbiForWithdraw(walletAddress, tokenAddress, amount))
     )
     router.get(
       '/abi/transferToBackup',
       _(({query: {walletAddress, tokenAddress, amount}}) =>
-        blockchain.smartWallets.encodeAbiForTransferToBackup(walletAddress, tokenAddress, amount))
+        smartWallets.encodeAbiForTransferToBackup(walletAddress, tokenAddress, amount))
     )
     router.get(
       '/abi/createWallet',
       _(() =>
-        blockchain.smartWallets.encodeAbiForCreateWallet())
+        smartWallets.encodeAbiForCreateWallet())
     )
     router.get(
       '/abi/sendPrize',
       _(({query: {prizeReceiverAddress, tokenAddress, amount, prizeDistributorAddress}}) =>
-        blockchain.smartWallets.encodeAbiForSendPrize(
+        smartWallets.encodeAbiForSendPrize(
           prizeReceiverAddress,
           tokenAddress,
           amount,
           prizeDistributorAddress,
         ))
+    )
+    router.get(
+      '/abi/sendExternalPrize',
+      _(({query: {userStoxWalletAddress, tokenAddress, amount, prizeDistributorAddress}}) =>
+        smartWallets.encodeAbiForSendExternalPrize(
+          userStoxWalletAddress,
+          tokenAddress,
+          amount,
+          prizeDistributorAddress,
+        ))
+    )
+    router.post(
+      '/estimateTokenTransfer',
+      _(({body: {tokenAddresses, from, priority}}) =>
+        tokenTracker.estimateTokenTransfer({tokenAddresses, from, priority}))
+    )
+    router.post(
+      '/accountBalance',
+      _(({body: {accountAddress, tokenAddresses}}) =>
+        accounts.getAccountBalance({accountAddress, tokenAddresses}))
+    )
+    router.get(
+      '/wallets/isWalletAssigned',
+      _(({query: {walletAddress}}) => smartWallets.isWalletAssignedOnBlockchain(walletAddress))
     )
   },
 }

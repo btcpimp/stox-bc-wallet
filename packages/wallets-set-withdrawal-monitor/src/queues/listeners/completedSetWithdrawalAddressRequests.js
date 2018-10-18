@@ -1,13 +1,23 @@
 const {
   context,
-  services: {wallets},
+  services: {wallets, pendingRequests},
 } = require('stox-bc-wallet-common')
 
 module.exports = async ({body: completedRequest}) => {
-  if (!completedRequest.error) {
-    const wallet = await wallets.getWalletByAddress(completedRequest.data.walletAddress)
-    await wallets.updateWallet(wallet, {setWithdrawAddressAt: Date.now()})
+  await pendingRequests.finishPendingRequest(completedRequest.id)
+  if (completedRequest.error) {
+    context.logger.error(
+      {
+        transactions: completedRequest.transactions.map(transaction => transaction.transactionHash),
+        requestId: completedRequest.id},
+      'ERROR_SET_WITHDRAWAL_ADDRESS'
+    )
   } else {
-    context.logger.error({requestId: completedRequest.id}, 'ERROR_SET_WITHDRAWAL_ADDRESS')
+    const wallet = await wallets.getWalletByAddress(completedRequest.data.walletAddress)
+    await wallet.updateAttributes({setWithdrawAddressAt: new Date()})
+    context.mq.publish('bc-assigned-wallets', {
+      walletAddress: wallet.address,
+    })
+    context.logger.info(completedRequest.id, 'SET_WITHDRAWAL_ADDRESS_SUCCESSFULLY')
   }
 }
